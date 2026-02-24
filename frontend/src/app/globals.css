@@ -1,0 +1,168 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+
+  --bg: 12 12 14;
+  --panel: 16 16 20;
+  --text: 244 239 232;
+  --muted: 185 178 170;
+  --border: 255 255 255;
+  --accent: 56 234 255; /* electric cyan (single accent) */
+
+  /* Back-compat aliases (keeps existing Tailwind usage unchanged) */
+  --bg2: var(--panel);
+  --fg: var(--text);
+  --line: var(--border);
+}
+
+html,
+body {
+  height: 100%;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-sans), ui-sans-serif, system-ui, -apple-system,
+    Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+  background: rgb(var(--bg));
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+::selection {
+  background: rgba(var(--accent) / 0.25);
+}
+
+@layer base {
+  .app-surface {
+    min-height: 100vh;
+    position: relative;
+    overflow-x: clip;
+    color: rgb(var(--text));
+    background: radial-gradient(
+        1200px 800px at 80% 20%,
+        rgba(var(--accent) / 0.14),
+        transparent 55%
+      ),
+      radial-gradient(
+        900px 700px at 15% 10%,
+        rgba(var(--border) / 0.06),
+        transparent 55%
+      ),
+      linear-gradient(180deg, rgb(var(--panel)), rgb(var(--bg)));
+  }
+
+  .app-noise {
+    pointer-events: none;
+    position: fixed;
+    inset: 0;
+    opacity: 0.06;
+    mix-blend-mode: overlay;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.7' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)' opacity='.65'/%3E%3C/svg%3E");
+    background-size: 160px 160px;
+  }
+
+  html.ai-mode .app-surface::before {
+    content: "";
+    pointer-events: none;
+    position: fixed;
+    inset: 0;
+    z-index: 1;
+    background:
+      radial-gradient(900px 560px at 78% 18%, rgba(var(--accent) / 0.16), transparent 62%),
+      radial-gradient(700px 520px at 16% 84%, rgba(167 139 250 / 0.12), transparent 62%);
+    mix-blend-mode: screen;
+    opacity: 0.48;
+    animation: aiPulse 5.8s cubic-bezier(0.16, 1, 0.3, 1) infinite;
+  }
+}
+
+@keyframes aiPulse {
+  0%,
+  100% {
+    opacity: 0.34;
+  }
+  50% {
+    opacity: 0.56;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html:focus-within {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Robot idle (mobile / no cursor) */
+@keyframes robotIdle {
+  0% {
+    transform: rotate(-1.2deg) translateY(0px);
+  }
+  50% {
+    transform: rotate(1.2deg) translateY(-2px);
+  }
+  100% {
+    transform: rotate(-1.2deg) translateY(0px);
+  }
+}
+
+@keyframes robotBlink {
+  0%,
+  92%,
+  100% {
+    transform: scaleY(1);
+  }
+  95% {
+    transform: scaleY(0.12);
+  }
+}
+
+.robot-idle {
+  animation: robotIdle 6.5s ease-in-out infinite;
+  transform-origin: 50% 55%;
+}
+
+.robot-blink {
+  animation: robotBlink 5.8s ease-in-out infinite;
+  transform-origin: 50% 50%;
+}
+
+@keyframes pageEnter {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+main {
+  animation: pageEnter 520ms cubic-bezier(0.22, 1, 0.36, 1);
+}
