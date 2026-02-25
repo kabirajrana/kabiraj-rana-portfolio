@@ -10,7 +10,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { ArrowUp, Github, Linkedin, Mail, X } from "lucide-react";
 
 import { NAV_ITEMS } from "@/lib/constants";
-import { useActiveSection, type ActiveSectionId } from "@/lib/hooks/useActiveSection";
+import type { ActiveSectionId } from "@/lib/hooks/useActiveSection";
 import { useScrollDirection } from "@/lib/hooks/useScrollDirection";
 import { cn } from "@/lib/utils";
 
@@ -24,11 +24,6 @@ export default function Navbar() {
   const [hash, setHash] = useState<string>("");
 
   const { hidden, scrolled } = useScrollDirection({ threshold: 8, topOffset: 24, scrolledOffset: 8 });
-  const sectionIds = useMemo<ActiveSectionId[]>(
-    () => ["home", "about", "projects", "experience", "contact"],
-    []
-  );
-  const activeSection = useActiveSection(sectionIds, { topOffset: 96 });
 
   useEffect(() => {
     const update = () => setHash(window.location.hash || "");
@@ -36,6 +31,10 @@ export default function Navbar() {
     window.addEventListener("hashchange", update);
     return () => window.removeEventListener("hashchange", update);
   }, []);
+
+  useEffect(() => {
+    setHash(window.location.hash || "");
+  }, [pathname]);
 
   useEffect(() => {
     const setNavHeight = () => {
@@ -53,18 +52,23 @@ export default function Navbar() {
   }, [pathname]);
 
   const items = useMemo(() => NAV_ITEMS, []);
-  const year = new Date().getFullYear();
-
   const activeId = useMemo<ActiveSectionId>(() => {
-    if (pathname === "/") return activeSection;
+    const hashId = hash.replace("#", "") as ActiveSectionId;
 
-    const currentHash = hash.replace("#", "");
-    if (pathname === "/about" && currentHash === "experience") return "experience";
-    if (pathname === "/about") return activeSection === "experience" ? "experience" : "about";
+    if (pathname === "/") {
+      if (["about", "projects", "experience", "contact"].includes(hashId)) {
+        return hashId;
+      }
+      return "home";
+    }
+
+    if (pathname === "/about" && hashId === "experience") return "experience";
+    if (pathname === "/about") return "about";
+    if (pathname === "/experience") return "experience";
     if (pathname.startsWith("/projects")) return "projects";
     if (pathname === "/contact") return "contact";
     return "home";
-  }, [activeSection, hash, pathname]);
+  }, [hash, pathname]);
 
   const getSectionId = (item: { label: string; href: string }): ActiveSectionId => {
     if (item.label === "Home") return "home";
@@ -79,6 +83,7 @@ export default function Navbar() {
     if (pathname === "/") {
       const id = getSectionId(item);
       if (id === "about") return "/about";
+      if (id === "experience") return "/experience";
       return id === "home" ? "/" : `/#${id}`;
     }
     // On other pages, preserve the existing routes.
@@ -146,7 +151,14 @@ export default function Navbar() {
           )}
           aria-label="Primary"
         >
-          <Link href="/" className="inline-flex items-center gap-3 self-center" onClick={onNavClick}>
+          <Link
+            href="/"
+            className="inline-flex items-center gap-3 self-center"
+            onClick={() => {
+              setHash("");
+              onNavClick();
+            }}
+          >
             <span
               className={cn(
                 "h-10 w-10 md:h-12 md:w-12",
@@ -187,7 +199,7 @@ export default function Navbar() {
                     href={href}
                     aria-current={active ? "page" : undefined}
                     onClick={(e) => {
-                      if (pathname === "/" && id !== "about") {
+                      if (pathname === "/" && id !== "about" && id !== "experience") {
                         onSectionNavClick(e, id);
                         return;
                       }
@@ -334,7 +346,7 @@ export default function Navbar() {
                           <Link
                             href={href}
                             onClick={(e) => {
-                              if (pathname === "/") {
+                              if (pathname === "/" && id !== "about" && id !== "experience") {
                                 onSectionNavClick(e, id);
                                 return;
                               }

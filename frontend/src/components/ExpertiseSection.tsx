@@ -17,6 +17,7 @@ import type { LucideIcon } from "lucide-react";
 import { motion } from "framer-motion";
 
 const ease: [number, number, number, number] = [0.16, 1, 0.3, 1];
+const progressEase: [number, number, number, number] = [0.22, 1, 0.36, 1];
 
 const skills = [
   { name: "Python", level: 95 },
@@ -161,15 +162,36 @@ export default function ExpertiseSection() {
                       initial={{ width: 0 }}
                       whileInView={{ width: `${skill.level}%` }}
                       viewport={{ once: true, amount: 0.45 }}
-                      transition={{ duration: 0.9, ease, delay: index * 0.1 }}
-                      className="absolute inset-y-0 left-0 rounded-full bg-gradient-to-r from-cyan-300/35 via-sky-300/30 to-indigo-300/25"
+                      transition={{ duration: 1.15, ease: progressEase, delay: 0.14 + index * 0.08 }}
+                      style={{ willChange: "width" }}
+                      className="absolute inset-y-0 left-0 rounded-full bg-gradient-to-r from-cyan-300/45 via-sky-300/40 to-indigo-300/35"
                     >
-                      <span className="absolute right-0 top-1/2 h-2 w-2 -translate-y-1/2 translate-x-1/2 rounded-full border border-white/20 bg-cyan-100/55" />
+                      <motion.span
+                        className="absolute right-0 top-1/2 h-2.5 w-2.5 -translate-y-1/2 translate-x-1/2 rounded-full border border-white/25 bg-cyan-100/70"
+                        initial={{ scale: 0.86, opacity: 0.45 }}
+                        whileInView={{ scale: [0.86, 1.08, 0.95], opacity: [0.45, 0.85, 0.62] }}
+                        viewport={{ once: true, amount: 0.45 }}
+                        transition={{
+                          duration: 1.6,
+                          ease: progressEase,
+                          delay: 0.4 + index * 0.08,
+                          repeat: Infinity,
+                          repeatType: "mirror",
+                        }}
+                      />
                       <motion.span
                         aria-hidden="true"
-                        animate={{ x: ["-45%", "140%"] }}
-                        transition={{ duration: 3.2, ease, repeat: Infinity, repeatDelay: 0.8 }}
-                        className="absolute inset-y-0 w-8 bg-white/20 blur-[3px]"
+                        initial={{ x: "-65%", opacity: 0 }}
+                        whileInView={{ x: "165%", opacity: [0, 0.58, 0] }}
+                        viewport={{ once: true, amount: 0.45 }}
+                        transition={{
+                          duration: 2.8,
+                          ease: progressEase,
+                          delay: 0.34 + index * 0.08,
+                          repeat: Infinity,
+                          repeatDelay: 1.05,
+                        }}
+                        className="absolute inset-y-0 w-10 bg-white/25 blur-[4px]"
                       />
                     </motion.span>
                   </div>

@@ -9,6 +9,7 @@ import BackToTop from "@/components/common/BackToTop";
 import ContextMenu from "@/components/ContextMenu";
 import EasterEggOverlay from "@/components/EasterEggOverlay";
 import Footer from "@/components/layout/Footer";
+import PageTransition from "@/components/PageTransition";
 import Preloader from "@/components/Preloader";
 import { UIProvider } from "@/components/UIProvider";
 import { SITE } from "@/lib/constants";
@@ -42,7 +43,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
             <Preloader />
             <ContextMenu />
             <EasterEggOverlay />
-            {children}
+            <PageTransition>{children}</PageTransition>
             <Footer />
             <BackToTop />
           </div>

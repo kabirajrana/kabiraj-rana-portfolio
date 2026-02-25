@@ -269,7 +269,7 @@ export default function AboutPage() {
               </div>
             </motion.aside>
 
-            <section className="order-2 scroll-mt-[calc(var(--nav-h,80px)+1rem)] space-y-10">
+            <section id="experience" className="order-2 scroll-mt-[calc(var(--nav-h,80px)+1rem)] space-y-10">
               <motion.header
                 initial={{ opacity: 0, y: 16 }}
                 whileInView={{ opacity: 1, y: 0 }}
