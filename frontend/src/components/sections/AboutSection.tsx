@@ -126,6 +126,7 @@ export default function AboutSection() {
                       src={photoSrc}
                       alt="Kabiraj Rana"
                       fill
+                      sizes="220px"
                       onError={() => setPhotoSrc(profileImageFallback)}
                       className="rounded-full object-cover object-[center_22%]"
                       priority

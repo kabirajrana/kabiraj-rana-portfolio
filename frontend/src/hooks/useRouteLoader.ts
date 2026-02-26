@@ -2,8 +2,6 @@
 
 import { useEffect, useRef, useState } from "react";
 
-import { useReducedMotion } from "framer-motion";
-
 type UseRouteLoaderOptions = {
   initialMinMs?: number;
   transitionMinMs?: number;
@@ -31,7 +29,7 @@ function mapProgress(t: number) {
 }
 
 export function useRouteLoader(options?: UseRouteLoaderOptions) {
-  const prefersReducedMotion = useReducedMotion();
+  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
 
   const initialMinMs = options?.initialMinMs ?? 900;
 
@@ -40,6 +38,18 @@ export function useRouteLoader(options?: UseRouteLoaderOptions) {
   const [stepIndex, setStepIndex] = useState(0);
 
   const rafRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const handleChange = () => setPrefersReducedMotion(mediaQuery.matches);
+
+    handleChange();
+    mediaQuery.addEventListener("change", handleChange);
+
+    return () => mediaQuery.removeEventListener("change", handleChange);
+  }, []);
 
   useEffect(() => {
     const minMs = initialMinMs;

@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 
-import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 
 type EggMode = "AI" | "ML" | "KABI";
@@ -462,7 +462,7 @@ function KabiOverlay({ reducedMotion, onOpenAbout }: { reducedMotion: boolean; o
 
 export default function EasterEggOverlay() {
   const router = useRouter();
-  const prefersReducedMotion = useReducedMotion();
+  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
   const [overlay, setOverlay] = useState<OverlayState>({ mode: null, visible: false, token: 0 });
   const [isHydrated, setIsHydrated] = useState(false);
 
@@ -474,6 +474,18 @@ export default function EasterEggOverlay() {
 
   useEffect(() => {
     setIsHydrated(true);
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const handleChange = () => setPrefersReducedMotion(mediaQuery.matches);
+
+    handleChange();
+    mediaQuery.addEventListener("change", handleChange);
+
+    return () => mediaQuery.removeEventListener("change", handleChange);
   }, []);
 
   const closeOverlay = () => {

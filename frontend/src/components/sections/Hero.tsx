@@ -42,8 +42,7 @@ export default function Hero() {
             transition={{ duration: 0.6, delay: 0.12, ease: [0.2, 0.8, 0.2, 1] }}
             className="mt-5 text-sm font-medium tracking-wide text-[rgb(var(--fg))] md:text-base"
           >
-            <span className="text-[rgb(var(--accent))]">AI/ML Student</span> • Full‑Stack
-            Developer • Data Science Enthusiast
+            <span className="text-[rgb(var(--accent))]">Aspiring AI/ML Engineer</span> • Applied Machine Learning • Scalable AI Systems
           </motion.p>
 
           <motion.p

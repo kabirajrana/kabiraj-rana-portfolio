@@ -1,16 +1,21 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { motion } from "framer-motion";
 import { Clock3, Github, Linkedin, Mail, MapPin } from "lucide-react";
 
 import Navbar from "@/components/layout/Navbar";
+import { apiFetch } from "@/lib/api";
 
 const ease: [number, number, number, number] = [0.16, 1, 0.3, 1];
+const MIN_MESSAGE_LENGTH = 10;
+const SEND_TIMEOUT_MS = 15000;
+const SUCCESS_NOTICE_DURATION_MS = 2200;
 
-type Status = "idle" | "sent";
+type Status = "idle" | "sending" | "sent" | "error";
+const SUCCESS_NOTICE = "Thanks for reaching out. I’ll get back to you within 24 hours.";
 
 export default function ContactPage() {
   const [name, setName] = useState("");
@@ -18,13 +23,66 @@ export default function ContactPage() {
   const [subject, setSubject] = useState("");
   const [message, setMessage] = useState("");
   const [status, setStatus] = useState<Status>("idle");
+  const [notice, setNotice] = useState("");
 
-  const canSubmit = useMemo(() => email.trim().length > 0 && message.trim().length > 0, [email, message]);
+  const canSubmit = useMemo(
+    () => status !== "sending" && email.trim().length > 0 && message.trim().length >= MIN_MESSAGE_LENGTH,
+    [email, message, status]
+  );
 
-  function onSubmit(e: React.FormEvent<HTMLFormElement>) {
+  useEffect(() => {
+    if (status !== "sent") return;
+
+    const timerId = window.setTimeout(() => {
+      setStatus("idle");
+      setNotice("");
+    }, SUCCESS_NOTICE_DURATION_MS);
+
+    return () => window.clearTimeout(timerId);
+  }, [status]);
+
+  async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     if (!canSubmit) return;
-    setStatus("sent");
+
+    setStatus("sending");
+    setNotice("");
+
+    const timeoutMessage = "Request timed out. Please check your connection and try again.";
+    const controller = new AbortController();
+    const timeoutId = window.setTimeout(() => controller.abort(), SEND_TIMEOUT_MS);
+
+    try {
+      const response = await apiFetch("/contact", {
+        method: "POST",
+        signal: controller.signal,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: name || undefined,
+          email,
+          subject: subject || undefined,
+          body: message,
+        }),
+      });
+
+      await response.json();
+      setStatus("sent");
+      setNotice(SUCCESS_NOTICE);
+      setName("");
+      setEmail("");
+      setSubject("");
+      setMessage("");
+    } catch (error) {
+      setStatus("error");
+      const fallback = "Message could not be sent right now. Please try again in a few minutes.";
+      if (error instanceof DOMException && error.name === "AbortError") {
+        setNotice(timeoutMessage);
+      } else {
+        setNotice(error instanceof Error ? error.message : fallback);
+      }
+    } finally {
+      window.clearTimeout(timeoutId);
+    }
   }
 
   return (
@@ -126,7 +184,7 @@ export default function ContactPage() {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     className="h-11 rounded-xl border border-white/10 bg-black/25 px-3 text-sm text-[rgb(var(--fg))] outline-none placeholder:text-white/30 transition-all focus:border-white/20 focus:ring-2 focus:ring-white/15"
-                    placeholder="you@domain.com"
+                    placeholder="your.email@example.com"
                     autoComplete="email"
                     inputMode="email"
                     required
@@ -139,7 +197,7 @@ export default function ContactPage() {
                     value={subject}
                     onChange={(e) => setSubject(e.target.value)}
                     className="h-11 rounded-xl border border-white/10 bg-black/25 px-3 text-sm text-[rgb(var(--fg))] outline-none placeholder:text-white/30 transition-all focus:border-white/20 focus:ring-2 focus:ring-white/15"
-                    placeholder="Project scope, internship, or collaboration"
+                    placeholder="Project or Collaboration Inquiry"
                   />
                 </label>
 
@@ -148,13 +206,14 @@ export default function ContactPage() {
                   <textarea
                     value={message}
                     onChange={(e) => setMessage(e.target.value)}
+                    minLength={MIN_MESSAGE_LENGTH}
                     className="min-h-36 resize-y rounded-xl border border-white/10 bg-black/25 px-3 py-3 text-sm text-[rgb(var(--fg))] outline-none placeholder:text-white/30 transition-all focus:border-white/20 focus:ring-2 focus:ring-white/15"
-                    placeholder="Tell me what you’re building and what success looks like."
+                    placeholder="Describe your project, objectives, and desired impact."
                     required
                   />
                 </label>
 
-                <p className="text-xs text-[rgb(var(--muted))]">Typical reply: within 24–48 hours.</p>
+                <p className="text-xs text-[rgb(var(--muted))]">Typical reply: within 24–48 hours. Message must be at least 10 characters.</p>
 
                 <div className="flex items-center justify-between gap-4 pt-1">
                   <button
@@ -162,13 +221,19 @@ export default function ContactPage() {
                     disabled={!canSubmit}
                     className="inline-flex rounded-full border border-white/12 bg-white/[0.06] px-5 py-2.5 text-sm text-[rgb(var(--fg))] transition-all hover:border-white/20 hover:bg-white/[0.09] disabled:cursor-not-allowed disabled:opacity-50"
                   >
-                    Send Message →
+                    {status === "sending" ? "Sending..." : "Send Message →"}
                   </button>
                 </div>
 
-                {status === "sent" ? (
-                  <p className="rounded-xl border border-white/10 bg-white/[0.03] px-3 py-2 text-sm text-[rgb(var(--muted))]">
-                    Message prepared (demo).
+                {notice ? (
+                  <p
+                    className={
+                      status === "sent"
+                        ? "rounded-xl border border-cyan-300/20 bg-cyan-200/[0.08] px-3 py-2 text-sm text-cyan-100"
+                        : "rounded-xl border border-rose-300/20 bg-rose-300/[0.08] px-3 py-2 text-sm text-rose-100"
+                    }
+                  >
+                    {notice}
                   </p>
                 ) : null}
               </form>
@@ -242,7 +307,7 @@ export default function ContactPage() {
               <div className="relative">
                 <p className="text-sm font-medium text-[rgb(var(--fg))]">Available for opportunities</p>
                 <p className="mt-2 text-sm leading-relaxed text-[rgb(var(--muted))]">
-                  Open to internships, collaboration, and ambitious AI/ML products.
+                  Open to collaboration and ambitious AI/ML products.
                 </p>
               </div>
             </div>

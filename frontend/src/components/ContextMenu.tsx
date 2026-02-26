@@ -17,7 +17,7 @@ import {
   UserRound,
   Wrench,
 } from "lucide-react";
-import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { usePathname, useRouter } from "next/navigation";
 
 import { useUIEffects } from "@/components/UIProvider";
@@ -80,7 +80,7 @@ export default function ContextMenu() {
   const router = useRouter();
   const pathname = usePathname();
   const { triggerFireworks } = useUIEffects();
-  const prefersReducedMotion = useReducedMotion();
+  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
 
   const [isHydrated, setIsHydrated] = useState(false);
   const [visible, setVisible] = useState(false);
@@ -99,6 +99,18 @@ export default function ContextMenu() {
     const existingMode = window.localStorage.getItem("kr_ai_mode") === "1";
     setAiMode(existingMode);
     document.documentElement.classList.toggle("ai-mode", existingMode);
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const handleChange = () => setPrefersReducedMotion(mediaQuery.matches);
+
+    handleChange();
+    mediaQuery.addEventListener("change", handleChange);
+
+    return () => mediaQuery.removeEventListener("change", handleChange);
   }, []);
 
   const closeMenu = () => setVisible(false);
@@ -225,7 +237,7 @@ export default function ContextMenu() {
         ],
       },
     ],
-    [aiMode, navItems, pathname, router]
+    [aiMode, navItems, pathname, router, triggerFireworks]
   );
 
   useEffect(() => {
@@ -252,7 +264,8 @@ export default function ContextMenu() {
     const onPointerDown = (event: PointerEvent) => {
       const menuNode = menuRef.current;
       if (!menuNode) return;
-      if (event.target instanceof Node && !menuNode.contains(event.target)) {
+      const target = event.target;
+      if (!(target instanceof Element) || !menuNode.contains(target)) {
         closeMenu();
       }
     };

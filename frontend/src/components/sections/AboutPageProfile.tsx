@@ -4,7 +4,9 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 
-import { motion, useReducedMotion, useScroll, useTransform } from "framer-motion";
+import { motion, useScroll, useTransform } from "framer-motion";
+
+import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
 
 const profilePhotoPrimary = "/images/my-photo.jpg";
 const profilePhotoFallback = "/images/kabiraj-logo.png";
@@ -62,7 +64,7 @@ const certifications = [
 
 function Counter({ target, suffix = "" }: { target: number; suffix?: string }) {
   const [value, setValue] = useState(0);
-  const shouldReduceMotion = useReducedMotion();
+  const shouldReduceMotion = usePrefersReducedMotion();
 
   useEffect(() => {
     if (shouldReduceMotion) {
@@ -94,7 +96,7 @@ function Counter({ target, suffix = "" }: { target: number; suffix?: string }) {
 }
 
 export default function AboutPageProfile() {
-  const shouldReduceMotion = useReducedMotion();
+  const shouldReduceMotion = usePrefersReducedMotion();
   const [photoSrc, setPhotoSrc] = useState(profilePhotoPrimary);
   const [activeJourney, setActiveJourney] = useState(0);
   const journeyRef = useRef<HTMLDivElement | null>(null);

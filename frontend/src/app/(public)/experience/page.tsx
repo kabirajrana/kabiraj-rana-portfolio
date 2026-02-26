@@ -2,8 +2,9 @@
 
 import { useEffect, useState } from "react";
 
-import { motion, useReducedMotion } from "framer-motion";
+import { motion } from "framer-motion";
 
+import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
 import Navbar from "@/components/layout/Navbar";
 
 const ease: [number, number, number, number] = [0.22, 1, 0.36, 1];
@@ -51,7 +52,7 @@ const certifications = [
 ] as const;
 
 export default function ExperiencePage() {
-  const shouldReduceMotion = useReducedMotion();
+  const shouldReduceMotion = usePrefersReducedMotion();
   const [mounted, setMounted] = useState(false);
   const [activeIndex, setActiveIndex] = useState(0);
   const reduceMotion = mounted && Boolean(shouldReduceMotion);
@@ -306,8 +307,7 @@ export default function ExperiencePage() {
 
             <motion.div
               initial="hidden"
-              whileInView="show"
-              viewport={{ once: true, amount: 0.2 }}
+              animate={mounted ? "show" : "hidden"}
               variants={certificationContainer}
               className="relative mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-3"
             >

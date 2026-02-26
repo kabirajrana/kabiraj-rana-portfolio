@@ -1,7 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { motion } from "framer-motion";
 
@@ -22,10 +22,14 @@ function Reveal({ children }: { children: ReactNode }) {
 }
 
 type Status = "idle" | "sending" | "sent" | "error";
+const MIN_MESSAGE_LENGTH = 10;
+const SEND_TIMEOUT_MS = 15000;
+const SUCCESS_NOTICE = "Thanks for reaching out. I’ll get back to you within 24 hours.";
+const SUCCESS_NOTICE_DURATION_MS = 2200;
 
 export default function ContactSection({ standalone }: { standalone?: boolean }) {
   const [status, setStatus] = useState<Status>("idle");
-  const [error, setError] = useState<string>("");
+  const [notice, setNotice] = useState<string>("");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [message, setMessage] = useState("");
@@ -33,25 +37,55 @@ export default function ContactSection({ standalone }: { standalone?: boolean })
   const canSubmit = useMemo(() => {
     if (status === "sending") return false;
     if (!email.trim()) return false;
-    if (!message.trim()) return false;
+    if (message.trim().length < MIN_MESSAGE_LENGTH) return false;
     return true;
   }, [email, message, status]);
 
+  useEffect(() => {
+    if (status !== "sent") return;
+
+    const timerId = window.setTimeout(() => {
+      setStatus("idle");
+      setNotice("");
+    }, SUCCESS_NOTICE_DURATION_MS);
+
+    return () => window.clearTimeout(timerId);
+  }, [status]);
+
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
-    setError("");
+    if (!canSubmit) return;
+
+    setNotice("");
     setStatus("sending");
 
+    const timeoutMessage = "Request timed out. Please check your connection and try again.";
+    const controller = new AbortController();
+    const timeoutId = window.setTimeout(() => controller.abort(), SEND_TIMEOUT_MS);
+
     try {
-      await apiFetch("/contact", {
+      const response = await apiFetch("/contact", {
         method: "POST",
+        signal: controller.signal,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name: name || undefined, email, body: message }),
       });
+      await response.json();
       setStatus("sent");
-    } catch {
+      setNotice(SUCCESS_NOTICE);
+      setName("");
+      setEmail("");
+      setMessage("");
+    } catch (error) {
       setStatus("error");
-      setError("Could not send message right now.");
+      const fallback = "Could not send your message right now. Please try again shortly.";
+      if (error instanceof DOMException && error.name === "AbortError") {
+        setNotice(timeoutMessage);
+      } else {
+        setNotice(error instanceof Error ? error.message : fallback);
+      }
+    } finally {
+      window.clearTimeout(timeoutId);
     }
   }
 
@@ -72,7 +106,7 @@ export default function ContactSection({ standalone }: { standalone?: boolean })
             <div className="rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur-md">
               <p className="text-sm font-medium text-[rgb(var(--fg))]">Availability</p>
               <p className="mt-2 text-sm leading-relaxed text-[rgb(var(--muted))]">
-                Open to internships, collaboration, and ambitious product work.
+                Open to collaboration and ambitious product work.
               </p>
               <div className="mt-6 h-px w-full bg-white/10" />
               <p className="mt-6 text-xs tracking-[0.22em] text-[rgb(var(--muted))]">
@@ -111,7 +145,7 @@ export default function ContactSection({ standalone }: { standalone?: boolean })
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     className="h-11 rounded-xl border border-white/10 bg-black/20 px-3 text-sm text-[rgb(var(--fg))] outline-none ring-0 placeholder:text-white/30 focus:border-white/20"
-                    placeholder="you@domain.com"
+                    placeholder="your.email@example.com"
                     autoComplete="email"
                     inputMode="email"
                   />
@@ -125,18 +159,20 @@ export default function ContactSection({ standalone }: { standalone?: boolean })
                 <textarea
                   value={message}
                   onChange={(e) => setMessage(e.target.value)}
+                  minLength={MIN_MESSAGE_LENGTH}
                   className="min-h-32 resize-y rounded-xl border border-white/10 bg-black/20 px-3 py-3 text-sm text-[rgb(var(--fg))] outline-none ring-0 placeholder:text-white/30 focus:border-white/20"
-                  placeholder="Tell me what you’re building — goals, constraints, timeline."
+                  placeholder="Describe your project, objectives, and desired impact."
                 />
               </label>
 
               <div className="mt-5 flex items-center justify-between gap-4">
-                <p className="text-xs text-[rgb(var(--muted))]">
-                  {status === "sent"
-                    ? "Message sent."
-                    : status === "error"
-                      ? error
-                      : ""}
+                <p
+                  className={cn(
+                    "text-xs",
+                    status === "sent" ? "text-cyan-200" : status === "error" ? "text-rose-200" : "text-[rgb(var(--muted))]"
+                  )}
+                >
+                  {notice || `Message must be at least ${MIN_MESSAGE_LENGTH} characters.`}
                 </p>
                 <button
                   type="submit"

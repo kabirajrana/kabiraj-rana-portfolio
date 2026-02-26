@@ -2,7 +2,9 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 
-import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
+
+import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
 
 type FireworksCelebrationProps = {
   sessionId: number | null;
@@ -127,7 +129,7 @@ function createExplosion(x: number, y: number, color: string, isMobile: boolean)
 }
 
 export default function FireworksCelebration({ sessionId, onFinished }: FireworksCelebrationProps) {
-  const prefersReducedMotion = useReducedMotion();
+  const prefersReducedMotion = usePrefersReducedMotion();
   const [isHydrated, setIsHydrated] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
 

@@ -2,7 +2,9 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 
-import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
+
+import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
 
 const EASE: [number, number, number, number] = [0.16, 1, 0.3, 1];
 
@@ -64,7 +66,7 @@ function statusForPhase(phase: PhaseIndex) {
 }
 
 export default function PreloaderPortal2026() {
-  const reducedMotion = useReducedMotion();
+  const reducedMotion = usePrefersReducedMotion();
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const phaseRef = useRef<PhaseIndex>(0);
   const progressRef = useRef(0);

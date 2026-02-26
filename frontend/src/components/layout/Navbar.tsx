@@ -7,7 +7,6 @@ import type { MouseEvent } from "react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { AnimatePresence, motion } from "framer-motion";
-import { ArrowUp, Github, Linkedin, Mail, X } from "lucide-react";
 
 import { NAV_ITEMS } from "@/lib/constants";
 import type { ActiveSectionId } from "@/lib/hooks/useActiveSection";
@@ -17,11 +16,10 @@ import { cn } from "@/lib/utils";
 export default function Navbar() {
   const pathname = usePathname();
   const navEase: [number, number, number, number] = [0.22, 1, 0.36, 1];
-  const mobileEase: [number, number, number, number] = [0.16, 1, 0.3, 1];
   const headerRef = useRef<HTMLElement | null>(null);
 
-  const [open, setOpen] = useState(false);
   const [hash, setHash] = useState<string>("");
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const { hidden, scrolled } = useScrollDirection({ threshold: 8, topOffset: 24, scrolledOffset: 8 });
 
@@ -46,10 +44,6 @@ export default function Navbar() {
     window.addEventListener("resize", setNavHeight);
     return () => window.removeEventListener("resize", setNavHeight);
   }, []);
-
-  useEffect(() => {
-    setOpen(false);
-  }, [pathname]);
 
   const items = useMemo(() => NAV_ITEMS, []);
   const activeId = useMemo<ActiveSectionId>(() => {
@@ -90,12 +84,16 @@ export default function Navbar() {
     return item.href;
   };
 
-  const onNavClick = () => setOpen(false);
+  useEffect(() => {
+    setMobileMenuOpen(false);
+  }, [pathname, hash]);
+
+  const onNavClick = useCallback(() => {
+    setMobileMenuOpen(false);
+  }, []);
 
   const onSectionNavClick = useCallback(
     (e: MouseEvent<HTMLAnchorElement>, id: ActiveSectionId) => {
-      setOpen(false);
-
       const isInPageNav = pathname === "/" || window.location.pathname === pathname;
       if (!isInPageNav) return;
 
@@ -186,8 +184,8 @@ export default function Navbar() {
             </span>
           </Link>
 
-          <div className="absolute left-1/2 top-1/2 hidden -translate-x-1/2 -translate-y-1/2 items-center md:flex">
-            <div className="flex items-center gap-7">
+          <div className="mx-2 hidden flex-1 items-center justify-center overflow-hidden md:absolute md:left-1/2 md:top-1/2 md:mx-0 md:flex md:-translate-x-1/2 md:-translate-y-1/2 md:overflow-visible">
+            <div className="no-scrollbar flex max-w-full items-center gap-3 overflow-x-auto px-1 sm:gap-4 md:gap-7 md:overflow-visible md:px-0">
               {items.map((item) => {
                 const id = getSectionId(item);
                 const href = getItemHref(item);
@@ -211,7 +209,7 @@ export default function Navbar() {
                       onNavClick();
                     }}
                     className={cn(
-                      "relative px-1 py-2 text-sm font-medium",
+                      "relative shrink-0 px-1 py-2 text-xs font-medium sm:text-sm",
                       "text-[rgb(var(--muted))] transition-colors hover:text-[rgb(var(--fg))]",
                       "hover:[text-shadow:0_0_14px_rgba(var(--accent)_/_0.22)]",
                       active && "text-[rgb(var(--fg))]"
@@ -233,118 +231,80 @@ export default function Navbar() {
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setMobileMenuOpen((current) => !current)}
+            aria-expanded={mobileMenuOpen}
+            aria-controls="mobile-primary-menu"
+            className={cn(
+              "inline-flex h-10 w-10 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-[rgb(var(--fg))] md:hidden",
+              "transition-all hover:bg-white/10 hover:shadow-[0_0_18px_rgba(var(--accent)_/_0.2)]"
+            )}
+          >
+            <span className="text-lg leading-none" aria-hidden="true">
+              {mobileMenuOpen ? "✕" : "☰"}
+            </span>
+            <span className="sr-only">Toggle menu</span>
+          </button>
+
+          <div className="hidden items-center gap-2 md:flex">
             <a
               href="/cv/kabiraj-rana-cv.pdf"
               target="_blank"
               rel="noreferrer"
               download
               className={cn(
-                "hidden rounded-full border border-white/10 bg-white/5 px-4 py-2 text-xs font-medium",
+                "inline-flex rounded-full border border-white/10 bg-white/5 px-3 py-2 text-[10px] font-medium sm:px-4 sm:text-xs",
                 "tracking-[0.18em] text-[rgb(var(--fg))] transition-all",
-                "hover:bg-white/10 hover:shadow-[0_0_22px_rgba(var(--accent)_/_0.22)] md:inline-flex"
+                "hover:bg-white/10 hover:shadow-[0_0_22px_rgba(var(--accent)_/_0.22)]"
               )}
             >
               <span aria-hidden="true" className="mr-1">↓</span>
               Download CV
             </a>
-
-            <button
-              type="button"
-              className={cn(
-                "inline-flex h-10 w-10 items-center justify-center rounded-full",
-                "border border-white/10 bg-white/5 text-[rgb(var(--fg))] md:hidden"
-              )}
-              aria-label={open ? "Close menu" : "Open menu"}
-              aria-expanded={open}
-              onClick={() => setOpen((v) => !v)}
-            >
-              <span className="relative block h-4 w-5">
-                <span
-                  className={cn(
-                    "absolute left-0 top-0 h-[2px] w-5 rounded bg-current transition-transform",
-                    open && "translate-y-[7px] rotate-45"
-                  )}
-                />
-                <span
-                  className={cn(
-                    "absolute left-0 top-[7px] h-[2px] w-5 rounded bg-current transition-opacity",
-                    open ? "opacity-0" : "opacity-100"
-                  )}
-                />
-                <span
-                  className={cn(
-                    "absolute left-0 top-[14px] h-[2px] w-5 rounded bg-current transition-transform",
-                    open && "-translate-y-[7px] -rotate-45"
-                  )}
-                />
-              </span>
-            </button>
           </div>
-        </nav>
 
-        <AnimatePresence>
-          {open && (
-            <>
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.5, ease: mobileEase }}
-                onClick={() => setOpen(false)}
-                className="fixed inset-0 z-[60] bg-black/55 md:hidden"
-              />
+          <AnimatePresence>
+            {mobileMenuOpen && (
+              <>
+                <motion.button
+                  type="button"
+                  aria-label="Close mobile menu"
+                  onClick={() => setMobileMenuOpen(false)}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.34, ease: navEase }}
+                  className="fixed inset-0 z-[45] bg-black/35 backdrop-blur-[1px] md:hidden"
+                />
 
-              <motion.aside
-                initial={{ x: 24, opacity: 0, filter: "blur(8px)" }}
-                animate={{ x: 0, opacity: 1, filter: "blur(0px)" }}
-                exit={{ x: 24, opacity: 0, filter: "blur(8px)" }}
-                transition={{ duration: 0.62, ease: mobileEase }}
-                className="fixed right-0 top-0 z-[61] flex h-dvh w-[min(88vw,360px)] flex-col border-l border-white/10 bg-black/80 px-5 pb-6 pt-16 backdrop-blur-xl md:hidden"
-                aria-label="Mobile Menu"
-              >
-                <div className="absolute right-5 top-5 flex justify-end">
-                  <button
-                    type="button"
-                    onClick={() => setOpen(false)}
-                    className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/5 text-[rgb(var(--fg))]"
-                    aria-label="Close menu"
-                  >
-                    <X className="h-4 w-4" />
-                  </button>
-                </div>
-
-                <motion.nav
-                  initial="hidden"
-                  animate="show"
-                  variants={{
-                    hidden: {},
-                    show: {
-                      transition: { staggerChildren: 0.08, delayChildren: 0.08 },
-                    },
-                  }}
-                  className="space-y-1.5"
+                <motion.div
+                  id="mobile-primary-menu"
+                  initial={{ opacity: 0, y: -16, scale: 0.96, filter: "blur(12px)" }}
+                  animate={{ opacity: 1, y: 0, scale: 1, filter: "blur(0px)" }}
+                  exit={{ opacity: 0, y: -12, scale: 0.975, filter: "blur(10px)" }}
+                  transition={{ duration: 0.42, ease: navEase }}
+                  className="absolute left-3 right-3 top-[calc(100%+0.55rem)] z-[50] rounded-2xl border border-white/15 bg-[#070b12]/95 p-2.5 shadow-[0_16px_34px_rgba(0,0,0,0.55)] backdrop-blur-2xl md:hidden"
+                  style={{ transformOrigin: "top center" }}
                 >
-                  {items.map((item) => {
-                    const id = getSectionId(item);
-                    const href = getItemHref(item);
-                    const active = activeId === id;
+                  <div className="flex flex-col gap-1">
+                    {items.map((item, index) => {
+                      const id = getSectionId(item);
+                      const href = getItemHref(item);
+                      const active = activeId === id;
 
-                    return (
-                      <motion.div
-                        key={item.href}
-                        variants={{
-                          hidden: { opacity: 0, y: 10 },
-                          show: {
-                            opacity: 1,
-                            y: 0,
-                            transition: { duration: 0.55, ease: mobileEase },
-                          },
-                        }}
-                      >
-                        <motion.div whileHover={{ y: -1 }} whileTap={{ scale: 0.98 }} className="relative">
+                      return (
+                        <motion.div
+                          key={`mobile-wrap-${item.href}`}
+                          initial={{ opacity: 0, y: 8 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ duration: 0.28, delay: 0.12 + index * 0.05, ease: navEase }}
+                          whileTap={{ scale: 0.985 }}
+                        >
                           <Link
+                            key={`mobile-${item.href}`}
                             href={href}
+                            aria-current={active ? "page" : undefined}
                             onClick={(e) => {
                               if (pathname === "/" && id !== "about" && id !== "experience") {
                                 onSectionNavClick(e, id);
@@ -357,98 +317,38 @@ export default function Navbar() {
                               onNavClick();
                             }}
                             className={cn(
-                              "relative block rounded-2xl px-4 py-3 text-lg transition-all",
-                              "border border-transparent hover:bg-white/5 hover:border-white/10",
-                              active ? "text-[rgb(var(--fg))]" : "text-[rgb(var(--muted))]"
+                              "block rounded-xl px-3 py-2.5 text-[0.95rem] font-medium",
+                              "text-[rgb(var(--muted))] transition-all duration-200",
+                              "hover:bg-white/[0.06] hover:text-[rgb(var(--fg))]",
+                              active && "border border-cyan-300/20 bg-cyan-200/[0.08] text-[rgb(var(--fg))]"
                             )}
                           >
-                            {active && (
-                              <motion.span
-                                layoutId="mobile-nav-indicator"
-                                className="absolute inset-0 rounded-2xl border border-white/10 bg-white/10"
-                                transition={{ duration: 0.4, ease: mobileEase }}
-                              />
-                            )}
-                            <span className="relative z-[1]">{item.label}</span>
+                            {item.label}
                           </Link>
                         </motion.div>
-                      </motion.div>
-                    );
-                  })}
-                </motion.nav>
+                      );
+                    })}
 
-                <motion.div
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.55, ease: mobileEase, delay: 0.22 }}
-                  className="mt-6"
-                >
-                  <div className="flex gap-3">
                     <motion.a
-                      href="https://github.com/kabirajrana"
+                      href="/cv/kabiraj-rana-cv.pdf"
                       target="_blank"
                       rel="noreferrer"
-                      onClick={onNavClick}
-                      whileHover={{ y: -1 }}
-                      whileTap={{ scale: 0.98 }}
-                      className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-white/5 text-[rgb(var(--muted))] transition-all hover:border-white/20 hover:text-[rgb(var(--fg))]"
-                      aria-label="GitHub"
+                      download
+                      whileTap={{ scale: 0.985 }}
+                      className={cn(
+                        "mt-1 inline-flex items-center justify-center rounded-xl border border-white/15 bg-white/[0.07] px-3 py-2 text-[11px] font-semibold",
+                        "tracking-[0.1em] text-[rgb(var(--fg))] transition-all duration-200 hover:bg-white/[0.12]"
+                      )}
                     >
-                      <Github className="h-4 w-4" />
-                    </motion.a>
-                    <motion.a
-                      href="https://www.linkedin.com/in/kabirajrana/"
-                      target="_blank"
-                      rel="noreferrer"
-                      onClick={onNavClick}
-                      whileHover={{ y: -1 }}
-                      whileTap={{ scale: 0.98 }}
-                      className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-white/5 text-[rgb(var(--muted))] transition-all hover:border-white/20 hover:text-[rgb(var(--fg))]"
-                      aria-label="LinkedIn"
-                    >
-                      <Linkedin className="h-4 w-4" />
-                    </motion.a>
-                    <motion.a
-                      href="mailto:kabirajrana76@gmail.com"
-                      onClick={onNavClick}
-                      whileHover={{ y: -1 }}
-                      whileTap={{ scale: 0.98 }}
-                      className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-white/5 text-[rgb(var(--muted))] transition-all hover:border-white/20 hover:text-[rgb(var(--fg))]"
-                      aria-label="Email"
-                    >
-                      <Mail className="h-4 w-4" />
+                      <span aria-hidden="true" className="mr-1">↓</span>
+                      Download CV
                     </motion.a>
                   </div>
                 </motion.div>
-
-                <motion.div
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.55, ease: mobileEase, delay: 0.28 }}
-                  className="mt-5"
-                >
-                  <motion.a
-                    href="/cv/kabiraj-rana-cv.pdf"
-                    target="_blank"
-                    rel="noreferrer"
-                    download
-                    onClick={onNavClick}
-                    whileHover={{ y: -1 }}
-                    whileTap={{ scale: 0.98 }}
-                    className={cn(
-                      "inline-flex w-full items-center justify-center rounded-2xl border border-white/10 bg-white/5 px-4 py-3.5",
-                      "text-sm font-medium tracking-[0.16em] text-[rgb(var(--fg))]",
-                      "transition-all hover:bg-white/10 hover:shadow-[0_0_22px_rgba(var(--accent)_/_0.22)]"
-                    )}
-                  >
-                    <span aria-hidden="true" className="mr-1">↓</span>
-                    Download CV
-                  </motion.a>
-                </motion.div>
-              </motion.aside>
-            </>
-          )}
-        </AnimatePresence>
+              </>
+            )}
+          </AnimatePresence>
+        </nav>
       </div>
     </motion.header>
   );

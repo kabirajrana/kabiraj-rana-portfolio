@@ -252,6 +252,7 @@ export default function AboutPage() {
                       src="/images/kabirajrana.png"
                       alt="Kabiraj Rana"
                       fill
+                      sizes="210px"
                       priority
                       className="rounded-full object-cover object-[center_22%]"
                     />

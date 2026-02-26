@@ -2,7 +2,9 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 
-import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
+
+import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
 
 type SurpriseEventDetail = {
   onComplete?: (played: boolean) => void;
@@ -63,7 +65,7 @@ function createParticles(width: number, height: number, count: number) {
 }
 
 export default function SurpriseCelebration() {
-  const prefersReducedMotion = useReducedMotion();
+  const prefersReducedMotion = usePrefersReducedMotion();
 
   const [isHydrated, setIsHydrated] = useState(false);
   const [visible, setVisible] = useState(false);
