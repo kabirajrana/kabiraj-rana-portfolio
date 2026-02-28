@@ -278,7 +278,7 @@ export default function AboutPage() {
                 transition={{ duration: 0.62, ease: [0.22, 1, 0.36, 1] }}
               >
                 <p className="text-xs tracking-[0.28em] text-[rgb(var(--muted))]">MY STORY</p>
-                <h1 className="mt-3 max-w-3xl font-[var(--font-serif)] text-4xl leading-tight tracking-tight md:text-5xl">
+                <h1 className="mt-3 max-w-3xl font-[var(--font-serif)] text-3xl leading-[1.12] tracking-tight sm:text-4xl md:text-5xl">
                   From curiosity to building intelligent systems.
                 </h1>
                 <p className="mt-4 max-w-2xl text-base leading-relaxed text-[rgb(var(--muted))] md:text-lg">

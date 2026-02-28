@@ -4,16 +4,19 @@ import Link from "next/link";
 
 import { motion } from "framer-motion";
 
-import { cn } from "@/lib/utils";
+import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
 import SplineRobot from "@/components/three/SplineRobot";
+import { cn } from "@/lib/utils";
 
 export default function Hero() {
+  const reduceMotion = usePrefersReducedMotion();
+
   return (
     <section
       id="home"
       className="relative scroll-mt-28 pt-[calc(var(--nav-h,80px)+1.5rem)] md:pt-[calc(var(--nav-h,80px)-1.75rem)] lg:pt-[calc(var(--nav-h,80px)-2rem)]"
     >
-      <div className="grid grid-cols-1 items-center gap-10 lg:grid-cols-2">
+      <div className="grid grid-cols-1 items-center gap-10 lg:grid-cols-[minmax(0,1.08fr)_minmax(0,0.92fr)] lg:gap-12 xl:gap-16">
         <div>
           <motion.p
             initial={{ opacity: 0, y: 10 }}
@@ -42,7 +45,7 @@ export default function Hero() {
             transition={{ duration: 0.6, delay: 0.12, ease: [0.2, 0.8, 0.2, 1] }}
             className="mt-5 text-sm font-medium tracking-wide text-[rgb(var(--fg))] md:text-base"
           >
-            <span className="text-[rgb(var(--accent))]">Aspiring AI/ML Engineer</span> • Applied Machine Learning • Scalable AI Systems
+            <span className="text-[rgb(var(--accent))]">AI/ML Student</span> • Full‑Stack Developer • Data Science Enthusiast
           </motion.p>
 
           <motion.p
@@ -103,11 +106,23 @@ export default function Hero() {
           </motion.div>
         </div>
 
-        <div className="hidden w-full items-center justify-center self-center lg:flex">
-          <div className="w-full max-w-[260px] sm:max-w-[320px] md:max-w-[420px] lg:max-w-[520px]">
+        <motion.div
+          className="mt-10 hidden w-full items-center justify-center self-center lg:mt-0 lg:flex"
+          animate={reduceMotion ? undefined : { y: [0, -8, 0] }}
+          transition={
+            reduceMotion
+              ? undefined
+              : {
+                  duration: 7.2,
+                  repeat: Infinity,
+                  ease: "easeInOut",
+                }
+          }
+        >
+          <div className="w-full max-w-[clamp(220px,74vw,540px)]">
             <SplineRobot />
           </div>
-        </div>
+        </motion.div>
       </div>
     </section>
   );

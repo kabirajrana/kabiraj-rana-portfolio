@@ -1,4 +1,8 @@
-const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL ?? "";
+const configuredBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL?.trim();
+const fallbackBaseUrls = ["http://localhost:8002", "http://localhost:8000"];
+const baseUrls = configuredBaseUrl && configuredBaseUrl.length > 0
+  ? [configuredBaseUrl, ...fallbackBaseUrls.filter((url) => url !== configuredBaseUrl)]
+  : fallbackBaseUrls;
 
 function normalizeErrorDetail(detail: unknown): string {
   if (typeof detail === "string") return detail;
@@ -32,28 +36,45 @@ function normalizeErrorDetail(detail: unknown): string {
 }
 
 export async function apiFetch(path: string, init?: RequestInit) {
-  const url = `${baseUrl}${path.startsWith("/") ? path : `/${path}`}`;
-  const response = await fetch(url, {
-    ...init,
-    headers: {
-      ...(init?.headers ?? {}),
-      Accept: "application/json"
-    }
-  });
+  const normalizedPath = path.startsWith("/") ? path : `/${path}`;
+  let lastError: Error | null = null;
 
-  if (!response.ok) {
-    let detail = "";
+  for (let index = 0; index < baseUrls.length; index += 1) {
+    const baseUrl = baseUrls[index];
+    const url = `${baseUrl}${normalizedPath}`;
 
     try {
-      const data = (await response.json()) as { detail?: unknown };
-      const normalized = normalizeErrorDetail(data?.detail);
-      detail = normalized ? ` - ${normalized}` : "";
-    } catch {
-      detail = "";
-    }
+      const response = await fetch(url, {
+        ...init,
+        headers: {
+          ...(init?.headers ?? {}),
+          Accept: "application/json"
+        }
+      });
 
-    throw new Error(`Request failed: ${response.status}${detail}`);
+      if (response.ok) {
+        return response;
+      }
+
+      if ((response.status === 404 || response.status === 405) && index < baseUrls.length - 1) {
+        continue;
+      }
+
+      let detail = "";
+
+      try {
+        const data = (await response.json()) as { detail?: unknown };
+        const normalized = normalizeErrorDetail(data?.detail);
+        detail = normalized ? ` - ${normalized}` : "";
+      } catch {
+        detail = "";
+      }
+
+      throw new Error(`Request failed: ${response.status}${detail}`);
+    } catch (error) {
+      lastError = error instanceof Error ? error : new Error("Request failed");
+    }
   }
 
-  return response;
+  throw lastError ?? new Error("Request failed");
 }

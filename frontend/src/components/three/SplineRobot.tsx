@@ -1,109 +1,82 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { createElement, useEffect, useRef, useState } from "react";
+
+const SPLINE_SCENE_URL = "https://prod.spline.design/1nGELt90Ctj6SEhD/scene.splinecode";
+const SPLINE_VIEWER_SCRIPT_URL = "https://unpkg.com/@splinetool/viewer@1.12.61/build/spline-viewer.js";
+const SPLINE_SCRIPT_ID = "spline-viewer-web-component-script";
 
 export default function SplineRobot() {
-  const containerRef = useRef<HTMLDivElement | null>(null);
-  const tiltLayerRef = useRef<HTMLDivElement | null>(null);
-
-  const targetXRef = useRef(0);
-  const targetYRef = useRef(0);
-  const currentXRef = useRef(0);
-  const currentYRef = useRef(0);
-  const rafRef = useRef<number | null>(null);
-  const inViewRef = useRef(true);
-  const pageVisibleRef = useRef(true);
+  const [viewerReady, setViewerReady] = useState(false);
+  const [hasStageSize, setHasStageSize] = useState(false);
+  const stageRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
-    const element = containerRef.current;
-    const tiltLayer = tiltLayerRef.current;
-    if (!element || !tiltLayer) return;
+    if (typeof window === "undefined") return;
+    if (customElements.get("spline-viewer")) {
+      setViewerReady(true);
+      return;
+    }
 
-    const cancelLoop = () => {
-      if (rafRef.current) {
-        window.cancelAnimationFrame(rafRef.current);
-        rafRef.current = null;
-      }
+    const onScriptLoad = () => setViewerReady(true);
+    const existingScript = document.getElementById(SPLINE_SCRIPT_ID) as HTMLScriptElement | null;
+    if (existingScript) {
+      existingScript.addEventListener("load", onScriptLoad, { once: true });
+      return () => existingScript.removeEventListener("load", onScriptLoad);
+    }
+
+    const script = document.createElement("script");
+    script.id = SPLINE_SCRIPT_ID;
+    script.type = "module";
+    script.async = true;
+    script.crossOrigin = "anonymous";
+    script.src = SPLINE_VIEWER_SCRIPT_URL;
+    script.addEventListener("load", onScriptLoad, { once: true });
+    document.head.appendChild(script);
+
+    return () => script.removeEventListener("load", onScriptLoad);
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const stage = stageRef.current;
+    if (!stage) return;
+
+    const updateStageSize = () => {
+      const rect = stage.getBoundingClientRect();
+      setHasStageSize(rect.width > 1 && rect.height > 1);
     };
 
-    const canAnimate = () => inViewRef.current && pageVisibleRef.current;
-
-    const onMove = (event: PointerEvent) => {
-      const rect = element.getBoundingClientRect();
-      if (rect.width <= 0 || rect.height <= 0) return;
-
-      const nx = ((event.clientX - rect.left) / rect.width) * 2 - 1;
-      const ny = ((event.clientY - rect.top) / rect.height) * 2 - 1;
-
-      targetXRef.current = -ny * 4.2;
-      targetYRef.current = nx * 5.4;
-    };
-
-    const onLeave = () => {
-      targetXRef.current = 0;
-      targetYRef.current = 0;
-    };
-
-    const tick = () => {
-      if (!canAnimate()) {
-        cancelLoop();
-        return;
-      }
-
-      currentXRef.current += (targetXRef.current - currentXRef.current) * 0.08;
-      currentYRef.current += (targetYRef.current - currentYRef.current) * 0.08;
-
-      tiltLayer.style.transform = `perspective(1000px) rotateX(${currentXRef.current.toFixed(2)}deg) rotateY(${currentYRef.current.toFixed(2)}deg)`;
-      rafRef.current = window.requestAnimationFrame(tick);
-    };
-
-    const startLoop = () => {
-      if (rafRef.current || !canAnimate()) return;
-      rafRef.current = window.requestAnimationFrame(tick);
-    };
-
-    const onVisibilityChange = () => {
-      pageVisibleRef.current = !document.hidden;
-      if (canAnimate()) startLoop();
-      else cancelLoop();
-    };
-
-    const intersection = new IntersectionObserver(
-      (entries) => {
-        const entry = entries[0];
-        if (!entry) return;
-        inViewRef.current = entry.isIntersecting;
-        if (canAnimate()) startLoop();
-        else cancelLoop();
-      },
-      { threshold: 0.08 }
-    );
-
-    intersection.observe(element);
-    document.addEventListener("visibilitychange", onVisibilityChange);
-
-    element.addEventListener("pointermove", onMove);
-    element.addEventListener("pointerleave", onLeave);
-    startLoop();
+    updateStageSize();
+    const frameId = window.requestAnimationFrame(updateStageSize);
+    const observer = new ResizeObserver(updateStageSize);
+    observer.observe(stage);
+    window.addEventListener("orientationchange", updateStageSize);
 
     return () => {
-      intersection.disconnect();
-      document.removeEventListener("visibilitychange", onVisibilityChange);
-      element.removeEventListener("pointermove", onMove);
-      element.removeEventListener("pointerleave", onLeave);
-      cancelLoop();
+      window.cancelAnimationFrame(frameId);
+      observer.disconnect();
+      window.removeEventListener("orientationchange", updateStageSize);
     };
   }, []);
 
   return (
-    <div className="pointer-events-auto mx-auto flex w-full items-center justify-center md:max-w-[520px]">
-      {/* Explicit heights avoid implicit h-full chains that can become zero in production layout timing. */}
-      <div
-        ref={containerRef}
-        className="relative h-[300px] w-full overflow-hidden rounded-2xl bg-transparent sm:h-[380px] md:h-[520px] lg:h-[620px] xl:h-[700px]"
-      >
-        <div ref={tiltLayerRef} className="absolute inset-0 will-change-transform">
-          <div className="h-full w-full rounded-2xl border border-white/10 bg-[radial-gradient(circle_at_55%_35%,rgba(110,231,255,0.18),transparent_58%)]" />
+    <div
+      data-spline-wrapper="true"
+      className="pointer-events-auto mx-auto flex w-full items-center justify-center"
+      aria-label="Interactive robot model"
+      role="img"
+    >
+      <div className="spline-shell relative h-[280px] w-full overflow-hidden rounded-2xl bg-transparent sm:h-[340px] md:h-[430px] lg:h-[500px] xl:h-[560px]">
+        <div ref={stageRef} className="spline-stage h-full w-full origin-center scale-[0.72] sm:scale-[0.76] md:scale-[0.8] lg:scale-[0.84] xl:scale-[0.88]">
+          {viewerReady && hasStageSize ? (
+            createElement("spline-viewer", {
+              url: SPLINE_SCENE_URL,
+              className: "spline-viewer-embed",
+            })
+          ) : (
+            <div className="spline-viewer-embed" />
+          )}
         </div>
       </div>
     </div>
