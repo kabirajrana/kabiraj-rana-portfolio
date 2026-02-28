@@ -15,7 +15,12 @@ const SEND_TIMEOUT_MS = 15000;
 const SUCCESS_NOTICE_DURATION_MS = 2200;
 
 type Status = "idle" | "sending" | "sent" | "error";
-const SUCCESS_NOTICE = "Thanks for reaching out. I’ll get back to you within 24 hours.";
+
+type ContactSubmitResponse = {
+  ok?: boolean;
+  message?: string;
+  delivery_issue?: string | null;
+};
 
 export default function ContactPage() {
   const [name, setName] = useState("");
@@ -65,9 +70,10 @@ export default function ContactPage() {
         }),
       });
 
-      await response.json();
+      const data = (await response.json()) as ContactSubmitResponse;
+      const successMessage = data.message?.trim() || "Thanks for reaching out. I’ll get back to you within 24 hours.";
       setStatus("sent");
-      setNotice(SUCCESS_NOTICE);
+      setNotice(successMessage);
       setName("");
       setEmail("");
       setSubject("");
@@ -111,7 +117,7 @@ export default function ContactPage() {
           />
           <div
             aria-hidden="true"
-            className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_24%,rgba(120,220,255,0.12),transparent_60%)]"
+            className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(120,220,255,0.12),transparent_60%)]"
           />
           <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-black/20" />
 

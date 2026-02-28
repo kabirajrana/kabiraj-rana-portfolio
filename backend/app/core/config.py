@@ -20,6 +20,7 @@ class Settings(BaseSettings):
     rate_limit_default: str = "60/minute"
 
     cors_allow_origins: str = "http://localhost:3000,http://127.0.0.1:3000"
+    cors_allow_origin_regex: str = r"^https?://(localhost|127\.0\.0\.1|192\.168\.\d{1,3}\.\d{1,3}|10\.\d{1,3}\.\d{1,3}\.\d{1,3}|172\.(1[6-9]|2\d|3[0-1])\.\d{1,3}\.\d{1,3})(:\d+)?$"
 
     contact_inbox_email: str = ""
     mail_from_email: str = ""

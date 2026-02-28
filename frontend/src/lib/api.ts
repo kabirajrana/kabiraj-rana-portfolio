@@ -1,8 +1,24 @@
 const configuredBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL?.trim();
-const fallbackBaseUrls = ["http://localhost:8002", "http://localhost:8000"];
-const baseUrls = configuredBaseUrl && configuredBaseUrl.length > 0
-  ? [configuredBaseUrl, ...fallbackBaseUrls.filter((url) => url !== configuredBaseUrl)]
-  : fallbackBaseUrls;
+
+function getBaseUrls(): string[] {
+  const urls = new Set<string>();
+
+  if (configuredBaseUrl && configuredBaseUrl.length > 0) {
+    urls.add(configuredBaseUrl);
+  }
+
+  if (typeof window !== "undefined") {
+    const protocol = window.location.protocol;
+    const hostname = window.location.hostname;
+    urls.add(`${protocol}//${hostname}:8002`);
+    urls.add(`${protocol}//${hostname}:8000`);
+  }
+
+  urls.add("http://localhost:8002");
+  urls.add("http://localhost:8000");
+
+  return Array.from(urls);
+}
 
 function normalizeErrorDetail(detail: unknown): string {
   if (typeof detail === "string") return detail;
@@ -37,6 +53,7 @@ function normalizeErrorDetail(detail: unknown): string {
 
 export async function apiFetch(path: string, init?: RequestInit) {
   const normalizedPath = path.startsWith("/") ? path : `/${path}`;
+  const baseUrls = getBaseUrls();
   let lastError: Error | null = null;
 
   for (let index = 0; index < baseUrls.length; index += 1) {

@@ -9,7 +9,7 @@ export default function HomePage() {
   return (
     <>
       <Navbar />
-      <main className="mx-auto w-full max-w-6xl px-6">
+      <main className="mx-auto w-full max-w-[1280px] px-5 md:px-8 xl:px-10">
         <Hero />
         <div className="mt-16 space-y-24 pb-24">
           <AboutSection />
