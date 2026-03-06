@@ -1,0 +1,428 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum AdminRole {
+  ADMIN
+}
+
+enum PublishStatus {
+  DRAFT
+  PUBLISHED
+  SCHEDULED
+  ARCHIVED
+}
+
+enum SiteContentType {
+  HOME
+  ABOUT
+}
+
+enum ResearchCategory {
+  EXPERIMENTS
+  MODEL_ARCHITECTURE
+  DATASET_STUDIES
+  SYSTEM_DESIGN
+  NOTES
+}
+
+enum ResearchType {
+  EXPERIMENT
+  PAPER
+  SYSTEM
+  THESIS
+  NOTE
+}
+
+enum ResearchStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+enum MessageStatus {
+  UNREAD
+  READ
+  ARCHIVED
+  DELETED
+}
+
+enum AnalyticsEventType {
+  PAGE_VIEW
+  PROJECT_VIEW
+  GITHUB_CLICK
+  RESUME_DOWNLOAD
+  CONTACT_SUBMIT
+}
+
+enum SidePlacement {
+  AUTO
+  LEFT
+  RIGHT
+}
+
+model AdminUser {
+  id           String     @id @default(cuid())
+  email        String     @unique
+  passwordHash String
+  role         AdminRole  @default(ADMIN)
+  name         String?
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  lastLoginAt  DateTime?
+  auditLogs    AuditLog[]
+  siteContents SiteContent[]
+  revisions    ContentRevision[]
+  backupLogs   BackupImportLog[]
+}
+
+model SiteContent {
+  id           String          @id @default(cuid())
+  type         SiteContentType @unique
+  draftJson    Json
+  publishedJson Json?
+  status       PublishStatus   @default(DRAFT)
+  updatedById  String?
+  updatedBy    AdminUser?      @relation(fields: [updatedById], references: [id], onDelete: SetNull)
+  updatedAt    DateTime        @updatedAt
+  publishedAt  DateTime?
+  scheduledAt  DateTime?
+}
+
+model Project {
+  id                    String        @id @default(cuid())
+  title                 String
+  slug                  String        @unique
+  summary               String
+  description           String
+  year                  String?
+  category              String
+  tags                  Json
+  techStack             Json
+  githubUrl             String?
+  liveUrl               String?
+  featured              Boolean       @default(false)
+  status                PublishStatus @default(DRAFT)
+  publishedAt           DateTime?
+  scheduledAt           DateTime?
+  highlights            Json
+  screenshots           Json
+  coverImage            String?
+  dataset               String?
+  model                 String?
+  metrics               Json?
+  results               String?
+  architectureDiagram   String?
+  sortOrder             Int           @default(0)
+  createdAt             DateTime      @default(now())
+  updatedAt             DateTime      @updatedAt
+}
+
+model ProjectCategory {
+  id         String   @id @default(cuid())
+  label      String
+  slug       String   @unique
+  sortOrder  Int      @default(0)
+  isVisible  Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model ProjectsPageConfig {
+  id          String   @id @default(cuid())
+  smallLabel  String   @default("PROJECTS")
+  title       String   @default("All projects.")
+  subtitle    String   @default("A curated collection of AI and engineering work built with product focus and production discipline.")
+  updatedAt   DateTime @updatedAt
+}
+
+model Experience {
+  id            String        @id @default(cuid())
+  timeframe     String?
+  role          String
+  org           String
+  summary       String?
+  location      String
+  sidePlacement SidePlacement @default(AUTO)
+  startDate     DateTime
+  endDate       DateTime?
+  currentRole   Boolean       @default(false)
+  achievements  Json
+  techStack     Json
+  sortOrder     Int           @default(0)
+  status        PublishStatus @default(DRAFT)
+  publishedAt   DateTime?
+  scheduledAt   DateTime?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+}
+
+model Certification {
+  id             String   @id @default(cuid())
+  codeLabel      String
+  title          String
+  credentialUrl  String
+  sortOrder      Int      @default(0)
+  isVisible      Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+model ExperiencePageConfig {
+  id                 String   @id @default(cuid())
+  smallLabel         String   @default("EXPERIENCE")
+  title              String   @default("A journey of learning, iteration, and creation.")
+  subtitle           String   @default("From focused self-learning to full-stack delivery, each step reflects consistent growth, practical execution, and deeper technical craftsmanship.")
+  showTimeline       Boolean  @default(true)
+  showCertifications Boolean  @default(true)
+  certTitle          String   @default("Formal Intelligence Expansion")
+  certSubtitle       String   @default("Each certification reflects practical upskilling across AI, cloud, and modern software systems.")
+  updatedAt          DateTime @updatedAt
+}
+
+model ResearchArticle {
+  id              String           @id @default(cuid())
+  title           String
+  slug            String           @unique
+  year            String?
+  abstract        String
+  category        ResearchCategory
+  problemStatement String?
+  evaluationMetrics String?
+  tags            Json
+  content         String
+  datasetUsed     String?
+  methods         Json
+  models          Json
+  metrics         Json?
+  resultsSummary  String?
+  figures         Json
+  references      Json
+  githubRepoUrl   String?
+  featured        Boolean          @default(false)
+  sortOrder       Int              @default(0)
+  status          PublishStatus    @default(DRAFT)
+  scheduledAt     DateTime?
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  publishedAt     DateTime?
+}
+
+model Research {
+  id             String         @id @default(cuid())
+  slug           String         @unique
+  title          String
+  summary        String
+  content        Json
+  type           ResearchType
+  category       String?
+  tags           String[]
+  year           Int
+  status         ResearchStatus @default(DRAFT)
+  featured       Boolean        @default(false)
+  authors        String[]
+  affiliation    String?
+  researchArea   String?
+  dataset        String?
+  duration       String?
+  pdfUrl         String?
+  codeUrl        String?
+  demoUrl        String?
+  notesUrl       String?
+  coverImage     String?
+  citation       String?
+  references     Json?
+  relatedSlugs   String[]
+  seoTitle       String?
+  seoDescription String?
+  publishedAt    DateTime?
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  @@index([type])
+  @@index([year])
+  @@index([status])
+  @@index([featured])
+  @@index([publishedAt])
+}
+
+model ResearchPageConfig {
+  id           String   @id @default(cuid())
+  title        String   @default("AI Research & Experiments")
+  subtitle     String   @default("Deep dives into machine learning systems, experiments, and real-world AI problem solving.")
+  description  String   @default("This section documents experiments, model analysis, and technical explorations across machine learning, data science, and intelligent systems.")
+  heroChips    Json
+  updatedAt    DateTime @updatedAt
+}
+
+model ResearchFilterTab {
+  id         String   @id @default(cuid())
+  label      String
+  value      String   @unique
+  sortOrder  Int      @default(0)
+  isVisible  Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model Message {
+  id          String        @id @default(cuid())
+  sender      String
+  email       String
+  subject     String
+  body        String
+  status      MessageStatus @default(UNREAD)
+  ipAddress   String?
+  userAgent   String?
+  metadata    Json?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+}
+
+model MediaAsset {
+  id          String   @id @default(cuid())
+  key         String   @unique
+  url         String
+  type         String
+  size         Int
+  width        Int?
+  height       Int?
+  tags         Json
+  usedBy       Json
+  createdAt    DateTime @default(now())
+}
+
+model ResumeFile {
+  id            String   @id @default(cuid())
+  label         String
+  url           String
+  isActive      Boolean  @default(false)
+  downloadCount Int      @default(0)
+  createdAt     DateTime @default(now())
+}
+
+model SeoConfig {
+  id              String   @id @default(cuid())
+  pageKey         String   @unique
+  metaTitle       String
+  metaDescription String
+  ogImage         String?
+  canonical       String?
+  updatedAt       DateTime @updatedAt
+}
+
+model AnalyticsEvent {
+  id          String             @id @default(cuid())
+  eventType   AnalyticsEventType
+  path        String
+  referrer    String?
+  device      String?
+  metadata    Json?
+  createdAt   DateTime           @default(now())
+}
+
+model AuditLog {
+  id          String    @id @default(cuid())
+  actorId     String?
+  actorAdminId String?
+  actor       AdminUser? @relation(fields: [actorAdminId], references: [id], onDelete: SetNull)
+  action      String
+  entityType  String?
+  entityId    String?
+  summary     String?
+  ip          String?
+  userAgent   String?
+  resource    String
+  resourceId  String?
+  metadata    Json?
+  createdAt   DateTime  @default(now())
+}
+
+model GitHubSetting {
+  id                      String   @id @default(cuid())
+  githubUsername          String
+  enableGitHubDashboard   Boolean  @default(true)
+  cacheRevalidateSeconds  Int      @default(900)
+  hiddenRepos             Json
+  pinnedOverrides         Json
+  lastSyncAt              DateTime?
+  lastError               String?
+  rateLimitRemaining      Int?
+  rateLimitResetAt        DateTime?
+  updatedAt               DateTime @updatedAt
+}
+
+model SystemSetting {
+  id               String   @id @default(cuid())
+  siteName         String
+  primaryEmail     String   @default("kabirajrana76@gmail.com")
+  locationText     String   @default("Kathmandu, Nepal (or Remote)")
+  responseTimeText String   @default("24–48 hours")
+  availabilityEnabled  Boolean @default(true)
+  availabilityHeadline String  @default("Available for opportunities")
+  availabilitySubtext  String  @default("Open to collaboration and ambitious AI/ML products.")
+  githubUrl        String?  
+  linkedinUrl      String?
+  xUrl             String?
+  accentColor      String
+  glowIntensity    Float    @default(0.5)
+  borderRadiusScale Float   @default(1)
+  themeMode        String   @default("dark")
+  enableProjects   Boolean  @default(true)
+  enableResearch   Boolean  @default(true)
+  enableGitHub     Boolean  @default(true)
+  enableExperience Boolean  @default(true)
+  socialLinks      Json
+  maintenanceMode  Boolean  @default(false)
+  updatedAt        DateTime @updatedAt
+}
+
+model ContentRevision {
+  id            String   @id @default(cuid())
+  entityType    String
+  entityId      String
+  action        String
+  snapshot      Json
+  versionNumber Int      @default(1)
+  actorAdminId  String?
+  actor         AdminUser? @relation(fields: [actorAdminId], references: [id], onDelete: SetNull)
+  createdAt     DateTime @default(now())
+
+  @@index([entityType, entityId, createdAt])
+}
+
+model HealthReport {
+  id          String   @id @default(cuid())
+  checks      Json
+  warnings    Int      @default(0)
+  errors      Int      @default(0)
+  summary     String?
+  createdAt   DateTime @default(now())
+}
+
+model BackupImportLog {
+  id            String   @id @default(cuid())
+  actorAdminId  String?
+  actor         AdminUser? @relation(fields: [actorAdminId], references: [id], onDelete: SetNull)
+  dryRun        Boolean  @default(false)
+  importedCounts Json
+  warnings      Json
+  createdAt     DateTime @default(now())
+}
+
+model ContactPageConfig {
+  id                   String   @id @default(cuid())
+  email                String   @default("kabirajrana76@gmail.com")
+  locationText         String   @default("Kathmandu, Nepal (or Remote)")
+  responseTime         String   @default("24–48 hours")
+  socialLinks          Json
+  availabilityEnabled  Boolean  @default(true)
+  availabilityHeadline String   @default("Available for opportunities")
+  availabilitySubtext  String   @default("Open to collaboration and ambitious AI/ML products.")
+  updatedAt            DateTime @updatedAt
+}

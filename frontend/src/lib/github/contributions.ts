@@ -1,0 +1,177 @@
+import "server-only";
+
+import type { GitHubContributionDay } from "@/types/github";
+
+const GITHUB_GRAPHQL_URL = "https://api.github.com/graphql";
+
+const CONTRIBUTIONS_QUERY = `
+query ContributionsByYear($login: String!, $from: DateTime!, $to: DateTime!) {
+  user(login: $login) {
+    contributionsCollection(from: $from, to: $to) {
+      contributionCalendar {
+        totalContributions
+        weeks {
+          contributionDays {
+            date
+            contributionCount
+          }
+        }
+      }
+    }
+  }
+}
+`;
+
+type ContributionsByYearResponse = {
+	data?: {
+		user: {
+			contributionsCollection: {
+				contributionCalendar: {
+					totalContributions: number;
+					weeks: Array<{
+						contributionDays: Array<{
+							date: string;
+							contributionCount: number;
+						}>;
+					}>;
+				};
+			};
+		};
+	};
+	errors?: Array<{ message: string }>;
+};
+
+function toDateOnly(date: Date) {
+	return date.toISOString().slice(0, 10);
+}
+
+function getYearBounds(year: number) {
+	const startOfYear = new Date(Date.UTC(year, 0, 1, 0, 0, 0, 0));
+	const endOfYear = new Date(Date.UTC(year, 11, 31, 23, 59, 59, 999));
+
+	const start = new Date(startOfYear);
+	start.setUTCDate(start.getUTCDate() - start.getUTCDay());
+
+	const end = new Date(endOfYear);
+	end.setUTCDate(end.getUTCDate() + (6 - end.getUTCDay()));
+
+	return {
+		start,
+		end,
+		from: startOfYear.toISOString(),
+		to: endOfYear.toISOString(),
+	};
+}
+
+function getLevelFromCount(count: number, maxCount: number): 0 | 1 | 2 | 3 | 4 {
+	if (count <= 0 || maxCount <= 0) {
+		return 0;
+	}
+
+	const threshold1 = Math.max(1, Math.ceil(maxCount * 0.25));
+	const threshold2 = Math.max(threshold1 + 1, Math.ceil(maxCount * 0.5));
+	const threshold3 = Math.max(threshold2 + 1, Math.ceil(maxCount * 0.75));
+
+	if (count <= threshold1) {
+		return 1;
+	}
+
+	if (count <= threshold2) {
+		return 2;
+	}
+
+	if (count <= threshold3) {
+		return 3;
+	}
+
+	return 4;
+}
+
+export async function getContributionsByYear(username: string, year: number): Promise<{
+	year: number;
+	total: number;
+	days: GitHubContributionDay[];
+}> {
+	return getContributionsByYearWithOptions(username, year);
+}
+
+export async function getContributionsByYearWithOptions(
+	username: string,
+	year: number,
+	options?: {
+		revalidateSeconds?: number;
+		forceFresh?: boolean;
+	}
+): Promise<{
+	year: number;
+	total: number;
+	days: GitHubContributionDay[];
+}> {
+	const token = process.env.GITHUB_TOKEN;
+	const revalidateSeconds = options?.revalidateSeconds ?? 120;
+
+	if (!token) {
+		throw new Error("Missing GITHUB_TOKEN");
+	}
+
+	const { start, end, from, to } = getYearBounds(year);
+
+	const response = await fetch(GITHUB_GRAPHQL_URL, {
+		method: "POST",
+		headers: {
+			"Content-Type": "application/json",
+			Authorization: `Bearer ${token}`,
+		},
+		...(options?.forceFresh ? { cache: "no-store" as const } : { next: { revalidate: revalidateSeconds } }),
+		body: JSON.stringify({
+			query: CONTRIBUTIONS_QUERY,
+			variables: {
+				login: username,
+				from,
+				to,
+			},
+		}),
+	});
+
+	if (!response.ok) {
+		throw new Error(`GitHub contribution query failed with status ${response.status}`);
+	}
+
+	const payload = (await response.json()) as ContributionsByYearResponse;
+
+	if (payload.errors?.length) {
+		throw new Error(payload.errors.map((error) => error.message).join("; "));
+	}
+
+	if (!payload.data?.user) {
+		throw new Error("GitHub contribution query returned no user");
+	}
+
+	const countByDate = new Map<string, number>();
+	for (const week of payload.data.user.contributionsCollection.contributionCalendar.weeks) {
+		for (const day of week.contributionDays) {
+			countByDate.set(day.date, day.contributionCount);
+		}
+	}
+
+	const maxCount = Math.max(0, ...Array.from(countByDate.values()));
+	const days: GitHubContributionDay[] = [];
+
+	for (const day = new Date(start); day <= end; day.setUTCDate(day.getUTCDate() + 1)) {
+		const date = toDateOnly(day);
+		const count = countByDate.get(date) ?? 0;
+
+		days.push({
+			date,
+			count,
+			level: getLevelFromCount(count, maxCount),
+			weekday: day.getUTCDay(),
+		});
+	}
+
+	return {
+		year,
+		total: payload.data.user.contributionsCollection.contributionCalendar.totalContributions,
+		days,
+	};
+}

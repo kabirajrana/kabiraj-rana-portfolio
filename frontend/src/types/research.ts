@@ -1,0 +1,33 @@
+import type { ResearchContent, ResearchStatus, ResearchType } from "@/lib/research/types";
+
+export type PublicResearchEntry = {
+  id: string;
+  slug: string;
+  title: string;
+  summary: string;
+  content: ResearchContent;
+  type: ResearchType;
+  category?: string | null;
+  tags: string[];
+  year: number;
+  status: ResearchStatus;
+  featured: boolean;
+  authors: string[];
+  affiliation?: string | null;
+  researchArea?: string | null;
+  dataset?: string | null;
+  duration?: string | null;
+  pdfUrl?: string | null;
+  codeUrl?: string | null;
+  demoUrl?: string | null;
+  notesUrl?: string | null;
+  coverImage?: string | null;
+  citation?: string | null;
+  references?: unknown;
+  relatedSlugs: string[];
+  seoTitle?: string | null;
+  seoDescription?: string | null;
+  publishedAt?: string | null;
+  createdAt: string;
+  updatedAt: string;
+};

@@ -1,0 +1,4 @@
+-- AlterTable
+ALTER TABLE "Research" ALTER COLUMN "tags" DROP DEFAULT,
+ALTER COLUMN "authors" DROP DEFAULT,
+ALTER COLUMN "relatedSlugs" DROP DEFAULT;
