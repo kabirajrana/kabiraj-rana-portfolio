@@ -90,7 +90,7 @@ export const certificationSchema = z.object({
   id: z.string().cuid().optional(),
   codeLabel: z.string().min(1),
   title: z.string().min(2),
-  credentialUrl: z.string().url(),
+  credentialUrl: optionalUrlSchema,
   sortOrder: z.coerce.number().int().min(0).default(0),
   isVisible: z.boolean().default(true),
 });

@@ -3,7 +3,7 @@ export type Project = {
 	title: string;
 	tagline: string;
 	summary: string;
-	category: "AI/ML" | "Full Stack" | "Data Science";
+	category: "AI/ML" | "Full Stack" | "Full-Stack" | "Data Science" | "Research";
 	featured: boolean;
 	year: string;
 	role: string;

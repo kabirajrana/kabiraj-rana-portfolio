@@ -6,7 +6,7 @@ export const dsaVisualizerProject: Project = {
 	tagline: "Interactive algorithm playground for faster conceptual learning",
 	summary:
 		"A high-performance web app that visualizes sorting, graph traversal, and pathfinding algorithms with step controls and clear complexity hints.",
-	category: "Full Stack",
+	category: "Full-Stack",
 	featured: true,
 	year: "2025",
 	role: "Full-Stack Developer",

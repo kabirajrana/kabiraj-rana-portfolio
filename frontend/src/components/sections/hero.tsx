@@ -14,14 +14,14 @@ export function HeroSection() {
 					Kabiraj Rana
 				</h1>
 				<p className="mx-auto max-w-3xl text-center text-[1.02rem] font-semibold leading-snug text-accent-foreground/90 md:mx-0 md:text-left md:text-[1.14rem]">
-					<span className="text-[#30B4C4] font-bold">Aspiring AI/ML Engineer</span>
+					<span className="text-[#30B4C4] font-bold">AI/ML Engineer</span>
 					<span className="mx-1.5 text-accent-foreground/80">&bull;</span>
-					<span>Full-Stack Developer</span>
+					<span>Production-Grade AI Systems</span>
 					<span className="mx-1.5 text-accent-foreground/80">&bull;</span>
-					<span>Applied Machine Learning Builder</span>
+					<span>Intelligent Web Applications</span>
 				</p>
 				<p className="mx-auto max-w-2xl text-center text-[0.95rem] leading-relaxed text-muted-foreground sm:text-[1rem] md:mx-0 md:text-left md:text-[1.03rem]">
-					BSc (Hons) Computing with AI at Softwarica College (Coventry University). I build intelligent digital products where modern web engineering meets applied machine learning.
+					I build production-grade AI systems, intelligent web applications, and applied machine learning projects.
 				</p>
 				<div className="mx-auto flex w-full max-w-md items-center justify-center gap-3 md:mx-0 md:max-w-none md:justify-start md:gap-3.5">
 					<Button
@@ -49,7 +49,7 @@ export function HeroSection() {
 			</FadeIn>
 
 			<FadeIn delay={0.1} className="relative hidden md:block">
-				<div className="relative h-[320px] overflow-hidden md:h-full">
+				<div className="relative h-[320px] overflow-hidden md:h-[420px] lg:h-[480px]">
 					<div className="relative flex h-full items-end justify-center">
 						<HeroSplineModel />
 					</div>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 const SPLINE_SCRIPT_ID = "spline-viewer-script";
 const SPLINE_SCRIPT_SRC = "https://unpkg.com/@splinetool/viewer@1.12.61/build/spline-viewer.js";
@@ -9,6 +9,10 @@ const SPLINE_SCENE_URL = "https://prod.spline.design/qlD3FB-Q1FFpnEzi/scene.spli
 export function HeroSplineModel() {
 	const [isReady, setIsReady] = useState(false);
 	const [isDesktop, setIsDesktop] = useState(false);
+	const [hasRenderableSize, setHasRenderableSize] = useState(false);
+	const [isInViewport, setIsInViewport] = useState(false);
+	const [isPageVisible, setIsPageVisible] = useState(true);
+	const containerRef = useRef<HTMLDivElement | null>(null);
 
 	useEffect(() => {
 		if (typeof window === "undefined") {
@@ -24,6 +28,76 @@ export function HeroSplineModel() {
 
 		mediaQuery.addEventListener("change", onChange);
 		return () => mediaQuery.removeEventListener("change", onChange);
+	}, []);
+
+	useEffect(() => {
+		if (!isDesktop || !isReady) {
+			setHasRenderableSize(false);
+			return;
+		}
+
+		const element = containerRef.current;
+		if (!element || typeof window === "undefined") {
+			setHasRenderableSize(false);
+			return;
+		}
+
+		let frameId = 0;
+		const updateRenderableState = () => {
+			const rect = element.getBoundingClientRect();
+			const isVisible = rect.width >= 140 && rect.height >= 180;
+			setHasRenderableSize(isVisible);
+		};
+
+		frameId = window.requestAnimationFrame(updateRenderableState);
+
+		const observer = new ResizeObserver(() => {
+			updateRenderableState();
+		});
+
+		observer.observe(element);
+		window.addEventListener("resize", updateRenderableState);
+
+		return () => {
+			window.cancelAnimationFrame(frameId);
+			observer.disconnect();
+			window.removeEventListener("resize", updateRenderableState);
+		};
+	}, [isDesktop, isReady]);
+
+	useEffect(() => {
+		const element = containerRef.current;
+		if (!element || typeof window === "undefined") {
+			setIsInViewport(false);
+			return;
+		}
+
+		const observer = new IntersectionObserver(
+			(entries) => {
+				setIsInViewport(entries.some((entry) => entry.isIntersecting));
+			},
+			{ root: null, rootMargin: "120px", threshold: 0.01 },
+		);
+
+		observer.observe(element);
+		return () => observer.disconnect();
+	}, [isDesktop]);
+
+	useEffect(() => {
+		if (typeof document === "undefined") {
+			return;
+		}
+
+		const updateVisibility = () => {
+			setIsPageVisible(document.visibilityState === "visible");
+		};
+
+		updateVisibility();
+		document.addEventListener("visibilitychange", updateVisibility);
+
+		return () => {
+			document.removeEventListener("visibilitychange", updateVisibility);
+		};
 	}, []);
 
 	useEffect(() => {
@@ -80,14 +154,16 @@ export function HeroSplineModel() {
 		return null;
 	}
 
-	if (!isReady) {
-		return <div className="h-[300px] w-full max-w-[560px] md:h-[420px]" aria-hidden="true" />;
-	}
+	const canRenderViewer = isReady && hasRenderableSize && isInViewport && isPageVisible;
 
 	return (
-		<spline-viewer
-			url={SPLINE_SCENE_URL}
-			className="h-[300px] w-full max-w-[560px] md:h-[420px]"
-		/>
+		<div ref={containerRef} className="h-[300px] w-full max-w-[560px] md:h-[420px] lg:h-[480px]" aria-hidden="true">
+			{canRenderViewer ? (
+				<spline-viewer
+					url={SPLINE_SCENE_URL}
+					className="h-[300px] w-full max-w-[560px] md:h-[420px] lg:h-[480px]"
+				/>
+			) : null}
+		</div>
 	);
 }

@@ -47,6 +47,10 @@ function parseList(raw: FormDataEntryValue | null): string[] {
     .filter(Boolean);
 }
 
+function parseText(raw: FormDataEntryValue | null): string {
+  return String(raw ?? "").trim();
+}
+
 function parseScheduledAt(raw: FormDataEntryValue | null): Date | null {
   const value = String(raw ?? "").trim();
   if (!value) {
@@ -227,7 +231,7 @@ export async function upsertProjectAction(formData: FormData) {
     summary: String(formData.get("summary") ?? ""),
     description: String(formData.get("description") ?? ""),
     year: String(formData.get("year") ?? ""),
-    category: String(formData.get("category") ?? "General"),
+    category: parseText(formData.get("category")) || "AI/ML",
     tags: parseList(formData.get("tags")),
     techStack: parseList(formData.get("techStack")),
     githubUrl: String(formData.get("githubUrl") ?? ""),
@@ -408,7 +412,7 @@ export async function upsertCertificationAction(formData: FormData) {
     id: String(formData.get("id") ?? "") || undefined,
     codeLabel: String(formData.get("codeLabel") ?? ""),
     title: String(formData.get("title") ?? ""),
-    credentialUrl: String(formData.get("credentialUrl") ?? ""),
+    credentialUrl: parseText(formData.get("credentialUrl")),
     sortOrder: Number(formData.get("sortOrder") ?? 0),
     isVisible: formData.get("isVisible") === "on",
   });

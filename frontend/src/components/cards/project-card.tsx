@@ -29,7 +29,7 @@ export function ProjectCard({
 					</Link>
 				</div>
 
-				<p className="mt-3 text-xs leading-relaxed text-muted md:text-sm">{project.summary}</p>
+				<p className="mt-3 text-sm leading-relaxed text-muted md:text-[0.98rem]">{project.summary}</p>
 
 				<div className="mt-4 flex flex-wrap gap-2">
 					{project.tech.slice(0, 4).map((item) => (

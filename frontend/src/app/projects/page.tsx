@@ -1,6 +1,7 @@
 import { Container } from "@/components/layout/container";
 import { ProjectsShowcase } from "@/components/sections/projects-showcase";
 import { contentRepository } from "@/lib/db/repositories";
+import { DEFAULT_PROJECT_FILTER_CATEGORIES, normalizeProjectCategory } from "@/lib/projects/categories";
 import { buildMetadata } from "@/lib/seo";
 import type { Project } from "@/types/project";
 
@@ -25,7 +26,7 @@ export default async function ProjectsPage() {
 		title: project.title,
 		tagline: project.summary,
 		summary: project.summary,
-		category: (project.category as Project["category"]) ?? "AI/ML",
+		category: normalizeProjectCategory(String(project.category ?? "AI/ML")),
 		featured: project.featured,
 		year: project.year ?? "",
 		role: "",
@@ -42,9 +43,11 @@ export default async function ProjectsPage() {
 		gallery: Array.isArray(project.screenshots) ? (project.screenshots as string[]) : [],
 	}));
 
-	const filterLabels = (categories as CategoryRow[])
+	const dynamicFilterLabels = (categories as CategoryRow[])
 		.filter((item: CategoryRow) => item.isVisible)
 		.map((item: CategoryRow) => item.label);
+
+	const filterLabels = Array.from(new Set([...DEFAULT_PROJECT_FILTER_CATEGORIES, ...dynamicFilterLabels]));
 
 	return (
 		<Container className="py-16 md:py-24">
@@ -53,7 +56,7 @@ export default async function ProjectsPage() {
 				smallLabel={pageConfig?.smallLabel ?? "PROJECTS"}
 				title={pageConfig?.title ?? "All projects."}
 				subtitle={pageConfig?.subtitle ?? "A curated collection of AI and engineering work built with product focus and production discipline."}
-				filters={filterLabels.length ? filterLabels : ["All Projects"]}
+				filters={filterLabels}
 			/>
 		</Container>
 	);

@@ -27,7 +27,7 @@ export function AboutPreviewSection() {
 							Designing practical AI systems with clarity and impact.
 						</h2>
 
-						<p className="max-w-[38.75rem] text-sm leading-[1.72] text-muted md:text-[0.99rem]">
+						<p className="max-w-[38.75rem] text-base leading-[1.72] text-muted md:text-[0.99rem]">
 							I&apos;m an AI/ML-focused full-stack engineer building production-grade systems with
 							modern web architecture and applied machine learning. I care about clarity,
 							reliability, and measurable product impact.
@@ -41,7 +41,7 @@ export function AboutPreviewSection() {
 							>
 								<div className="transform-gpu rounded-2xl border border-border/70 bg-[linear-gradient(140deg,hsl(var(--background)/0.66)_0%,hsl(var(--surface)/0.56)_100%)] p-3.5 transition-[transform,background-color,border-color,box-shadow] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-1 active:translate-y-[1px] hover:border-border/90 hover:bg-[linear-gradient(140deg,hsl(var(--background)/0.75)_0%,hsl(var(--surface)/0.66)_100%)] hover:shadow-[0_20px_38px_-24px_hsl(var(--accent)/0.35)]">
 									<h3 className="text-sm font-semibold md:text-base">What I build</h3>
-									<p className="mt-1.5 text-xs leading-relaxed text-muted md:text-sm">
+									<p className="mt-1.5 text-sm leading-relaxed text-muted md:text-[0.95rem]">
 										AI-powered web products, practical dashboards, and automation systems with real-world
 										impact.
 									</p>
@@ -55,7 +55,7 @@ export function AboutPreviewSection() {
 							>
 								<div className="transform-gpu rounded-2xl border border-border/70 bg-[linear-gradient(140deg,hsl(var(--background)/0.66)_0%,hsl(var(--surface)/0.56)_100%)] p-3.5 transition-[transform,background-color,border-color,box-shadow] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-1 active:translate-y-[1px] hover:border-border/90 hover:bg-[linear-gradient(140deg,hsl(var(--background)/0.75)_0%,hsl(var(--surface)/0.66)_100%)] hover:shadow-[0_20px_38px_-24px_hsl(var(--accent)/0.35)]">
 									<h3 className="text-sm font-semibold md:text-base">How I work</h3>
-									<p className="mt-1.5 text-xs leading-relaxed text-muted md:text-sm">
+									<p className="mt-1.5 text-sm leading-relaxed text-muted md:text-[0.95rem]">
 										Prototype quickly, validate with data, and ship clean, production-grade systems.
 									</p>
 								</div>
@@ -68,7 +68,7 @@ export function AboutPreviewSection() {
 							>
 								<div className="transform-gpu rounded-2xl border border-border/70 bg-[linear-gradient(140deg,hsl(var(--background)/0.66)_0%,hsl(var(--surface)/0.56)_100%)] p-3.5 transition-[transform,background-color,border-color,box-shadow] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-1 active:translate-y-[1px] hover:border-border/90 hover:bg-[linear-gradient(140deg,hsl(var(--background)/0.75)_0%,hsl(var(--surface)/0.66)_100%)] hover:shadow-[0_20px_38px_-24px_hsl(var(--accent)/0.35)]">
 									<h3 className="text-sm font-semibold md:text-base">What I&apos;m exploring now</h3>
-									<p className="mt-1.5 text-xs leading-relaxed text-muted md:text-sm">
+									<p className="mt-1.5 text-sm leading-relaxed text-muted md:text-[0.95rem]">
 										LLMs, RAG pipelines, agents, and applied MLOps for intelligent software.
 									</p>
 								</div>

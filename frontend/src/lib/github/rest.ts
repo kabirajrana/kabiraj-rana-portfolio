@@ -79,18 +79,32 @@ export async function fetchGitHubRecentPublicEvents(options?: {
 	const username = process.env.GITHUB_USERNAME ?? "kabirajrana";
 	const revalidateSeconds = options?.revalidateSeconds ?? 90;
 
-	if (!token) {
-		throw new Error("Missing GITHUB_TOKEN");
-	}
+	const baseHeaders: Record<string, string> = {
+		Accept: "application/vnd.github+json",
+		"X-GitHub-Api-Version": "2022-11-28",
+	};
 
-	const response = await fetch(`https://api.github.com/users/${username}/events/public?per_page=20`, {
-		headers: {
-			Accept: "application/vnd.github+json",
-			Authorization: `Bearer ${token}`,
-			"X-GitHub-Api-Version": "2022-11-28",
-		},
-		...(options?.forceFresh ? { cache: "no-store" as const } : { next: { revalidate: revalidateSeconds } }),
+	const requestInit = options?.forceFresh ? { cache: "no-store" as const } : { next: { revalidate: revalidateSeconds } };
+
+	const withTokenHeaders = token
+		? {
+				...baseHeaders,
+				Authorization: `Bearer ${token}`,
+		  }
+		: baseHeaders;
+
+	let response = await fetch(`https://api.github.com/users/${username}/events/public?per_page=20`, {
+		headers: withTokenHeaders,
+		...requestInit,
 	});
+
+	// Invalid/expired PAT should not fully break public events; retry once without auth.
+	if (token && response.status === 401) {
+		response = await fetch(`https://api.github.com/users/${username}/events/public?per_page=20`, {
+			headers: baseHeaders,
+			...requestInit,
+		});
+	}
 
 	if (!response.ok) {
 		throw new Error(`GitHub REST failed with status ${response.status}`);

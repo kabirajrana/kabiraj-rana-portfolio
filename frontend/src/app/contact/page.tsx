@@ -12,11 +12,15 @@ export const metadata = buildMetadata({
 	path: "/contact",
 });
 
+const CONTACT_EMAIL = "kabirajrana76@gmail.com";
+const CONTACT_GITHUB = "https://github.com/kabirajrana";
+const CONTACT_LINKEDIN = "https://www.linkedin.com/in/kabirajrana/";
+
 export default async function ContactPage() {
 	const config = await contentRepository.getContactPageConfig();
 	const socialLinks = (config?.socialLinks as Record<string, unknown> | null) ?? {};
-	const githubLink = typeof socialLinks.github === "string" ? socialLinks.github : "";
-	const linkedInLink = typeof socialLinks.linkedin === "string" ? socialLinks.linkedin : "";
+	const githubLink = CONTACT_GITHUB;
+	const linkedInLink = CONTACT_LINKEDIN;
 	const additionalLinks = Array.isArray(socialLinks.additional) ? (socialLinks.additional as string[]) : [];
 
 	return (
@@ -45,7 +49,7 @@ export default async function ContactPage() {
 								<ul className="mt-3 space-y-2.5 text-base text-text">
 									<li className="flex items-center gap-2.5 text-base text-text/92">
 										<Mail size={18} className="text-muted" />
-										<span>{config?.email ?? "kabirajrana76@gmail.com"}</span>
+										<span>{CONTACT_EMAIL}</span>
 									</li>
 									<li className="flex items-center gap-2.5 text-base text-text/92">
 										<MapPin size={18} className="text-muted" />
@@ -116,9 +120,9 @@ export default async function ContactPage() {
 										<span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400/50" />
 										<span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-emerald-400 shadow-[0_0_10px_0_rgba(74,222,128,0.55)]" />
 									</span>
-									{config?.availabilityHeadline ?? "Available for opportunities"}
+									Available for freelance projects
 								</h3>
-								<p className="mt-2 text-sm text-muted sm:text-[0.95rem]">{config?.availabilitySubtext ?? "Open to collaboration and ambitious AI/ML products."}</p>
+								<p className="mt-2 text-sm text-muted sm:text-[0.95rem]">Open to selected collaborations and new builds. Let’s create something exceptional.</p>
 							</section>
 						</FadeIn>
 						) : null}

@@ -4,22 +4,21 @@ import { FeaturedProjectsSection } from "@/components/sections/featured-projects
 import { HeroSection } from "@/components/sections/hero";
 import { SkillsSection } from "@/components/sections/skills";
 import { buildMetadata } from "@/lib/seo";
-import { contentRepository } from "@/lib/db/repositories";
 
 export const metadata = buildMetadata({
-	title: "Home",
-	description: "Portfolio of Kabiraj Rana, AI/ML-focused full-stack engineer.",
+	title: "Kabiraj Rana | AI/ML Engineer",
+	description:
+		"Kabiraj Rana is an AI/ML engineer building production-grade AI systems, intelligent web applications, and applied machine learning projects.",
 	path: "/",
+	absoluteTitle: true,
 });
 
 export default async function HomePage() {
-	const settings = await contentRepository.getSystemSettings();
-
 	return (
 		<>
 			<HeroSection />
 			<AboutPreviewSection />
-			{settings?.enableProjects ?? true ? <FeaturedProjectsSection /> : null}
+			<FeaturedProjectsSection />
 			<SkillsSection />
 			<ContactCtaSection />
 		</>

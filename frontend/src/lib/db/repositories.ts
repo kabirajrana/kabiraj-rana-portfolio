@@ -4,6 +4,7 @@ import { certifications, experiences } from "@/content/site/experience";
 import { projects as fallbackProjects } from "@/content/projects";
 import { researchEntries } from "@/data/research";
 import { backendApiRequest } from "@/lib/backend-api";
+import { DEFAULT_PROJECT_CATEGORIES, isAllProjectFilter, normalizeProjectCategory } from "@/lib/projects/categories";
 
 type PublishStatus = "DRAFT" | "PUBLISHED" | "SCHEDULED" | "ARCHIVED";
 type MessageStatus = "UNREAD" | "READ" | "ARCHIVED" | "DELETED";
@@ -114,6 +115,62 @@ function toFallbackProjectRows() {
     architectureDiagram: null,
     sortOrder: index,
     publishedAt: new Date(),
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  }));
+}
+
+function projectIdentityKey(project: Record<string, any>) {
+  return String(project.slug ?? project.id ?? "");
+}
+
+function mergeProjects(primary: Record<string, any>[], fallback: Record<string, any>[]) {
+  const map = new Map<string, Record<string, any>>();
+
+  for (const item of fallback) {
+    map.set(projectIdentityKey(item), item);
+  }
+
+  for (const item of primary) {
+    map.set(projectIdentityKey(item), item);
+  }
+
+  return Array.from(map.values());
+}
+
+function filterProjects(rows: Record<string, any>[], input: { query?: string; category?: string; status?: string }) {
+  const query = String(input.query ?? "").trim().toLowerCase();
+  const status = String(input.status ?? "").trim().toUpperCase();
+  const category = String(input.category ?? "").trim();
+
+  return rows.filter((row) => {
+    const rowStatus = String(row.status ?? "").toUpperCase();
+    const rowCategory = normalizeProjectCategory(String(row.category ?? ""));
+    const haystack = `${String(row.title ?? "")} ${String(row.summary ?? "")} ${String(row.description ?? "")}`.toLowerCase();
+
+    if (status && rowStatus !== status) {
+      return false;
+    }
+
+    if (!isAllProjectFilter(category) && rowCategory !== normalizeProjectCategory(category)) {
+      return false;
+    }
+
+    if (query && !haystack.includes(query)) {
+      return false;
+    }
+
+    return true;
+  });
+}
+
+function buildDefaultProjectCategoryRows() {
+  return DEFAULT_PROJECT_CATEGORIES.map((label, index) => ({
+    id: `default-project-category-${label.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`,
+    label,
+    slug: label.toLowerCase().replace(/[^a-z0-9]+/g, "-"),
+    sortOrder: index,
+    isVisible: true,
     createdAt: new Date(),
     updatedAt: new Date(),
   }));
@@ -249,7 +306,11 @@ export const contentRepository = {
   async listProjects(where?: ProjectWhereInput) {
     const query = where ? `?where=${encodeURIComponent(JSON.stringify(where))}` : "";
     const rows = await getListFromApi<Record<string, any>>(`/v1/content/projects${query}`);
-    return rows.length ? rows : toFallbackProjectRows();
+    const merged = mergeProjects(rows, toFallbackProjectRows());
+    const status = typeof where?.status === "string" ? where.status : undefined;
+    const category = typeof where?.category === "string" ? where.category : undefined;
+    const textQuery = typeof where?.query === "string" ? where.query : undefined;
+    return filterProjects(merged, { status, category, query: textQuery });
   },
 
   async listProjectsPaged(input: {
@@ -268,11 +329,23 @@ export const contentRepository = {
 
     const response = await apiGet<ApiListResponse<Record<string, any>>>(`/v1/content/projects/paged?${params.toString()}`);
     if (response?.items) {
-      return [response.items, response.total ?? response.items.length] as const;
+      const merged = filterProjects(mergeProjects(response.items, toFallbackProjectRows()), {
+        query: input.query,
+        category: input.category,
+        status: input.status,
+      });
+
+      const start = Math.max(0, (input.page - 1) * input.pageSize);
+      return [merged.slice(start, start + input.pageSize), merged.length] as const;
     }
 
-    const fallback = toFallbackProjectRows();
-    return [fallback.slice(0, input.pageSize), fallback.length] as const;
+    const fallback = filterProjects(toFallbackProjectRows(), {
+      query: input.query,
+      category: input.category,
+      status: input.status,
+    });
+    const start = Math.max(0, (input.page - 1) * input.pageSize);
+    return [fallback.slice(start, start + input.pageSize), fallback.length] as const;
   },
 
   async upsertProject(input: ProjectCreateInput & { id?: string }) {
@@ -290,7 +363,18 @@ export const contentRepository = {
   },
 
   async listProjectCategories() {
-    return await getListFromApi<Record<string, any>>("/v1/content/projects/categories");
+    const rows = await getListFromApi<Record<string, any>>("/v1/content/projects/categories");
+    const defaults = buildDefaultProjectCategoryRows();
+
+    const byLabel = new Map<string, Record<string, any>>();
+    for (const row of defaults) {
+      byLabel.set(normalizeProjectCategory(String(row.label)), row);
+    }
+    for (const row of rows) {
+      byLabel.set(normalizeProjectCategory(String(row.label)), row);
+    }
+
+    return Array.from(byLabel.values()).sort((a, b) => Number(a.sortOrder ?? 0) - Number(b.sortOrder ?? 0));
   },
 
   async upsertProjectCategory(input: ProjectCategoryCreateInput & { id?: string }) {

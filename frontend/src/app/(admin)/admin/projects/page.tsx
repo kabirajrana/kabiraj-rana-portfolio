@@ -15,6 +15,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { contentRepository } from "@/lib/db/repositories";
+import { DEFAULT_PROJECT_CATEGORIES } from "@/lib/projects/categories";
 
 type ProjectCategoryRow = Awaited<ReturnType<typeof contentRepository.listProjectCategories>>[number];
 type ProjectRow = Awaited<ReturnType<typeof contentRepository.listProjects>>[number];
@@ -119,7 +120,11 @@ export default async function AdminProjectsPage({
           <form action={upsertProjectAction} className="grid gap-2 md:grid-cols-3">
             <input name="title" required placeholder="Title" className="rounded-xl border border-border bg-surface p-2.5" />
             <input name="year" placeholder="Year" className="rounded-xl border border-border bg-surface p-2.5" />
-            <input name="category" placeholder="Category label" className="rounded-xl border border-border bg-surface p-2.5" />
+            <select name="category" defaultValue="AI/ML" className="rounded-xl border border-border bg-surface p-2.5">
+              {DEFAULT_PROJECT_CATEGORIES.map((category) => (
+                <option key={category} value={category}>{category}</option>
+              ))}
+            </select>
             <input name="summary" required placeholder="Summary" className="rounded-xl border border-border bg-surface p-2.5 md:col-span-2" />
             <input name="tags" placeholder="tags, comma, separated" className="rounded-xl border border-border bg-surface p-2.5" />
             <input name="techStack" placeholder="tech stack" className="rounded-xl border border-border bg-surface p-2.5" />
@@ -151,8 +156,8 @@ export default async function AdminProjectsPage({
               <option value="PUBLISHED">Published</option>
               <option value="ARCHIVED">Archived</option>
             </select>
-            <select name="category" defaultValue={params.category ?? "all"} className="rounded-xl border border-border bg-surface p-2.5">
-              <option value="all">All categories</option>
+            <select name="category" defaultValue={params.category ?? ""} className="rounded-xl border border-border bg-surface p-2.5">
+              <option value="">All project</option>
               {(categories as ProjectCategoryRow[]).map((category: ProjectCategoryRow) => (
                 <option key={category.id} value={category.label}>{category.label}</option>
               ))}

@@ -94,7 +94,7 @@ export default function AboutPage() {
 							{profileTags.map((tag) => (
 								<span
 									key={tag}
-									className="rounded-full border border-border/70 bg-surface-2/65 px-2.5 py-1 text-[11px] text-muted shadow-[0_12px_28px_-24px_rgba(48,170,255,0.7)]"
+									className="rounded-full border border-border/70 bg-surface-2/65 px-2.5 py-1 text-xs text-muted shadow-[0_12px_28px_-24px_rgba(48,170,255,0.7)]"
 								>
 									{tag}
 								</span>
@@ -103,11 +103,11 @@ export default function AboutPage() {
 					</aside>
 
 					<section>
-						<p className="text-[10px] uppercase tracking-[0.26em] text-muted">My Story</p>
+						<p className="text-xs uppercase tracking-[0.24em] text-muted">My Story</p>
 						<h1 className="mt-2 max-w-3xl text-3xl font-semibold tracking-tight md:text-5xl">
 							From curiosity to building intelligent systems.
 						</h1>
-						<p className="mt-3 max-w-3xl text-sm leading-relaxed text-muted md:text-base">
+						<p className="mt-3 max-w-3xl text-base leading-relaxed text-muted md:text-[1.03rem]">
 							I design practical AI-driven products with clean architecture and product thinking—blending modern
 							engineering discipline with applied machine learning.
 						</p>
@@ -117,8 +117,8 @@ export default function AboutPage() {
 								<FadeIn key={card.title} delay={0.05 * index} y={12}>
 									<article className="rounded-2xl border border-border/70 bg-[linear-gradient(140deg,hsl(var(--background)/0.66)_0%,hsl(var(--surface)/0.56)_100%)] p-4 transition-[transform,border-color,box-shadow] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-0.5 hover:border-accent/35 hover:shadow-[0_16px_28px_-20px_hsl(var(--accent)/0.45)]">
 										<h2 className="text-sm font-semibold md:text-base">{card.title}</h2>
-										<p className="mt-2 text-xs leading-relaxed text-muted md:text-sm">{card.description}</p>
-										<ul className="mt-3 space-y-1.5 text-xs text-muted md:text-sm">
+										<p className="mt-2 text-sm leading-relaxed text-muted md:text-[0.95rem]">{card.description}</p>
+										<ul className="mt-3 space-y-1.5 text-sm text-muted md:text-[0.95rem]">
 											{card.bullets.map((bullet) => (
 												<li key={bullet} className="flex items-start gap-2">
 													<span className="mt-[5px] h-1.5 w-1.5 rounded-full bg-accent" />
@@ -132,7 +132,7 @@ export default function AboutPage() {
 						</div>
 
 						<div className="mt-8">
-							<p className="text-[10px] uppercase tracking-[0.26em] text-muted">My Approach</p>
+							<p className="text-xs uppercase tracking-[0.24em] text-muted">My Approach</p>
 							<h2 className="mt-2 text-2xl font-semibold tracking-tight md:text-4xl">
 								How I build — principles that guide my work.
 							</h2>
@@ -144,7 +144,7 @@ export default function AboutPage() {
 												<card.icon size={15} />
 											</div>
 											<h3 className="mt-2.5 text-sm font-semibold">{card.title}</h3>
-											<p className="mt-1.5 text-xs leading-relaxed text-muted">{card.description}</p>
+											<p className="mt-1.5 text-sm leading-relaxed text-muted">{card.description}</p>
 										</article>
 									</FadeIn>
 								))}
@@ -153,7 +153,7 @@ export default function AboutPage() {
 
 						<blockquote className="mt-8 border-t border-border/60 pt-4 text-center text-base italic text-text/95 md:text-lg">
 							“Ship small, learn fast, and let the product prove the idea.”
-							<footer className="mt-2 text-xs not-italic text-muted">— Kabiraj Rana</footer>
+							<footer className="mt-2 text-sm not-italic text-muted">— Kabiraj Rana</footer>
 						</blockquote>
 					</section>
 				</div>

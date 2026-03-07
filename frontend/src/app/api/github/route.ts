@@ -54,6 +54,30 @@ function parseYear(searchParams: URLSearchParams) {
 	return parsedYear;
 }
 
+function toFriendlyGitHubErrorMessage(error: unknown) {
+	const message = error instanceof Error ? error.message : "GitHub service unavailable";
+	const normalized = message.toLowerCase();
+
+	if (normalized.includes("401") || normalized.includes("bad credentials") || normalized.includes("missing github_token")) {
+		return "GitHub authentication failed. Update GITHUB_TOKEN in your environment variables.";
+	}
+
+	return message;
+}
+
+function createProfileFallback(username: string) {
+	return {
+		name: username,
+		login: username,
+		avatarUrl: `https://github.com/${username}.png`,
+		bio: "GitHub profile data is temporarily unavailable.",
+		followers: 0,
+		following: 0,
+		publicRepos: 0,
+		url: `https://github.com/${username}`,
+	};
+}
+
 export async function GET(request: Request) {
 	try {
 		const username = process.env.GITHUB_USERNAME ?? "kabirajrana";
@@ -66,7 +90,7 @@ export async function GET(request: Request) {
 		const eventsRevalidate = isCurrentYear ? 45 : 300;
 		const profileRevalidate = isCurrentYear ? 180 : 900;
 
-		const [graphqlData, recentEvents, contributions] = await Promise.all([
+		const [graphqlDataResult, recentEventsResult, contributionsResult] = await Promise.allSettled([
 			fetchGitHubGraphQLDashboardDataWithOptions({
 				revalidateSeconds: profileRevalidate,
 				forceFresh: forceRefresh,
@@ -81,9 +105,66 @@ export async function GET(request: Request) {
 			}),
 		]);
 
+		const warnings: string[] = [];
+
+		const profileAndRepos =
+			graphqlDataResult.status === "fulfilled"
+				? graphqlDataResult.value
+				: (() => {
+					warnings.push(toFriendlyGitHubErrorMessage(graphqlDataResult.reason));
+					return {
+						profile: createProfileFallback(username),
+						pinnedRepos: [],
+					};
+				  })();
+
+		const contributions =
+			contributionsResult.status === "fulfilled"
+				? contributionsResult.value
+				: (() => {
+					warnings.push(toFriendlyGitHubErrorMessage(contributionsResult.reason));
+					return {
+						year: selectedYear,
+						total: 0,
+						days: [],
+					};
+				  })();
+
+		const recentEvents =
+			recentEventsResult.status === "fulfilled"
+				? recentEventsResult.value
+				: (() => {
+					warnings.push(toFriendlyGitHubErrorMessage(recentEventsResult.reason));
+					return [];
+				  })();
+
+		const allFailed =
+			graphqlDataResult.status === "rejected" &&
+			recentEventsResult.status === "rejected" &&
+			contributionsResult.status === "rejected";
+
+		if (allFailed && lastKnownGoodSnapshot) {
+			return NextResponse.json(
+				{
+					...lastKnownGoodSnapshot,
+					meta: {
+						...lastKnownGoodSnapshot.meta,
+						stale: true,
+						warning: `Using last known GitHub snapshot: ${warnings[0] ?? "GitHub service unavailable"}`,
+					},
+				},
+				{
+					status: 200,
+					headers: {
+						"Cache-Control": "s-maxage=600, stale-while-revalidate=1200",
+					},
+				}
+			);
+		}
+
 		const response: GitHubDashboardResponse = {
 			data: {
-				...graphqlData,
+				...profileAndRepos,
 				contributions: {
 					year: contributions.year,
 					availableYears: [currentYear, currentYear - 1],
@@ -94,11 +175,14 @@ export async function GET(request: Request) {
 			},
 			meta: {
 				generatedAt: new Date().toISOString(),
-				stale: false,
+				stale: warnings.length > 0,
+				...(warnings.length > 0 ? { warning: `GitHub data partially unavailable: ${warnings[0]}` } : {}),
 			},
 		};
 
-		lastKnownGoodSnapshot = response;
+		if (!response.meta.stale) {
+			lastKnownGoodSnapshot = response;
+		}
 
 		return NextResponse.json(response, {
 			status: 200,
@@ -111,7 +195,7 @@ export async function GET(request: Request) {
 			},
 		});
 	} catch (error) {
-		const message = error instanceof Error ? error.message : "GitHub service unavailable";
+		const message = toFriendlyGitHubErrorMessage(error);
 
 		if (lastKnownGoodSnapshot) {
 			return NextResponse.json(

@@ -1,25 +1,27 @@
 import type { Metadata } from "next";
 
-const SITE_URL = "https://kabirajrana.dev";
+const SITE_URL = "https://www.kabirajrana.com.np";
 const SITE_NAME = "Kabiraj Rana";
 
 export function buildMetadata({
 	title,
 	description,
 	path = "/",
+	absoluteTitle = false,
 }: {
 	title: string;
 	description: string;
 	path?: string;
+	absoluteTitle?: boolean;
 }): Metadata {
-	const fullTitle = `${title} | ${SITE_NAME}`;
+	const fullTitle = absoluteTitle ? title : `${title} | ${SITE_NAME}`;
 	const canonical = `${SITE_URL}${path}`;
 
 	return {
 		title: fullTitle,
 		description,
 		metadataBase: new URL(SITE_URL),
-		alternates: { canonical: path },
+		alternates: { canonical },
 		openGraph: {
 			title: fullTitle,
 			description,

@@ -1,0 +1,1122 @@
+{
+  "messages": [
+    {
+      "id": "277c1c04-81f9-496f-b710-43b9956e408b",
+      "sender": "Kabiraj Rana",
+      "email": "kabirajrana62@gmail.com",
+      "subject": "General Inquiry",
+      "body": "I would like to work withe rehlkn",
+      "status": "UNREAD",
+      "ipAddress": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36",
+      "metadata": {
+        "source": "public-contact",
+        "submittedAt": "2026-03-07T10:22:46.796Z"
+      },
+      "createdAt": "2026-03-07T10:22:46.809137+00:00",
+      "updatedAt": "2026-03-07T10:22:46.809137+00:00"
+    },
+    {
+      "id": "91ee9073-485a-4d8b-858c-b79a4e789f4a",
+      "sender": "Ramesh Raual",
+      "email": "kabirajrana08@gmail.com",
+      "subject": "for collaboration",
+      "body": "I would like to work with you bro, just drop me message",
+      "status": "UNREAD",
+      "ipAddress": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36",
+      "metadata": {
+        "source": "public-contact",
+        "submittedAt": "2026-03-07T10:24:06.105Z"
+      },
+      "createdAt": "2026-03-07T10:24:06.122244+00:00",
+      "updatedAt": "2026-03-07T10:24:06.122244+00:00"
+    }
+  ],
+  "contact_config": {
+    "id": "default-contact",
+    "email": "kabir@example.com",
+    "locationText": "Kathmandu",
+    "responseTime": "24h",
+    "socialLinks": {
+      "github": "https://github.com/kabirajrana",
+      "linkedin": "https://linkedin.com/in/kabir",
+      "additional": []
+    },
+    "availabilityEnabled": true,
+    "availabilityHeadline": "Open",
+    "availabilitySubtext": "Ready",
+    "createdAt": "2026-03-07T10:09:32.799530+00:00",
+    "updatedAt": "2026-03-07T11:02:56.236207+00:00"
+  },
+  "system_settings": {
+    "id": "default",
+    "enableProjects": true,
+    "enableResearch": true,
+    "enableExperience": true,
+    "updatedAt": "2026-03-07T11:25:56.945945+00:00",
+    "siteName": "Kabiraj Rana",
+    "primaryEmail": "kabir@example.com",
+    "locationText": "Kathmandu",
+    "responseTimeText": "24-48 hours",
+    "availabilityEnabled": true,
+    "availabilityHeadline": "Open",
+    "availabilitySubtext": "Ready",
+    "githubUrl": "https://github.com/kabirajrana",
+    "linkedinUrl": "https://linkedin.com/in/kabir",
+    "xUrl": "",
+    "accentColor": "cyan",
+    "glowIntensity": 0.6,
+    "borderRadiusScale": 1.0,
+    "themeMode": "dark",
+    "enableGitHub": true,
+    "socialLinks": {
+      "github": "https://github.com/kabirajrana",
+      "linkedin": "https://linkedin.com/in/kabir",
+      "x": ""
+    },
+    "maintenanceMode": false
+  },
+  "site_contents": {
+    "home": {
+      "id": "home",
+      "slug": "home",
+      "draftJson": {
+        "heroTitle": "Hello"
+      },
+      "status": "DRAFT",
+      "scheduledAt": null,
+      "createdAt": "2026-03-07T10:59:13.932358+00:00",
+      "updatedAt": "2026-03-07T11:03:50.048445+00:00"
+    },
+    "about": {
+      "id": "about",
+      "slug": "about",
+      "draftJson": {
+        "bio": "About me"
+      },
+      "status": "DRAFT",
+      "scheduledAt": null,
+      "createdAt": "2026-03-07T11:02:56.214271+00:00",
+      "updatedAt": "2026-03-07T11:02:56.214307+00:00"
+    }
+  },
+  "projects": [],
+  "experience": [
+    {
+      "id": "exp-1",
+      "role": "Full-Stack Developer",
+      "org": "Personal Projects & Freelance",
+      "timeframe": "2021 \u2013 Present",
+      "summary": "Building and shipping full-stack products end-to-end with a focus on quality UX, robust architecture, and practical deployment.",
+      "techStack": [
+        "Full-Stack Development",
+        "Product Delivery",
+        "Freelance Execution"
+      ],
+      "achievements": [
+        "Designed and delivered real-world web applications across frontend and backend.",
+        "Implemented scalable APIs, responsive interfaces, and deployment-ready workflows.",
+        "Collaborated directly with requirements and iteration cycles to ship polished outcomes."
+      ],
+      "sidePlacement": "AUTO",
+      "status": "PUBLISHED",
+      "currentRole": true,
+      "sortOrder": 0,
+      "publishedAt": "2026-03-07T11:19:56.293369+00:00",
+      "createdAt": "2026-03-07T11:19:56.293369+00:00",
+      "updatedAt": "2026-03-07T11:19:56.293369+00:00"
+    },
+    {
+      "id": "exp-3",
+      "role": "Learning Sprint",
+      "org": "Continuous capability expansion",
+      "timeframe": "Current",
+      "summary": "Maintaining rapid learning cycles with real project implementation to improve depth, speed, and craftsmanship.",
+      "techStack": [
+        "Research",
+        "Iteration",
+        "Execution"
+      ],
+      "achievements": [
+        "Studying advanced AI workflows and practical applied research patterns.",
+        "Refining product polish through frequent visual and interaction tuning.",
+        "Expanding full-stack fluency through end-to-end experimentation."
+      ],
+      "sidePlacement": "AUTO",
+      "status": "PUBLISHED",
+      "currentRole": true,
+      "sortOrder": 2,
+      "publishedAt": "2026-03-07T11:19:56.293369+00:00",
+      "createdAt": "2026-03-07T11:19:56.293369+00:00",
+      "updatedAt": "2026-03-07T11:19:56.293369+00:00"
+    },
+    {
+      "timeframe": "2021 - 2024",
+      "role": "Technical Coordinator",
+      "org": "College Initiatives",
+      "summary": "Supported technical planning and system coordination for college-level initiatives. ",
+      "location": "Remote",
+      "sidePlacement": "AUTO",
+      "startDate": "2021-01-07T00:00:00.000Z",
+      "endDate": "2024-02-07T00:00:00.000Z",
+      "currentRole": false,
+      "achievements": [
+        "Supported technical planning and system coordination for college-level initiatives.",
+        "Assisted in organizing structured workflows.",
+        "Contributed to reliable execution of events and collaborative technical operations."
+      ],
+      "techStack": [
+        "System Coordination",
+        "Technical Support",
+        "Event Tech Management",
+        "Team Collaboration"
+      ],
+      "status": "PUBLISHED",
+      "scheduledAt": null,
+      "sortOrder": 0,
+      "id": "35db6747-3966-4412-aa72-f06072915d33",
+      "createdAt": "2026-03-07T17:40:34.673616+00:00",
+      "updatedAt": "2026-03-07T17:40:34.673616+00:00"
+    }
+  ],
+  "research": [
+    {
+      "title": "R",
+      "tags": [
+        "ml"
+      ],
+      "year": 2026,
+      "type": "NOTE",
+      "status": "DRAFT",
+      "summary": "s",
+      "slug": "r-test",
+      "content": {
+        "sections": []
+      },
+      "id": "5a9b669c-b3d9-4f25-8ca6-edd1cf3ba535",
+      "createdAt": "2026-03-07T10:59:14.452469+00:00",
+      "updatedAt": "2026-03-07T10:59:14.452469+00:00"
+    },
+    {
+      "title": "Research T",
+      "slug": "research-t",
+      "summary": "sum",
+      "type": "NOTE",
+      "status": "DRAFT",
+      "year": 2026,
+      "tags": [
+        "ml"
+      ],
+      "content": {
+        "sections": []
+      },
+      "id": "19cd8aa6-41ae-4028-be03-96567a746f9c",
+      "createdAt": "2026-03-07T11:02:33.930478+00:00",
+      "updatedAt": "2026-03-07T11:02:33.930478+00:00"
+    }
+  ],
+  "media": [
+    {
+      "usedBy": [
+        "home"
+      ],
+      "tags": [
+        "test"
+      ],
+      "type": "image",
+      "key": "asset/test.png",
+      "url": "https://example.com/test.png",
+      "size": 2048,
+      "id": "69de05b4-7f53-4269-8f03-d38fd1ae0f83",
+      "createdAt": "2026-03-07T10:59:14.532012+00:00",
+      "updatedAt": "2026-03-07T10:59:14.532012+00:00"
+    },
+    {
+      "key": "assets/research-t.png",
+      "url": "https://example.com/research-t.png",
+      "type": "image",
+      "size": 4096,
+      "usedBy": [
+        "research"
+      ],
+      "id": "1b4d9543-477f-4d7a-84d0-f9405d05b4c3",
+      "createdAt": "2026-03-07T11:02:33.947950+00:00",
+      "updatedAt": "2026-03-07T11:02:33.947950+00:00"
+    }
+  ],
+  "resumes": [
+    {
+      "label": "v1",
+      "url": "https://example.com/cv.pdf",
+      "isActive": false,
+      "downloadCount": 0,
+      "id": "9a0cc980-c7e6-4c76-96cb-4dd4eabdb587",
+      "createdAt": "2026-03-07T10:59:14.639723+00:00",
+      "updatedAt": "2026-03-07T10:59:14.661043+00:00"
+    },
+    {
+      "label": "v-test",
+      "url": "https://example.com/cv-test.pdf",
+      "isActive": true,
+      "downloadCount": 0,
+      "id": "b7a79fcb-b41b-44b7-853e-ed640acedb21",
+      "createdAt": "2026-03-07T11:02:33.967819+00:00",
+      "updatedAt": "2026-03-07T11:02:33.967819+00:00"
+    }
+  ],
+  "seo_configs": [
+    {
+      "canonical": "https://example.com",
+      "metaDescription": "d",
+      "metaTitle": "t",
+      "pageKey": "home",
+      "id": "12e5cd58-c85c-491a-9fd0-62b22474eabb",
+      "createdAt": "2026-03-07T10:59:14.742850+00:00",
+      "updatedAt": "2026-03-07T10:59:14.742850+00:00"
+    },
+    {
+      "pageKey": "research",
+      "metaTitle": "Research",
+      "metaDescription": "Research desc",
+      "id": "65d0e181-7771-47be-8b55-7e87effb8387",
+      "createdAt": "2026-03-07T11:02:33.986919+00:00",
+      "updatedAt": "2026-03-07T11:02:33.986919+00:00"
+    }
+  ],
+  "github_settings": {
+    "id": "default",
+    "githubUsername": "kabirajrana",
+    "enableGitHubDashboard": true,
+    "cacheRevalidateSeconds": 900,
+    "hiddenRepos": [],
+    "pinnedOverrides": [],
+    "lastSyncAt": null,
+    "lastError": null,
+    "rateLimitRemaining": null,
+    "updatedAt": "2026-03-07T11:02:34.006721+00:00",
+    "createdAt": "2026-03-07T10:59:14.824615+00:00"
+  },
+  "audit_logs": [
+    {
+      "id": "40199edf-c66f-478c-a563-c4a7536f7e69",
+      "actorId": null,
+      "actor": {
+        "name": null,
+        "email": null
+      },
+      "action": "UPSERT",
+      "resource": "Project",
+      "resourceId": "x1",
+      "entityType": "Project",
+      "entityId": "x1",
+      "summary": "test",
+      "metadata": null,
+      "ip": null,
+      "userAgent": null,
+      "createdAt": "2026-03-07T10:59:15.141056+00:00",
+      "updatedAt": "2026-03-07T10:59:15.141056+00:00"
+    },
+    {
+      "id": "4630554e-299a-4056-b8a9-7b7871b9d5c0",
+      "actorId": null,
+      "actor": {
+        "name": null,
+        "email": null
+      },
+      "action": "UPDATE",
+      "resource": "SystemSetting",
+      "resourceId": "default",
+      "entityType": "SystemSetting",
+      "entityId": "default",
+      "summary": "updated",
+      "metadata": null,
+      "ip": null,
+      "userAgent": null,
+      "createdAt": "2026-03-07T11:02:56.283604+00:00",
+      "updatedAt": "2026-03-07T11:02:56.283604+00:00"
+    },
+    {
+      "id": "ea4a194d-1f47-432f-9c2b-2c80d748ba30",
+      "actorId": "cmmd6vsm50000xxzwrxwsn1u9",
+      "actor": {
+        "name": null,
+        "email": null
+      },
+      "action": "UPSERT",
+      "resource": "Experience",
+      "resourceId": "f1da4ead-893b-42f1-80b7-47351315e1cd",
+      "entityType": "Experience",
+      "entityId": "f1da4ead-893b-42f1-80b7-47351315e1cd",
+      "summary": null,
+      "metadata": null,
+      "ip": null,
+      "userAgent": null,
+      "createdAt": "2026-03-07T11:33:35.249727+00:00",
+      "updatedAt": "2026-03-07T11:33:35.249727+00:00"
+    },
+    {
+      "id": "ba8b905b-632d-4f07-8150-4df602a8680d",
+      "actorId": "cmmd6vsm50000xxzwrxwsn1u9",
+      "actor": {
+        "name": null,
+        "email": null
+      },
+      "action": "DELETE",
+      "resource": "Experience",
+      "resourceId": "f1da4ead-893b-42f1-80b7-47351315e1cd",
+      "entityType": "Experience",
+      "entityId": "f1da4ead-893b-42f1-80b7-47351315e1cd",
+      "summary": null,
+      "metadata": null,
+      "ip": null,
+      "userAgent": null,
+      "createdAt": "2026-03-07T11:34:49.190921+00:00",
+      "updatedAt": "2026-03-07T11:34:49.190921+00:00"
+    },
+    {
+      "id": "e51f15a6-e6d1-40a4-a661-f52063f7d25a",
+      "actorId": "cmmd6vsm50000xxzwrxwsn1u9",
+      "actor": {
+        "name": null,
+        "email": null
+      },
+      "action": "UPSERT",
+      "resource": "Certification",
+      "resourceId": "d3a10034-b737-43ca-a9f1-35eb03c638ac",
+      "entityType": "Certification",
+      "entityId": "d3a10034-b737-43ca-a9f1-35eb03c638ac",
+      "summary": null,
+      "metadata": null,
+      "ip": null,
+      "userAgent": null,
+      "createdAt": "2026-03-07T11:35:31.907945+00:00",
+      "updatedAt": "2026-03-07T11:35:31.907945+00:00"
+    },
+    {
+      "id": "7f08b665-15cd-4fdb-8f0f-3fe02fb5aa89",
+      "actorId": "cmmd6vsm50000xxzwrxwsn1u9",
+      "actor": {
+        "name": null,
+        "email": null
+      },
+      "action": "UPSERT",
+      "resource": "Project",
+      "resourceId": "d1ef56e0-0a73-492e-9461-e4fe27933f0d",
+      "entityType": "Project",
+      "entityId": "d1ef56e0-0a73-492e-9461-e4fe27933f0d",
+      "summary": null,
+      "metadata": null,
+      "ip": null,
+      "userAgent": null,
+      "createdAt": "2026-03-07T17:33:22.387464+00:00",
+      "updatedAt": "2026-03-07T17:33:22.387464+00:00"
+    },
+    {
+      "id": "d65a67aa-30b8-4b96-a271-3764cdf9c809",
+      "actorId": "cmmd6vsm50000xxzwrxwsn1u9",
+      "actor": {
+        "name": null,
+        "email": null
+      },
+      "action": "UPSERT",
+      "resource": "Experience",
+      "resourceId": "530d1554-c5cb-47b9-8b20-e31f64b7592b",
+      "entityType": "Experience",
+      "entityId": "530d1554-c5cb-47b9-8b20-e31f64b7592b",
+      "summary": null,
+      "metadata": null,
+      "ip": null,
+      "userAgent": null,
+      "createdAt": "2026-03-07T17:35:08.538134+00:00",
+      "updatedAt": "2026-03-07T17:35:08.538134+00:00"
+    },
+    {
+      "id": "387395d3-80ca-4940-9998-00bf78d5d070",
+      "actorId": "cmmd6vsm50000xxzwrxwsn1u9",
+      "actor": {
+        "name": null,
+        "email": null
+      },
+      "action": "DELETE",
+      "resource": "Experience",
+      "resourceId": "530d1554-c5cb-47b9-8b20-e31f64b7592b",
+      "entityType": "Experience",
+      "entityId": "530d1554-c5cb-47b9-8b20-e31f64b7592b",
+      "summary": null,
+      "metadata": null,
+      "ip": null,
+      "userAgent": null,
+      "createdAt": "2026-03-07T17:35:41.201202+00:00",
+      "updatedAt": "2026-03-07T17:35:41.201202+00:00"
+    },
+    {
+      "id": "d0219203-139c-4eaa-91ee-fa57059d4253",
+      "actorId": "cmmd6vsm50000xxzwrxwsn1u9",
+      "actor": {
+        "name": null,
+        "email": null
+      },
+      "action": "DELETE",
+      "resource": "Experience",
+      "resourceId": "exp-2",
+      "entityType": "Experience",
+      "entityId": "exp-2",
+      "summary": null,
+      "metadata": null,
+      "ip": null,
+      "userAgent": null,
+      "createdAt": "2026-03-07T17:35:44.650294+00:00",
+      "updatedAt": "2026-03-07T17:35:44.650294+00:00"
+    },
+    {
+      "id": "cb2903e0-f7f9-4d32-bbeb-dda347402083",
+      "actorId": "cmmd6vsm50000xxzwrxwsn1u9",
+      "actor": {
+        "name": null,
+        "email": null
+      },
+      "action": "UPSERT",
+      "resource": "Experience",
+      "resourceId": "35db6747-3966-4412-aa72-f06072915d33",
+      "entityType": "Experience",
+      "entityId": "35db6747-3966-4412-aa72-f06072915d33",
+      "summary": null,
+      "metadata": null,
+      "ip": null,
+      "userAgent": null,
+      "createdAt": "2026-03-07T17:40:34.840084+00:00",
+      "updatedAt": "2026-03-07T17:40:34.840084+00:00"
+    },
+    {
+      "id": "0493f902-edf4-4263-9240-044d2a50d880",
+      "actorId": "cmmd6vsm50000xxzwrxwsn1u9",
+      "actor": {
+        "name": null,
+        "email": null
+      },
+      "action": "DELETE",
+      "resource": "Project",
+      "resourceId": "d1ef56e0-0a73-492e-9461-e4fe27933f0d",
+      "entityType": "Project",
+      "entityId": "d1ef56e0-0a73-492e-9461-e4fe27933f0d",
+      "summary": null,
+      "metadata": null,
+      "ip": null,
+      "userAgent": null,
+      "createdAt": "2026-03-07T17:49:04.598797+00:00",
+      "updatedAt": "2026-03-07T17:49:04.598797+00:00"
+    },
+    {
+      "id": "19a28c26-3ddf-40e1-a057-19ef73495fa1",
+      "actorId": "cmmd6vsm50000xxzwrxwsn1u9",
+      "actor": {
+        "name": null,
+        "email": null
+      },
+      "action": "UPSERT",
+      "resource": "Project",
+      "resourceId": "ed8eeb04-2d27-4382-8313-4ab52301a080",
+      "entityType": "Project",
+      "entityId": "ed8eeb04-2d27-4382-8313-4ab52301a080",
+      "summary": null,
+      "metadata": null,
+      "ip": null,
+      "userAgent": null,
+      "createdAt": "2026-03-07T17:50:39.230726+00:00",
+      "updatedAt": "2026-03-07T17:50:39.230726+00:00"
+    },
+    {
+      "id": "0f25efab-334d-4d5b-8c6a-8ce7e28a1add",
+      "actorId": "cmmd6vsm50000xxzwrxwsn1u9",
+      "actor": {
+        "name": null,
+        "email": null
+      },
+      "action": "DELETE",
+      "resource": "Project",
+      "resourceId": "ed8eeb04-2d27-4382-8313-4ab52301a080",
+      "entityType": "Project",
+      "entityId": "ed8eeb04-2d27-4382-8313-4ab52301a080",
+      "summary": null,
+      "metadata": null,
+      "ip": null,
+      "userAgent": null,
+      "createdAt": "2026-03-07T17:51:49.809030+00:00",
+      "updatedAt": "2026-03-07T17:51:49.809030+00:00"
+    },
+    {
+      "id": "3e2fb7ca-717d-42b3-99be-60da2e948c59",
+      "actorId": "cmmd6vsm50000xxzwrxwsn1u9",
+      "actor": {
+        "name": null,
+        "email": null
+      },
+      "action": "DELETE",
+      "resource": "Project",
+      "resourceId": "be444c8c-630a-47d7-b127-92318798fbc7",
+      "entityType": "Project",
+      "entityId": "be444c8c-630a-47d7-b127-92318798fbc7",
+      "summary": null,
+      "metadata": null,
+      "ip": null,
+      "userAgent": null,
+      "createdAt": "2026-03-07T18:03:47.424998+00:00",
+      "updatedAt": "2026-03-07T18:03:47.424998+00:00"
+    },
+    {
+      "id": "40934dfe-c5fe-4581-8a73-ba5d918c20f6",
+      "actorId": "cmmd6vsm50000xxzwrxwsn1u9",
+      "actor": {
+        "name": null,
+        "email": null
+      },
+      "action": "DELETE",
+      "resource": "Project",
+      "resourceId": "x1",
+      "entityType": "Project",
+      "entityId": "x1",
+      "summary": null,
+      "metadata": null,
+      "ip": null,
+      "userAgent": null,
+      "createdAt": "2026-03-07T18:03:57.684372+00:00",
+      "updatedAt": "2026-03-07T18:03:57.684372+00:00"
+    },
+    {
+      "id": "15fac94e-057c-4f1d-90e4-d4dd17a92bf8",
+      "actorId": "cmmd6vsm50000xxzwrxwsn1u9",
+      "actor": {
+        "name": null,
+        "email": null
+      },
+      "action": "DELETE",
+      "resource": "Project",
+      "resourceId": "p-test",
+      "entityType": "Project",
+      "entityId": "p-test",
+      "summary": null,
+      "metadata": null,
+      "ip": null,
+      "userAgent": null,
+      "createdAt": "2026-03-07T18:04:08.617505+00:00",
+      "updatedAt": "2026-03-07T18:04:08.617505+00:00"
+    },
+    {
+      "id": "443661e0-bf89-4f09-bced-db6c90bdee85",
+      "actorId": "cmmd6vsm50000xxzwrxwsn1u9",
+      "actor": {
+        "name": null,
+        "email": null
+      },
+      "action": "DELETE",
+      "resource": "Project",
+      "resourceId": "1cdf3c99-66a7-4937-a46f-3fa94d71e341",
+      "entityType": "Project",
+      "entityId": "1cdf3c99-66a7-4937-a46f-3fa94d71e341",
+      "summary": null,
+      "metadata": null,
+      "ip": null,
+      "userAgent": null,
+      "createdAt": "2026-03-07T18:04:14.515237+00:00",
+      "updatedAt": "2026-03-07T18:04:14.515237+00:00"
+    },
+    {
+      "id": "a98007c1-8308-4b64-9f55-002e7f8b0d09",
+      "actorId": "cmmd6vsm50000xxzwrxwsn1u9",
+      "actor": {
+        "name": null,
+        "email": null
+      },
+      "action": "UPSERT",
+      "resource": "Project",
+      "resourceId": "b37b00de-74f5-4829-abf6-7fa32b1cd6f0",
+      "entityType": "Project",
+      "entityId": "b37b00de-74f5-4829-abf6-7fa32b1cd6f0",
+      "summary": null,
+      "metadata": null,
+      "ip": null,
+      "userAgent": null,
+      "createdAt": "2026-03-07T18:04:51.659757+00:00",
+      "updatedAt": "2026-03-07T18:04:51.659757+00:00"
+    },
+    {
+      "id": "9a27f376-5719-4c6b-801b-099eff67ed7b",
+      "actorId": "cmmd6vsm50000xxzwrxwsn1u9",
+      "actor": {
+        "name": null,
+        "email": null
+      },
+      "action": "DELETE",
+      "resource": "Project",
+      "resourceId": "b37b00de-74f5-4829-abf6-7fa32b1cd6f0",
+      "entityType": "Project",
+      "entityId": "b37b00de-74f5-4829-abf6-7fa32b1cd6f0",
+      "summary": null,
+      "metadata": null,
+      "ip": null,
+      "userAgent": null,
+      "createdAt": "2026-03-07T18:05:15.831632+00:00",
+      "updatedAt": "2026-03-07T18:05:15.831632+00:00"
+    },
+    {
+      "id": "d8ef2b31-2e30-4c2b-81b3-0e3c5bf9e5e5",
+      "actorId": "cmmd6vsm50000xxzwrxwsn1u9",
+      "actor": {
+        "name": null,
+        "email": null
+      },
+      "action": "DELETE",
+      "resource": "Message",
+      "resourceId": "f9ec3ba8-e8c5-4739-95a5-f09d7d1d48fc",
+      "entityType": "Message",
+      "entityId": "f9ec3ba8-e8c5-4739-95a5-f09d7d1d48fc",
+      "summary": null,
+      "metadata": null,
+      "ip": null,
+      "userAgent": null,
+      "createdAt": "2026-03-07T18:07:14.231712+00:00",
+      "updatedAt": "2026-03-07T18:07:14.231712+00:00"
+    },
+    {
+      "id": "037341b5-729d-4ddb-9755-48edaae7515d",
+      "actorId": "cmmd6vsm50000xxzwrxwsn1u9",
+      "actor": {
+        "name": null,
+        "email": null
+      },
+      "action": "DELETE",
+      "resource": "Message",
+      "resourceId": "74390d8e-5faa-4ef6-aa24-ee5ee5e6022c",
+      "entityType": "Message",
+      "entityId": "74390d8e-5faa-4ef6-aa24-ee5ee5e6022c",
+      "summary": null,
+      "metadata": null,
+      "ip": null,
+      "userAgent": null,
+      "createdAt": "2026-03-07T18:07:16.545658+00:00",
+      "updatedAt": "2026-03-07T18:07:16.545658+00:00"
+    }
+  ],
+  "revisions": [
+    {
+      "id": "e07497cb-3cf2-4d42-85be-172598b734f8",
+      "entityType": "Project",
+      "entityId": "x1",
+      "action": "UPDATE",
+      "actorAdminId": null,
+      "snapshot": {
+        "id": "x1",
+        "title": "T"
+      },
+      "versionNumber": 1,
+      "createdAt": "2026-03-07T10:59:15.259012+00:00"
+    },
+    {
+      "id": "148af22d-55ab-4e71-bfa8-99051a2a4250",
+      "entityType": "Project",
+      "entityId": "x1",
+      "action": "RESTORE",
+      "actorAdminId": "admin-1",
+      "snapshot": {
+        "id": "x1",
+        "title": "T"
+      },
+      "versionNumber": 2,
+      "createdAt": "2026-03-07T10:59:15.289721+00:00"
+    },
+    {
+      "id": "b5ff9e7a-431f-45fa-acae-a289f82e555f",
+      "entityType": "Project",
+      "entityId": "p-test",
+      "action": "UPDATE",
+      "actorAdminId": null,
+      "snapshot": {
+        "id": "p-test",
+        "title": "Snapshot"
+      },
+      "versionNumber": 1,
+      "createdAt": "2026-03-07T11:02:56.303646+00:00"
+    },
+    {
+      "id": "c991baf7-8e83-4be6-a2ec-854bb4260b04",
+      "entityType": "Project",
+      "entityId": "p-test",
+      "action": "RESTORE",
+      "actorAdminId": "admin-1",
+      "snapshot": {
+        "id": "p-test",
+        "title": "Snapshot"
+      },
+      "versionNumber": 2,
+      "createdAt": "2026-03-07T11:02:56.319932+00:00"
+    },
+    {
+      "id": "dea57c6a-4ce2-4ffb-b6f1-e2039aa724c4",
+      "entityType": "Experience",
+      "entityId": "f1da4ead-893b-42f1-80b7-47351315e1cd",
+      "action": "PUBLISH",
+      "actorAdminId": "cmmd6vsm50000xxzwrxwsn1u9",
+      "snapshot": {
+        "timeframe": "2026-current",
+        "role": "ML Engineer",
+        "org": "Self Learner",
+        "summary": "I work as an AI Engineer in the big tech compnay. How many sources it does not mater to be the world class and not anything.",
+        "location": "Remote",
+        "sidePlacement": "AUTO",
+        "startDate": "2026-03-07T00:00:00.000Z",
+        "endDate": "2026-04-10T00:00:00.000Z",
+        "currentRole": false,
+        "achievements": [
+          "python",
+          "Java",
+          "Pytorch"
+        ],
+        "techStack": [
+          "Python",
+          "Java",
+          "SQL",
+          "PHP"
+        ],
+        "status": "PUBLISHED",
+        "scheduledAt": null,
+        "sortOrder": 0,
+        "id": "f1da4ead-893b-42f1-80b7-47351315e1cd",
+        "createdAt": "2026-03-07T11:33:35.098Z",
+        "updatedAt": "2026-03-07T11:33:35.098Z"
+      },
+      "versionNumber": 1,
+      "createdAt": "2026-03-07T11:33:35.186402+00:00"
+    },
+    {
+      "id": "d76d0ee0-6f44-46c5-9842-32244633de9a",
+      "entityType": "Project",
+      "entityId": "d1ef56e0-0a73-492e-9461-e4fe27933f0d",
+      "action": "PUBLISH",
+      "actorAdminId": "cmmd6vsm50000xxzwrxwsn1u9",
+      "snapshot": {
+        "title": "New Blinkers website",
+        "slug": "new-blinkers-website",
+        "summary": "I work as an AI Engineer in the big tech compnay. How many sources it does not mater to be the world class and not anything",
+        "description": "I'm really excited to be the part of this project",
+        "year": "2026",
+        "category": "General",
+        "tags": [],
+        "techStack": [
+          "Python",
+          "Java",
+          "SQL",
+          "PHP"
+        ],
+        "githubUrl": "",
+        "liveUrl": "",
+        "featured": false,
+        "status": "PUBLISHED",
+        "highlights": [
+          "Seniour  Engineer"
+        ],
+        "screenshots": [],
+        "coverImage": "",
+        "dataset": "",
+        "model": "",
+        "results": "",
+        "architectureDiagram": "",
+        "scheduledAt": null,
+        "sortOrder": 0,
+        "publishedAt": "2026-03-07T17:33:22.160Z",
+        "id": "d1ef56e0-0a73-492e-9461-e4fe27933f0d",
+        "createdAt": "2026-03-07T17:33:22.214Z",
+        "updatedAt": "2026-03-07T17:33:22.214Z"
+      },
+      "versionNumber": 1,
+      "createdAt": "2026-03-07T17:33:22.306574+00:00"
+    },
+    {
+      "id": "639923fe-29a4-4b45-878f-e1810bac4b3c",
+      "entityType": "Experience",
+      "entityId": "530d1554-c5cb-47b9-8b20-e31f64b7592b",
+      "action": "PUBLISH",
+      "actorAdminId": "cmmd6vsm50000xxzwrxwsn1u9",
+      "snapshot": {
+        "timeframe": "2026-current",
+        "role": "NLP Engineer",
+        "org": "Self Learner",
+        "summary": "I work as an AI Engineer in the big tech compnay. How many sources it does not mater to be the world class and not anything",
+        "location": "Remote",
+        "sidePlacement": "AUTO",
+        "startDate": "2026-04-11T00:00:00.000Z",
+        "endDate": "2026-03-07T00:00:00.000Z",
+        "currentRole": false,
+        "achievements": [
+          "python",
+          "Java",
+          "Pytorch"
+        ],
+        "techStack": [
+          "Python",
+          "Java",
+          "SQL",
+          "PHP"
+        ],
+        "status": "PUBLISHED",
+        "scheduledAt": null,
+        "sortOrder": 0,
+        "id": "530d1554-c5cb-47b9-8b20-e31f64b7592b",
+        "createdAt": "2026-03-07T17:35:08.376Z",
+        "updatedAt": "2026-03-07T17:35:08.376Z"
+      },
+      "versionNumber": 1,
+      "createdAt": "2026-03-07T17:35:08.464632+00:00"
+    },
+    {
+      "id": "2c1e463c-ed6f-4893-9daa-5d3122ca8390",
+      "entityType": "Experience",
+      "entityId": "35db6747-3966-4412-aa72-f06072915d33",
+      "action": "PUBLISH",
+      "actorAdminId": "cmmd6vsm50000xxzwrxwsn1u9",
+      "snapshot": {
+        "timeframe": "2021 - 2024",
+        "role": "Technical Coordinator",
+        "org": "College Initiatives",
+        "summary": "Supported technical planning and system coordination for college-level initiatives. ",
+        "location": "Remote",
+        "sidePlacement": "AUTO",
+        "startDate": "2021-01-07T00:00:00.000Z",
+        "endDate": "2024-02-07T00:00:00.000Z",
+        "currentRole": false,
+        "achievements": [
+          "Supported technical planning and system coordination for college-level initiatives.",
+          "Assisted in organizing structured workflows.",
+          "Contributed to reliable execution of events and collaborative technical operations."
+        ],
+        "techStack": [
+          "System Coordination",
+          "Technical Support",
+          "Event Tech Management",
+          "Team Collaboration"
+        ],
+        "status": "PUBLISHED",
+        "scheduledAt": null,
+        "sortOrder": 0,
+        "id": "35db6747-3966-4412-aa72-f06072915d33",
+        "createdAt": "2026-03-07T17:40:34.673Z",
+        "updatedAt": "2026-03-07T17:40:34.673Z"
+      },
+      "versionNumber": 1,
+      "createdAt": "2026-03-07T17:40:34.768269+00:00"
+    },
+    {
+      "id": "ccec76ba-69b5-4133-9b56-660dd0e2bb9c",
+      "entityType": "Project",
+      "entityId": "ed8eeb04-2d27-4382-8313-4ab52301a080",
+      "action": "PUBLISH",
+      "actorAdminId": "cmmd6vsm50000xxzwrxwsn1u9",
+      "snapshot": {
+        "title": "New blinkers ",
+        "slug": "new-blinkers",
+        "summary": "I work as an AI Engineer in the big tech compnay. How many sources it does not mater to be the world class and not anything",
+        "description": "I work as an AI Engineer in the big tech compnay. How many sources it does not mater to be the w",
+        "year": "2026",
+        "category": "General",
+        "tags": [
+          "Learning",
+          "Home"
+        ],
+        "techStack": [
+          "Python",
+          "Java",
+          "SQL",
+          "PHP"
+        ],
+        "githubUrl": "",
+        "liveUrl": "",
+        "featured": false,
+        "status": "PUBLISHED",
+        "highlights": [
+          "Seniour Engineer"
+        ],
+        "screenshots": [],
+        "coverImage": "",
+        "dataset": "",
+        "model": "",
+        "results": "",
+        "architectureDiagram": "",
+        "scheduledAt": null,
+        "sortOrder": 0,
+        "publishedAt": "2026-03-07T17:50:39.051Z",
+        "id": "ed8eeb04-2d27-4382-8313-4ab52301a080",
+        "createdAt": "2026-03-07T17:50:39.071Z",
+        "updatedAt": "2026-03-07T17:50:39.071Z"
+      },
+      "versionNumber": 1,
+      "createdAt": "2026-03-07T17:50:39.154370+00:00"
+    },
+    {
+      "id": "71fa1f3e-236c-4c66-a450-5c3796dcdbec",
+      "entityType": "Project",
+      "entityId": "b37b00de-74f5-4829-abf6-7fa32b1cd6f0",
+      "action": "PUBLISH",
+      "actorAdminId": "cmmd6vsm50000xxzwrxwsn1u9",
+      "snapshot": {
+        "title": "New Blinkers website",
+        "slug": "new-blinkers-website",
+        "summary": "I work as an AI Engineer in the big tech compnay. How many sources it does not mater to be the world class and not anything",
+        "description": "I work as an AI Engineer in the big tech compnay. How many sources it does not mater to be the w",
+        "year": "2026",
+        "category": "Full-Stack",
+        "tags": [
+          "Learning",
+          "Home"
+        ],
+        "techStack": [
+          "Python",
+          "Java",
+          "SQL",
+          "PHP"
+        ],
+        "githubUrl": "",
+        "liveUrl": "",
+        "featured": false,
+        "status": "PUBLISHED",
+        "highlights": [
+          "Seniour Engineer",
+          "Kabiraj"
+        ],
+        "screenshots": [],
+        "coverImage": "",
+        "dataset": "",
+        "model": "",
+        "results": "",
+        "architectureDiagram": "",
+        "scheduledAt": null,
+        "sortOrder": 0,
+        "publishedAt": "2026-03-07T18:04:51.456Z",
+        "id": "b37b00de-74f5-4829-abf6-7fa32b1cd6f0",
+        "createdAt": "2026-03-07T18:04:51.476Z",
+        "updatedAt": "2026-03-07T18:04:51.476Z"
+      },
+      "versionNumber": 1,
+      "createdAt": "2026-03-07T18:04:51.583028+00:00"
+    }
+  ],
+  "health_reports": [
+    {
+      "id": "76ea62b5-47e7-47f5-934f-18b00921d5ab",
+      "checks": [],
+      "warnings": 0,
+      "errors": 0,
+      "summary": "ok",
+      "createdAt": "2026-03-07T10:59:15.476374+00:00"
+    },
+    {
+      "id": "06124790-ff08-4f71-acf9-35c8cb799677",
+      "checks": [],
+      "warnings": 0,
+      "errors": 0,
+      "summary": "ok",
+      "createdAt": "2026-03-07T11:02:56.336425+00:00"
+    }
+  ],
+  "certifications": [
+    {
+      "id": "C1",
+      "codeLabel": "C1",
+      "title": "IMB Data science Certificate",
+      "credentialUrl": "https://coursera.org/share/d10000f3f38062a33e79d7e3f942ef32",
+      "sortOrder": 0,
+      "isVisible": true,
+      "createdAt": "2026-03-07T11:19:56.293385+00:00",
+      "updatedAt": "2026-03-07T11:19:56.293385+00:00"
+    },
+    {
+      "id": "C2",
+      "codeLabel": "C2",
+      "title": "AI for everyone - Deep Learning.AI",
+      "credentialUrl": "https://coursera.org/share/bcb1acdf1fe4c763862449ab3095094b",
+      "sortOrder": 1,
+      "isVisible": true,
+      "createdAt": "2026-03-07T11:19:56.293385+00:00",
+      "updatedAt": "2026-03-07T11:19:56.293385+00:00"
+    },
+    {
+      "id": "C3",
+      "codeLabel": "C3",
+      "title": "Data Science with Python",
+      "credentialUrl": "https://broadwayinfosys.com/certificate-verification-code/eyJpdiI6Ii9tRnNnMktZRml0aTZnZHVDRE1rL0E9PSIsInZhbHVlIjoiVDhtZEsvanluQVJzUk0yQjhicjVJZz09IiwibWFjIjoiMmYyNzAyMzhjOTQ0NzA0YzZmYzMzMWJkMDc2MDg1OWJjM2EwMjU1NWJiMTNmMjVkYmJhNTdmOWY3NmNlMjZmYSIsInRhZyI6IiJ9",
+      "sortOrder": 2,
+      "isVisible": true,
+      "createdAt": "2026-03-07T11:19:56.293385+00:00",
+      "updatedAt": "2026-03-07T11:19:56.293385+00:00"
+    },
+    {
+      "id": "C4",
+      "codeLabel": "C4",
+      "title": "Generative AI with Large Language Models",
+      "credentialUrl": "https://coursera.org/share/fdbaa5d73fe1e2d3576c74bfc07fe33e",
+      "sortOrder": 3,
+      "isVisible": true,
+      "createdAt": "2026-03-07T11:19:56.293385+00:00",
+      "updatedAt": "2026-03-07T11:19:56.293385+00:00"
+    },
+    {
+      "id": "C5",
+      "codeLabel": "C5",
+      "title": "Machine Learning-Udemy",
+      "credentialUrl": "https://coursera.org/share/fdbaa5d73fe1e2d3576c74bfc07fe33e",
+      "sortOrder": 4,
+      "isVisible": true,
+      "createdAt": "2026-03-07T11:19:56.293385+00:00",
+      "updatedAt": "2026-03-07T11:19:56.293385+00:00"
+    },
+    {
+      "codeLabel": "C6",
+      "title": "Advanced Deep Learning Specialist ",
+      "credentialUrl": "https://www.credly.com/badges/91468e58-50e3-4957-8ec9-b9840fb24816/linked_in_profile",
+      "sortOrder": 0,
+      "isVisible": true,
+      "id": "d3a10034-b737-43ca-a9f1-35eb03c638ac",
+      "createdAt": "2026-03-07T11:35:31.817101+00:00",
+      "updatedAt": "2026-03-07T11:35:31.817101+00:00"
+    }
+  ],
+  "experience_page_config": {
+    "id": "default-experience",
+    "smallLabel": "EXPERIENCE",
+    "title": "Experience timeline",
+    "subtitle": "",
+    "showTimeline": true,
+    "showCertifications": true,
+    "certTitle": "Certifications",
+    "certSubtitle": "Selected credentials and achievements.",
+    "updatedAt": "2026-03-07T11:10:07.364104+00:00"
+  },
+  "projects_page_config": {
+    "id": "default-projects",
+    "smallLabel": "PROJECTS",
+    "title": "All projects.",
+    "subtitle": "",
+    "updatedAt": "2026-03-07T11:10:07.460257+00:00"
+  },
+  "project_categories": [],
+  "research_page_config": {
+    "id": "default-research",
+    "title": "Research",
+    "subtitle": "Applied AI/ML research and systems.",
+    "description": "",
+    "heroChips": [],
+    "updatedAt": "2026-03-07T11:19:56.292629+00:00"
+  },
+  "research_filter_tabs": [],
+  "admin_users": [
+    {
+      "id": "admin-1",
+      "email": "kabirajrana76@gmail.com",
+      "name": "Admin",
+      "role": "ADMIN",
+      "passwordHash": "$2b$10$GL99C9IyYX/d7tXHxfmVkuT2Gc.FXO0F3kd7T59fnfDaz1xCJDQ46",
+      "lastLoginAt": null,
+      "createdAt": "2026-03-07T11:19:56.292629+00:00",
+      "updatedAt": "2026-03-07T11:20:29.6934125Z"
+    }
+  ]
+}
