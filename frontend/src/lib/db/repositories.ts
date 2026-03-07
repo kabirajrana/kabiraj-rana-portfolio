@@ -1,5 +1,9 @@
-import { prisma } from "@/lib/db/prisma";
-import { researchDelegate } from "@/lib/db/research-delegate";
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
+import { certifications, experiences } from "@/content/site/experience";
+import { projects as fallbackProjects } from "@/content/projects";
+import { researchEntries } from "@/data/research";
+import { backendApiRequest } from "@/lib/backend-api";
 
 type PublishStatus = "DRAFT" | "PUBLISHED" | "SCHEDULED" | "ARCHIVED";
 type MessageStatus = "UNREAD" | "READ" | "ARCHIVED" | "DELETED";
@@ -23,227 +27,348 @@ type GitHubSettingCreateInput = Record<string, unknown>;
 type SystemSettingCreateInput = Record<string, unknown>;
 type ContactPageConfigCreateInput = Record<string, unknown>;
 
+type ApiListResponse<T> = { items: T[]; total?: number };
+
+type DashboardKpis = {
+  projects: number;
+  research: number;
+  experience: number;
+  unreadMessages: number;
+  cvDownloads: number;
+  visitors7d: number;
+  visitors30d: number;
+};
+
+type TopbarNotifications = {
+  unreadMessages: number;
+  githubError: string | null;
+  githubLastSyncAt: Date | null;
+  healthSummary: string | null;
+  healthWarnings: number;
+  healthErrors: number;
+  dueScheduled: number;
+};
+
+const dateFieldPattern = /(At|Date)$/;
+
+function reviveDates<T>(value: T): T {
+  if (Array.isArray(value)) {
+    return value.map((item) => reviveDates(item)) as T;
+  }
+
+  if (!value || typeof value !== "object") {
+    return value;
+  }
+
+  const input = value as Record<string, unknown>;
+  const output: Record<string, unknown> = {};
+
+  for (const [key, entry] of Object.entries(input)) {
+    if (typeof entry === "string" && dateFieldPattern.test(key)) {
+      const parsed = new Date(entry);
+      output[key] = Number.isNaN(parsed.getTime()) ? entry : parsed;
+      continue;
+    }
+
+    output[key] = reviveDates(entry);
+  }
+
+  return output as T;
+}
+
+async function apiGet<T>(path: string): Promise<T | null> {
+  const response = await backendApiRequest<T>(path, { method: "GET" });
+  return response ? reviveDates(response) : null;
+}
+
+async function apiSend<T>(path: string, method: "POST" | "PUT" | "PATCH" | "DELETE", body?: unknown): Promise<T | null> {
+  const response = await backendApiRequest<T>(path, {
+    method,
+    body: body === undefined ? undefined : JSON.stringify(body),
+  });
+  return response ? reviveDates(response) : null;
+}
+
+function toFallbackProjectRows() {
+  return fallbackProjects.map((project, index) => ({
+    id: project.slug,
+    slug: project.slug,
+    title: project.title,
+    summary: project.summary,
+    description: project.problem || project.summary,
+    year: project.year,
+    category: project.category,
+    tags: project.tech,
+    techStack: project.tech,
+    githubUrl: project.links.github,
+    liveUrl: project.links.demo,
+    featured: project.featured,
+    status: "PUBLISHED",
+    highlights: project.outcomes,
+    screenshots: project.gallery,
+    coverImage: project.gallery?.[0] ?? null,
+    dataset: null,
+    model: null,
+    metrics: null,
+    results: project.solution,
+    architectureDiagram: null,
+    sortOrder: index,
+    publishedAt: new Date(),
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  }));
+}
+
+function toFallbackExperienceRows() {
+  return experiences.map((item, index) => ({
+    id: `exp-${index + 1}`,
+    role: item.title,
+    org: item.organization,
+    timeframe: item.period,
+    summary: item.summary,
+    techStack: item.tags,
+    achievements: item.bullets,
+    sidePlacement: "AUTO",
+    status: "PUBLISHED",
+    currentRole: item.period.toLowerCase().includes("present") || item.period.toLowerCase().includes("current"),
+    startDate: new Date(),
+    endDate: null,
+    sortOrder: index,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    publishedAt: new Date(),
+  }));
+}
+
+function toFallbackCertificationRows() {
+  return certifications.map((item, index) => ({
+    id: item.id,
+    title: item.title,
+    codeLabel: `CERT-${index + 1}`,
+    issuer: "Certification Provider",
+    issuedDate: null,
+    credentialUrl: item.href,
+    isVisible: true,
+    sortOrder: index,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  }));
+}
+
+function toFallbackResearchRows() {
+  return researchEntries.map((entry, index) => ({
+    id: entry.id,
+    slug: entry.id,
+    title: entry.title,
+    summary: entry.description,
+    content: {
+      type: "NOTE",
+      sections: [
+        {
+          id: `section-${index + 1}`,
+          title: entry.title,
+          body: entry.results,
+        },
+      ],
+    },
+    type: "NOTE",
+    category: entry.category,
+    tags: entry.tags,
+    year: Number(new Date().getFullYear()),
+    status: "PUBLISHED",
+    featured: index < 3,
+    authors: ["Kabiraj Rana"],
+    affiliation: null,
+    researchArea: entry.category,
+    dataset: entry.dataset,
+    duration: null,
+    pdfUrl: null,
+    codeUrl: null,
+    demoUrl: null,
+    notesUrl: null,
+    coverImage: null,
+    citation: null,
+    references: [],
+    relatedSlugs: [],
+    seoTitle: null,
+    seoDescription: null,
+    publishedAt: new Date(),
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  }));
+}
+
+async function getListFromApi<T>(path: string): Promise<T[]> {
+  const response = await apiGet<ApiListResponse<T> | T[]>(path);
+  if (!response) {
+    return [];
+  }
+
+  if (Array.isArray(response)) {
+    return response;
+  }
+
+  return response.items ?? [];
+}
+
 export const dashboardRepository = {
   async getKpis() {
-    const [projects, research, experience, unreadMessages, activeResume] = await Promise.all([
-      prisma.project.count(),
-      researchDelegate.count(),
-      prisma.experience.count(),
-      prisma.message.count({ where: { status: "UNREAD" } }),
-      prisma.resumeFile.findFirst({ where: { isActive: true } }),
-    ]);
-
-    const visitors7d = await prisma.analyticsEvent.count({
-      where: {
-        eventType: "PAGE_VIEW",
-        createdAt: { gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) },
-      },
-    });
-
-    const visitors30d = await prisma.analyticsEvent.count({
-      where: {
-        eventType: "PAGE_VIEW",
-        createdAt: { gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) },
-      },
-    });
-
-    return {
-      projects,
-      research,
-      experience,
-      unreadMessages,
-      cvDownloads: activeResume?.downloadCount ?? 0,
-      visitors7d,
-      visitors30d,
+    const fallback: DashboardKpis = {
+      projects: toFallbackProjectRows().length,
+      research: toFallbackResearchRows().length,
+      experience: toFallbackExperienceRows().length,
+      unreadMessages: 0,
+      cvDownloads: 0,
+      visitors7d: 0,
+      visitors30d: 0,
     };
+
+    return (await apiGet<DashboardKpis>("/v1/admin/dashboard/kpis")) ?? fallback;
   },
 
   async getRecentActivity() {
-    return prisma.auditLog.findMany({
-      take: 12,
-      orderBy: { createdAt: "desc" },
-      include: {
-        actor: {
-          select: {
-            email: true,
-            name: true,
-          },
-        },
-      },
-    });
+    return await getListFromApi<Record<string, any>>("/v1/admin/dashboard/recent-activity");
   },
 
-  async getTopbarNotifications() {
-    const [unreadMessages, githubSettings, latestHealth, dueScheduled] = await Promise.all([
-      prisma.message.count({ where: { status: "UNREAD" } }),
-      prisma.gitHubSetting.findFirst({ orderBy: { updatedAt: "desc" }, select: { lastError: true, lastSyncAt: true } }),
-      prisma.healthReport.findFirst({ orderBy: { createdAt: "desc" } }),
-      prisma.project.count({ where: { status: "SCHEDULED", scheduledAt: { lte: new Date(Date.now() + 24 * 60 * 60 * 1000) } } }),
-    ]);
-
-    return {
-      unreadMessages,
-      githubError: githubSettings?.lastError ?? null,
-      githubLastSyncAt: githubSettings?.lastSyncAt ?? null,
-      healthSummary: latestHealth?.summary ?? null,
-      healthWarnings: latestHealth?.warnings ?? 0,
-      healthErrors: latestHealth?.errors ?? 0,
-      dueScheduled,
-    };
+  async getTopbarNotifications(): Promise<TopbarNotifications> {
+    return (
+      (await apiGet<TopbarNotifications>("/v1/admin/dashboard/topbar-notifications")) ?? {
+        unreadMessages: 0,
+        githubError: null,
+        githubLastSyncAt: null,
+        healthSummary: null,
+        healthWarnings: 0,
+        healthErrors: 0,
+        dueScheduled: 0,
+      }
+    );
   },
 };
 
 export const contentRepository = {
-  listProjects(where?: ProjectWhereInput) {
-    return prisma.project.findMany({ where: where as never, orderBy: [{ featured: "desc" }, { sortOrder: "asc" }, { updatedAt: "desc" }] });
+  async listProjects(where?: ProjectWhereInput) {
+    const query = where ? `?where=${encodeURIComponent(JSON.stringify(where))}` : "";
+    const rows = await getListFromApi<Record<string, any>>(`/v1/content/projects${query}`);
+    return rows.length ? rows : toFallbackProjectRows();
   },
-  listProjectsPaged(input: {
+
+  async listProjectsPaged(input: {
     query?: string;
     category?: string;
     status?: PublishStatus;
     page: number;
     pageSize: number;
   }) {
-    const where: ProjectWhereInput = {
-      ...(input.query
-        ? {
-            OR: [
-              { title: { contains: input.query, mode: "insensitive" } },
-              { summary: { contains: input.query, mode: "insensitive" } },
-              { description: { contains: input.query, mode: "insensitive" } },
-            ],
-          }
-        : {}),
-      ...(input.category && input.category !== "all" ? { category: input.category } : {}),
-      ...(input.status ? { status: input.status } : {}),
-    };
+    const params = new URLSearchParams();
+    if (input.query) params.set("query", input.query);
+    if (input.category) params.set("category", input.category);
+    if (input.status) params.set("status", input.status);
+    params.set("page", String(input.page));
+    params.set("pageSize", String(input.pageSize));
 
-    return Promise.all([
-      prisma.project.findMany({
-        where: where as never,
-        orderBy: [{ featured: "desc" }, { sortOrder: "asc" }, { updatedAt: "desc" }],
-        skip: Math.max(0, (input.page - 1) * input.pageSize),
-        take: input.pageSize,
-      }),
-      prisma.project.count({ where: where as never }),
-    ]);
-  },
-  upsertProject(input: ProjectCreateInput & { id?: string }) {
-    const now = new Date();
-    const status = input.status;
-    const publishedAt = status === "PUBLISHED" ? now : null;
-    const scheduledAt = status === "SCHEDULED" ? input.scheduledAt ?? now : null;
+    const response = await apiGet<ApiListResponse<Record<string, any>>>(`/v1/content/projects/paged?${params.toString()}`);
+    if (response?.items) {
+      return [response.items, response.total ?? response.items.length] as const;
+    }
 
-    if (input.id) {
-      return prisma.project.update({
-        where: { id: input.id },
-        data: {
-          ...input,
-          publishedAt,
-          scheduledAt,
-        } as never,
-      });
-    }
-    return prisma.project.create({
-      data: {
-        ...input,
-        publishedAt,
-        scheduledAt,
-      } as never,
-    });
+    const fallback = toFallbackProjectRows();
+    return [fallback.slice(0, input.pageSize), fallback.length] as const;
   },
-  deleteProject(id: string) {
-    return prisma.project.delete({ where: { id } });
+
+  async upsertProject(input: ProjectCreateInput & { id?: string }) {
+    const method = input.id ? "PUT" : "POST";
+    const path = input.id ? `/v1/admin/content/projects/${input.id}` : "/v1/admin/content/projects";
+    return (await apiSend<Record<string, any>>(path, method, input)) ?? input;
   },
-  listProjectCategories() {
-    return prisma.projectCategory.findMany({ orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }] });
+
+  async deleteProject(id: string) {
+    return (await apiSend<Record<string, any>>(`/v1/admin/content/projects/${id}`, "DELETE")) ?? { id };
   },
-  upsertProjectCategory(input: ProjectCategoryCreateInput & { id?: string }) {
-    if (input.id) {
-      return prisma.projectCategory.update({ where: { id: input.id }, data: input as never });
-    }
-    return prisma.projectCategory.create({ data: input as never });
+
+  async reorderProjects(ids: string[]) {
+    await apiSend("/v1/admin/content/projects/reorder", "POST", { ids });
   },
-  deleteProjectCategory(id: string) {
-    return prisma.projectCategory.delete({ where: { id } });
+
+  async listProjectCategories() {
+    return await getListFromApi<Record<string, any>>("/v1/content/projects/categories");
   },
+
+  async upsertProjectCategory(input: ProjectCategoryCreateInput & { id?: string }) {
+    const method = input.id ? "PUT" : "POST";
+    const path = input.id ? `/v1/admin/content/project-categories/${input.id}` : "/v1/admin/content/project-categories";
+    return (await apiSend<Record<string, any>>(path, method, input)) ?? input;
+  },
+
+  async deleteProjectCategory(id: string) {
+    return (await apiSend<Record<string, any>>(`/v1/admin/content/project-categories/${id}`, "DELETE")) ?? { id };
+  },
+
   async reorderProjectCategories(ids: string[]) {
-    await Promise.all(ids.map((id, idx) => prisma.projectCategory.update({ where: { id }, data: { sortOrder: idx } })));
-  },
-  getProjectsPageConfig() {
-    return prisma.projectsPageConfig.findUnique({ where: { id: "default-projects" } });
-  },
-  upsertProjectsPageConfig(input: ProjectsPageConfigCreateInput) {
-    return prisma.projectsPageConfig.upsert({
-      where: { id: "default-projects" },
-      update: input as never,
-      create: { ...input, id: "default-projects" } as never,
-    });
+    await apiSend("/v1/admin/content/project-categories/reorder", "POST", { ids });
   },
 
-  listExperience() {
-    return prisma.experience.findMany({ orderBy: [{ sortOrder: "asc" }, { startDate: "desc" }] });
+  async getProjectsPageConfig() {
+    return await apiGet<Record<string, any>>("/v1/content/projects/page-config");
   },
-  upsertExperience(input: ExperienceCreateInput & { id?: string }) {
-    const now = new Date();
-    const status = input.status;
-    const publishedAt = status === "PUBLISHED" ? now : null;
-    const scheduledAt = status === "SCHEDULED" ? input.scheduledAt ?? now : null;
 
-    if (input.id) {
-      return prisma.experience.update({
-        where: { id: input.id },
-        data: {
-          ...input,
-          publishedAt,
-          scheduledAt,
-        } as never,
-      });
-    }
-    return prisma.experience.create({
-      data: {
-        ...input,
-        publishedAt,
-        scheduledAt,
-      } as never,
-    });
+  async upsertProjectsPageConfig(input: ProjectsPageConfigCreateInput) {
+    return (await apiSend<Record<string, any>>("/v1/admin/content/projects/page-config", "PUT", input)) ?? input;
   },
-  deleteExperience(id: string) {
-    return prisma.experience.deleteMany({ where: { id } });
+
+  async listExperience() {
+    const rows = await getListFromApi<Record<string, any>>("/v1/content/experience");
+    return rows.length ? rows : toFallbackExperienceRows();
   },
-  getExperiencePageConfig() {
-    return prisma.experiencePageConfig.findUnique({ where: { id: "default-experience" } });
+
+  async upsertExperience(input: ExperienceCreateInput & { id?: string }) {
+    const method = input.id ? "PUT" : "POST";
+    const path = input.id ? `/v1/admin/content/experience/${input.id}` : "/v1/admin/content/experience";
+    return (await apiSend<Record<string, any>>(path, method, input)) ?? input;
   },
-  upsertExperiencePageConfig(input: ExperiencePageConfigCreateInput) {
-    return prisma.experiencePageConfig.upsert({
-      where: { id: "default-experience" },
-      update: input as never,
-      create: { ...input, id: "default-experience" } as never,
-    });
+
+  async deleteExperience(id: string) {
+    return (await apiSend<Record<string, any>>(`/v1/admin/content/experience/${id}`, "DELETE")) ?? { count: 0 };
   },
-  listCertifications() {
-    return prisma.certification.findMany({ where: { isVisible: true }, orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }] });
+
+  async getExperiencePageConfig() {
+    return await apiGet<Record<string, any>>("/v1/content/experience/page-config");
   },
-  listAllCertifications() {
-    return prisma.certification.findMany({ orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }] });
+
+  async upsertExperiencePageConfig(input: ExperiencePageConfigCreateInput) {
+    return (await apiSend<Record<string, any>>("/v1/admin/content/experience/page-config", "PUT", input)) ?? input;
   },
-  upsertCertification(input: CertificationCreateInput & { id?: string }) {
-    if (input.id) {
-      return prisma.certification.update({ where: { id: input.id }, data: input as never });
-    }
-    return prisma.certification.create({ data: input as never });
+
+  async listCertifications() {
+    const rows = await getListFromApi<Record<string, any>>("/v1/content/certifications?visible=1");
+    return rows.length ? rows : toFallbackCertificationRows();
   },
-  deleteCertification(id: string) {
-    return prisma.certification.deleteMany({ where: { id } });
+
+  async listAllCertifications() {
+    const rows = await getListFromApi<Record<string, any>>("/v1/content/certifications");
+    return rows.length ? rows : toFallbackCertificationRows();
   },
+
+  async upsertCertification(input: CertificationCreateInput & { id?: string }) {
+    const method = input.id ? "PUT" : "POST";
+    const path = input.id ? `/v1/admin/content/certifications/${input.id}` : "/v1/admin/content/certifications";
+    return (await apiSend<Record<string, any>>(path, method, input)) ?? input;
+  },
+
+  async deleteCertification(id: string) {
+    return (await apiSend<Record<string, any>>(`/v1/admin/content/certifications/${id}`, "DELETE")) ?? { count: 0 };
+  },
+
   async reorderExperience(ids: string[]) {
-    await Promise.all(ids.map((id, idx) => prisma.experience.update({ where: { id }, data: { sortOrder: idx } })));
+    await apiSend("/v1/admin/content/experience/reorder", "POST", { ids });
   },
 
-  listResearch(where?: ResearchWhereInput) {
-    return researchDelegate.findMany({ where: where as never, orderBy: [{ featured: "desc" }, { year: "desc" }, { updatedAt: "desc" }] });
+  async listResearch(where?: ResearchWhereInput) {
+    const query = where ? `?where=${encodeURIComponent(JSON.stringify(where))}` : "";
+    const rows = await getListFromApi<Record<string, any>>(`/v1/content/research${query}`);
+    return rows.length ? rows : toFallbackResearchRows();
   },
-  listResearchPaged(input: {
+
+  async listResearchPaged(input: {
     query?: string;
     status?: "DRAFT" | "PUBLISHED" | "ARCHIVED";
     type?: "EXPERIMENT" | "PAPER" | "SYSTEM" | "THESIS" | "NOTE";
@@ -252,306 +377,263 @@ export const contentRepository = {
     page: number;
     pageSize: number;
   }) {
-    const where: ResearchWhereInput = {
-      ...(input.query
-        ? {
-            OR: [
-              { title: { contains: input.query, mode: "insensitive" } },
-              { summary: { contains: input.query, mode: "insensitive" } },
-              { researchArea: { contains: input.query, mode: "insensitive" } },
-            ],
-          }
-        : {}),
-      ...(input.status ? { status: input.status } : {}),
-      ...(input.type ? { type: input.type } : {}),
-      ...(input.year ? { year: input.year } : {}),
-      ...(input.tag ? { tags: { has: input.tag } } : {}),
+    const params = new URLSearchParams();
+    if (input.query) params.set("query", input.query);
+    if (input.status) params.set("status", input.status);
+    if (input.type) params.set("type", input.type);
+    if (input.year) params.set("year", String(input.year));
+    if (input.tag) params.set("tag", input.tag);
+    params.set("page", String(input.page));
+    params.set("pageSize", String(input.pageSize));
+
+    const response = await apiGet<ApiListResponse<Record<string, any>>>(`/v1/content/research/paged?${params.toString()}`);
+    if (response?.items) {
+      return [response.items, response.total ?? response.items.length] as const;
+    }
+
+    const fallback = toFallbackResearchRows();
+    return [fallback.slice(0, input.pageSize), fallback.length] as const;
+  },
+
+  async getResearchBySlug(slug: string) {
+    const row = await apiGet<Record<string, any>>(`/v1/content/research/by-slug/${encodeURIComponent(slug)}`);
+    if (row) {
+      return row;
+    }
+
+    const fallback = toFallbackResearchRows();
+    return fallback.find((item) => item.slug === slug) ?? null;
+  },
+
+  async getResearchById(id: string) {
+    const row = await apiGet<Record<string, any>>(`/v1/content/research/by-id/${encodeURIComponent(id)}`);
+    if (row) {
+      return row;
+    }
+
+    const fallback = toFallbackResearchRows();
+    return fallback.find((item) => item.id === id) ?? null;
+  },
+
+  async getAdjacentResearch(input: { publishedAt?: Date | null; year: number; id: string; status?: "DRAFT" | "PUBLISHED" | "ARCHIVED" }) {
+    const payload = {
+      ...input,
+      publishedAt: input.publishedAt ? input.publishedAt.toISOString() : null,
     };
 
-    return Promise.all([
-      researchDelegate.findMany({
-        where: where as never,
-        orderBy: [{ featured: "desc" }, { year: "desc" }, { updatedAt: "desc" }],
-        skip: Math.max(0, (input.page - 1) * input.pageSize),
-        take: input.pageSize,
-      }),
-      researchDelegate.count({ where: where as never }),
-    ]);
+    const response = await apiSend<[Record<string, any> | null, Record<string, any> | null]>("/v1/content/research/adjacent", "POST", payload);
+    if (response) {
+      return response;
+    }
+
+    return [null, null] as const;
   },
-  getResearchBySlug(slug: string) {
-    return researchDelegate.findUnique({ where: { slug } });
-  },
-  getAdjacentResearch(input: { publishedAt?: Date | null; year: number; id: string; status?: "DRAFT" | "PUBLISHED" | "ARCHIVED" }) {
-    const status = input.status ?? "PUBLISHED";
-    return Promise.all([
-      researchDelegate.findFirst({
-        where: {
-          status,
-          id: { not: input.id },
-          OR: [
-            { year: { lt: input.year } },
-            ...(input.publishedAt ? [{ publishedAt: { lt: input.publishedAt } }] : []),
-          ],
-        },
-        orderBy: [{ year: "desc" }, { publishedAt: "desc" }, { updatedAt: "desc" }],
-      }),
-      researchDelegate.findFirst({
-        where: {
-          status,
-          id: { not: input.id },
-          OR: [
-            { year: { gt: input.year } },
-            ...(input.publishedAt ? [{ publishedAt: { gt: input.publishedAt } }] : []),
-          ],
-        },
-        orderBy: [{ year: "asc" }, { publishedAt: "asc" }, { updatedAt: "asc" }],
-      }),
-    ]);
-  },
-  listRelatedResearch(slugs: string[], excludeId?: string) {
+
+  async listRelatedResearch(slugs: string[], excludeId?: string) {
     if (!slugs.length) {
-      return Promise.resolve([]);
+      return [];
     }
 
-    return researchDelegate.findMany({
-      where: {
-        slug: { in: slugs },
-        ...(excludeId ? { id: { not: excludeId } } : {}),
-      } as never,
-      orderBy: [{ featured: "desc" }, { year: "desc" }, { updatedAt: "desc" }],
-    });
-  },
-  upsertResearch(input: ResearchCreateInput & { id?: string }) {
-    const status = input.status;
-    const now = new Date();
-    const publishedAt = status === "PUBLISHED" ? input.publishedAt ?? now : null;
+    const response = await apiSend<Record<string, any>[]>("/v1/content/research/related", "POST", { slugs, excludeId });
+    if (response) {
+      return response;
+    }
 
-    if (input.id) {
-      return researchDelegate.update({
-        where: { id: input.id },
-        data: {
-          ...input,
-          publishedAt,
-        } as never,
-      });
-    }
-    return researchDelegate.create({
-      data: {
-        ...input,
-        publishedAt,
-      } as never,
-    });
+    const fallback = toFallbackResearchRows();
+    return fallback.filter((item) => slugs.includes(String(item.slug)) && item.id !== excludeId);
   },
-  deleteResearch(id: string) {
-    return researchDelegate.delete({ where: { id } });
+
+  async upsertResearch(input: ResearchCreateInput & { id?: string }) {
+    const method = input.id ? "PUT" : "POST";
+    const path = input.id ? `/v1/admin/content/research/${input.id}` : "/v1/admin/content/research";
+    return (await apiSend<Record<string, any>>(path, method, input)) ?? input;
   },
-  getResearchPageConfig() {
-    return prisma.researchPageConfig.findUnique({ where: { id: "default-research" } });
+
+  async deleteResearch(id: string) {
+    return (await apiSend<Record<string, any>>(`/v1/admin/content/research/${id}`, "DELETE")) ?? { id };
   },
-  upsertResearchPageConfig(input: ResearchPageConfigCreateInput) {
-    return prisma.researchPageConfig.upsert({
-      where: { id: "default-research" },
-      update: input as never,
-      create: { ...input, id: "default-research" } as never,
-    });
+
+  async getResearchPageConfig() {
+    return await apiGet<Record<string, any>>("/v1/content/research/page-config");
   },
-  listResearchFilterTabs() {
-    return prisma.researchFilterTab.findMany({ where: { isVisible: true }, orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }] });
+
+  async upsertResearchPageConfig(input: ResearchPageConfigCreateInput) {
+    return (await apiSend<Record<string, any>>("/v1/admin/content/research/page-config", "PUT", input)) ?? input;
   },
-  listAllResearchFilterTabs() {
-    return prisma.researchFilterTab.findMany({ orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }] });
+
+  async listResearchFilterTabs() {
+    return await getListFromApi<Record<string, any>>("/v1/content/research/filter-tabs?visible=1");
   },
-  upsertResearchFilterTab(input: ResearchFilterTabCreateInput & { id?: string }) {
-    if (input.id) {
-      return prisma.researchFilterTab.update({ where: { id: input.id }, data: input as never });
-    }
-    return prisma.researchFilterTab.create({ data: input as never });
+
+  async listAllResearchFilterTabs() {
+    return await getListFromApi<Record<string, any>>("/v1/content/research/filter-tabs");
   },
-  deleteResearchFilterTab(id: string) {
-    return prisma.researchFilterTab.delete({ where: { id } });
+
+  async upsertResearchFilterTab(input: ResearchFilterTabCreateInput & { id?: string }) {
+    const method = input.id ? "PUT" : "POST";
+    const path = input.id ? `/v1/admin/content/research/filter-tabs/${input.id}` : "/v1/admin/content/research/filter-tabs";
+    return (await apiSend<Record<string, any>>(path, method, input)) ?? input;
   },
+
+  async deleteResearchFilterTab(id: string) {
+    return (await apiSend<Record<string, any>>(`/v1/admin/content/research/filter-tabs/${id}`, "DELETE")) ?? { id };
+  },
+
   async reorderResearch(ids: string[]) {
-    void ids;
+    await apiSend("/v1/admin/content/research/reorder", "POST", { ids });
   },
 
-  getHomeContent() {
-    return prisma.siteContent.findUnique({ where: { type: "HOME" } });
-  },
-  upsertHomeContent(data: JsonInput, status: PublishStatus, userId?: string, scheduledAt?: Date | null) {
-    const now = new Date();
-    return prisma.siteContent.upsert({
-      where: { type: "HOME" },
-      update: {
-        draftJson: data,
-        status,
-        publishedAt: status === "PUBLISHED" ? now : null,
-        scheduledAt: status === "SCHEDULED" ? scheduledAt ?? now : null,
-        updatedById: userId,
-        ...(status === "PUBLISHED" ? { publishedJson: data } : {}),
-      },
-      create: {
-        type: "HOME",
-        draftJson: data,
-        status,
-        publishedAt: status === "PUBLISHED" ? now : null,
-        scheduledAt: status === "SCHEDULED" ? scheduledAt ?? now : null,
-        updatedById: userId,
-        ...(status === "PUBLISHED" ? { publishedJson: data } : {}),
-      },
-    });
+  async getHomeContent() {
+    return await apiGet<Record<string, any>>("/v1/content/site/home");
   },
 
-  getAboutContent() {
-    return prisma.siteContent.findUnique({ where: { type: "ABOUT" } });
-  },
-  upsertAboutContent(data: JsonInput, status: PublishStatus, userId?: string, scheduledAt?: Date | null) {
-    const now = new Date();
-    return prisma.siteContent.upsert({
-      where: { type: "ABOUT" },
-      update: {
-        draftJson: data,
-        status,
-        publishedAt: status === "PUBLISHED" ? now : null,
-        scheduledAt: status === "SCHEDULED" ? scheduledAt ?? now : null,
-        updatedById: userId,
-        ...(status === "PUBLISHED" ? { publishedJson: data } : {}),
-      },
-      create: {
-        type: "ABOUT",
-        draftJson: data,
-        status,
-        publishedAt: status === "PUBLISHED" ? now : null,
-        scheduledAt: status === "SCHEDULED" ? scheduledAt ?? now : null,
-        updatedById: userId,
-        ...(status === "PUBLISHED" ? { publishedJson: data } : {}),
-      },
-    });
+  async upsertHomeContent(data: JsonInput, status: PublishStatus, userId?: string, scheduledAt?: Date | null) {
+    const payload = {
+      data,
+      status,
+      userId,
+      scheduledAt: scheduledAt ? scheduledAt.toISOString() : null,
+    };
+
+    return (await apiSend<Record<string, any>>("/v1/admin/content/site/home", "PUT", payload)) ?? { id: "home", ...payload };
   },
 
-  listMessages(status?: MessageStatus) {
-    return prisma.message.findMany({
-      where: status ? { status } as never : undefined,
-      orderBy: { createdAt: "desc" },
-    });
-  },
-  updateMessageStatus(id: string, status: MessageStatus) {
-    return prisma.message.update({ where: { id }, data: { status } });
-  },
-  deleteMessage(id: string) {
-    return prisma.message.delete({ where: { id } });
+  async getAboutContent() {
+    return await apiGet<Record<string, any>>("/v1/content/site/about");
   },
 
-  listMedia(search?: string) {
-    return prisma.mediaAsset.findMany({
-      where: search
-        ? {
-            OR: [{ key: { contains: search, mode: "insensitive" } }, { url: { contains: search, mode: "insensitive" } }],
-          }
-        : undefined,
-      orderBy: { createdAt: "desc" },
-    });
-  },
-  createMedia(input: MediaCreateInput) {
-    return prisma.mediaAsset.create({ data: input as never });
+  async upsertAboutContent(data: JsonInput, status: PublishStatus, userId?: string, scheduledAt?: Date | null) {
+    const payload = {
+      data,
+      status,
+      userId,
+      scheduledAt: scheduledAt ? scheduledAt.toISOString() : null,
+    };
+
+    return (await apiSend<Record<string, any>>("/v1/admin/content/site/about", "PUT", payload)) ?? { id: "about", ...payload };
   },
 
-  listResumes() {
-    return prisma.resumeFile.findMany({ orderBy: { createdAt: "desc" } });
+  async listMessages(status?: MessageStatus) {
+    const query = status ? `?status=${encodeURIComponent(status)}` : "";
+    return await getListFromApi<Record<string, any>>(`/v1/admin/messages${query}`);
   },
-  createResume(input: ResumeCreateInput) {
-    return prisma.resumeFile.create({ data: input as never });
+
+  async createMessage(input: Record<string, unknown>) {
+    return (await apiSend<Record<string, any>>("/v1/admin/messages", "POST", input)) ?? input;
   },
+
+  async updateMessageStatus(id: string, status: MessageStatus) {
+    return (await apiSend<Record<string, any>>(`/v1/admin/messages/${id}/status`, "PATCH", { status })) ?? { id, status };
+  },
+
+  async deleteMessage(id: string) {
+    return (await apiSend<Record<string, any>>(`/v1/admin/messages/${id}`, "DELETE")) ?? { id };
+  },
+
+  async listMedia(search?: string) {
+    const query = search ? `?search=${encodeURIComponent(search)}` : "";
+    return await getListFromApi<Record<string, any>>(`/v1/admin/media${query}`);
+  },
+
+  async createMedia(input: MediaCreateInput) {
+    return (await apiSend<Record<string, any>>("/v1/admin/media", "POST", input)) ?? input;
+  },
+
+  async listResumes() {
+    return await getListFromApi<Record<string, any>>("/v1/admin/resumes");
+  },
+
+  async createResume(input: ResumeCreateInput) {
+    return (await apiSend<Record<string, any>>("/v1/admin/resumes", "POST", input)) ?? input;
+  },
+
   async activateResume(id: string) {
-    await prisma.resumeFile.updateMany({ data: { isActive: false } });
-    return prisma.resumeFile.update({ where: { id }, data: { isActive: true } });
+    return (await apiSend<Record<string, any>>(`/v1/admin/resumes/${id}/activate`, "POST")) ?? { id, isActive: true };
   },
 
-  listSeoConfigs() {
-    return prisma.seoConfig.findMany({ orderBy: { pageKey: "asc" } });
-  },
-  upsertSeoConfig(input: SeoConfigCreateInput) {
-    return prisma.seoConfig.upsert({
-      where: { pageKey: String(input.pageKey ?? "") },
-      update: {
-        metaTitle: String(input.metaTitle ?? ""),
-        metaDescription: String(input.metaDescription ?? ""),
-        ogImage: (input.ogImage as string | null | undefined) ?? null,
-        canonical: (input.canonical as string | null | undefined) ?? null,
-      },
-      create: input as never,
-    });
+  async listSeoConfigs() {
+    return await getListFromApi<Record<string, any>>("/v1/admin/seo/configs");
   },
 
-  getGithubSettings() {
-    return prisma.gitHubSetting.findFirst({ orderBy: { updatedAt: "desc" } });
-  },
-  upsertGithubSettings(input: GitHubSettingCreateInput) {
-    return prisma.gitHubSetting.upsert({ where: { id: String(input.id ?? "default") }, update: input as never, create: input as never });
+  async upsertSeoConfig(input: SeoConfigCreateInput) {
+    return (await apiSend<Record<string, any>>("/v1/admin/seo/configs", "PUT", input)) ?? input;
   },
 
-  getSystemSettings() {
-    return prisma.systemSetting.findUnique({ where: { id: "default" } });
-  },
-  upsertSystemSettings(input: SystemSettingCreateInput) {
-    return prisma.systemSetting.upsert({ where: { id: "default" }, update: input as never, create: { ...input, id: "default" } as never });
+  async getGithubSettings() {
+    return await apiGet<Record<string, any>>("/v1/admin/github/settings");
   },
 
-  listAuditLogs(input: {
+  async upsertGithubSettings(input: GitHubSettingCreateInput) {
+    return (await apiSend<Record<string, any>>("/v1/admin/github/settings", "PUT", input)) ?? input;
+  },
+
+  async getSystemSettings() {
+    return (
+      (await apiGet<Record<string, any>>("/v1/content/system/settings")) ?? {
+        id: "default",
+        enableProjects: true,
+        enableResearch: true,
+        enableExperience: true,
+      }
+    );
+  },
+
+  async upsertSystemSettings(input: SystemSettingCreateInput) {
+    return (await apiSend<Record<string, any>>("/v1/admin/system/settings", "PUT", input)) ?? input;
+  },
+
+  async listAuditLogs(input: {
     entityType?: string;
     action?: string;
     startDate?: Date;
     endDate?: Date;
   }) {
-    return prisma.auditLog.findMany({
-      where: {
-        ...(input.entityType ? { entityType: input.entityType } : {}),
-        ...(input.action ? { action: input.action } : {}),
-        ...(input.startDate || input.endDate
-          ? {
-              createdAt: {
-                ...(input.startDate ? { gte: input.startDate } : {}),
-                ...(input.endDate ? { lte: input.endDate } : {}),
-              },
-            }
-          : {}),
-      },
-      include: {
-        actor: {
-          select: { email: true, name: true },
-        },
-      },
-      orderBy: { createdAt: "desc" },
-      take: 200,
-    });
+    const params = new URLSearchParams();
+    if (input.entityType) params.set("entityType", input.entityType);
+    if (input.action) params.set("action", input.action);
+    if (input.startDate) params.set("startDate", input.startDate.toISOString());
+    if (input.endDate) params.set("endDate", input.endDate.toISOString());
+
+    return await getListFromApi<Record<string, any>>(`/v1/admin/audit-logs?${params.toString()}`);
   },
 
   async autoPublishScheduledContent() {
-    const now = new Date();
-
-    const [projects, experiences, research, siteContents] = await Promise.all([
-      prisma.project.updateMany({ where: { status: "SCHEDULED", scheduledAt: { lte: now } }, data: { status: "PUBLISHED", publishedAt: now } }),
-      prisma.experience.updateMany({ where: { status: "SCHEDULED", scheduledAt: { lte: now } }, data: { status: "PUBLISHED", publishedAt: now } }),
-      researchDelegate.updateMany({ where: { status: "DRAFT", publishedAt: { lte: now } }, data: { status: "PUBLISHED" } }),
-      prisma.siteContent.updateMany({ where: { status: "SCHEDULED", scheduledAt: { lte: now } }, data: { status: "PUBLISHED", publishedAt: now } }),
-    ]);
-
-    return {
-      projects: projects.count,
-      experiences: experiences.count,
-      research: research.count,
-      siteContents: siteContents.count,
-      total: projects.count + experiences.count + research.count + siteContents.count,
-    };
+    return (
+      (await apiSend<Record<string, any>>("/v1/admin/content/publish-scheduled", "POST")) ?? {
+        projects: 0,
+        experiences: 0,
+        research: 0,
+        siteContents: 0,
+        total: 0,
+      }
+    );
   },
 
-  getContactPageConfig() {
-    return prisma.contactPageConfig.findUnique({ where: { id: "default-contact" } });
+  async getContactPageConfig() {
+    return await apiGet<Record<string, any>>("/v1/content/contact/config");
   },
-  upsertContactPageConfig(input: ContactPageConfigCreateInput) {
-    return prisma.contactPageConfig.upsert({
-      where: { id: "default-contact" },
-      update: input as never,
-      create: { ...input, id: "default-contact" } as never,
-    });
+
+  async getLatestHealthReport() {
+    return await apiGet<Record<string, any>>("/v1/admin/health/reports/latest");
+  },
+
+  async upsertContactPageConfig(input: ContactPageConfigCreateInput) {
+    return (await apiSend<Record<string, any>>("/v1/admin/content/contact/config", "PUT", input)) ?? input;
+  },
+
+  async findProjectBySlug(slug: string) {
+    return await apiGet<Record<string, any>>(`/v1/content/projects/by-slug/${encodeURIComponent(slug)}`);
+  },
+
+  async findResearchBySlug(slug: string) {
+    return await apiGet<Record<string, any>>(`/v1/content/research/by-slug/${encodeURIComponent(slug)}`);
+  },
+
+  async getAdminUserByEmail(email: string) {
+    return await apiGet<Record<string, any>>(`/v1/admin/users/by-email?email=${encodeURIComponent(email)}`);
+  },
+
+  async updateAdminLastLogin(id: string) {
+    await apiSend(`/v1/admin/users/${encodeURIComponent(id)}/touch-login`, "POST");
   },
 };

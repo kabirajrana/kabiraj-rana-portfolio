@@ -1,5 +1,4 @@
-import { prisma } from "@/lib/db/prisma";
-import { researchDelegate } from "@/lib/db/research-delegate";
+import { contentRepository } from "@/lib/db/repositories";
 
 export type AdminSearchGroup = "Projects" | "Research" | "Experience" | "Messages" | "Media" | "Actions";
 
@@ -23,36 +22,11 @@ export async function searchAdmin(query: string): Promise<AdminSearchItem[]> {
   }
 
   const [projects, research, experience, messages, media] = await Promise.all([
-    prisma.project.findMany({
-      where: { OR: [{ title: { contains: normalized, mode: "insensitive" } }, { summary: { contains: normalized, mode: "insensitive" } }] },
-      select: { title: true, status: true },
-      take: 6,
-      orderBy: { updatedAt: "desc" },
-    }),
-    researchDelegate.findMany({
-      where: { OR: [{ title: { contains: normalized, mode: "insensitive" } }, { summary: { contains: normalized, mode: "insensitive" } }] },
-      select: { title: true, status: true },
-      take: 6,
-      orderBy: { updatedAt: "desc" },
-    }),
-    prisma.experience.findMany({
-      where: { OR: [{ role: { contains: normalized, mode: "insensitive" } }, { org: { contains: normalized, mode: "insensitive" } }] },
-      select: { role: true, org: true, status: true },
-      take: 6,
-      orderBy: { updatedAt: "desc" },
-    }),
-    prisma.message.findMany({
-      where: { OR: [{ sender: { contains: normalized, mode: "insensitive" } }, { subject: { contains: normalized, mode: "insensitive" } }] },
-      select: { sender: true, subject: true, status: true },
-      take: 6,
-      orderBy: { createdAt: "desc" },
-    }),
-    prisma.mediaAsset.findMany({
-      where: { OR: [{ key: { contains: normalized, mode: "insensitive" } }, { url: { contains: normalized, mode: "insensitive" } }] },
-      select: { key: true, type: true },
-      take: 6,
-      orderBy: { createdAt: "desc" },
-    }),
+    contentRepository.listProjects(),
+    contentRepository.listResearch(),
+    contentRepository.listExperience(),
+    contentRepository.listMessages(),
+    contentRepository.listMedia(),
   ]);
 
   type ProjectItem = (typeof projects)[number];
@@ -63,10 +37,25 @@ export async function searchAdmin(query: string): Promise<AdminSearchItem[]> {
 
   return [
     ...quickActions,
-    ...projects.map((item: ProjectItem) => ({ group: "Projects" as const, label: item.title, href: "/admin/projects", subtitle: item.status })),
-    ...research.map((item: ResearchItem) => ({ group: "Research" as const, label: item.title, href: "/admin/research", subtitle: item.status })),
-    ...experience.map((item: ExperienceItem) => ({ group: "Experience" as const, label: `${item.role} @ ${item.org}`, href: "/admin/experience", subtitle: item.status })),
-    ...messages.map((item: MessageItem) => ({ group: "Messages" as const, label: item.subject, href: "/admin/messages", subtitle: `${item.sender} · ${item.status}` })),
-    ...media.map((item: MediaItem) => ({ group: "Media" as const, label: item.key, href: "/admin/media", subtitle: item.type })),
+    ...projects
+      .filter((item: ProjectItem) => `${item.title ?? ""} ${item.summary ?? ""}`.toLowerCase().includes(normalized.toLowerCase()))
+      .slice(0, 6)
+      .map((item: ProjectItem) => ({ group: "Projects" as const, label: String(item.title ?? "Untitled"), href: "/admin/projects", subtitle: String(item.status ?? "") })),
+    ...research
+      .filter((item: ResearchItem) => `${item.title ?? ""} ${item.summary ?? ""}`.toLowerCase().includes(normalized.toLowerCase()))
+      .slice(0, 6)
+      .map((item: ResearchItem) => ({ group: "Research" as const, label: String(item.title ?? "Untitled"), href: "/admin/research", subtitle: String(item.status ?? "") })),
+    ...experience
+      .filter((item: ExperienceItem) => `${item.role ?? ""} ${item.org ?? ""}`.toLowerCase().includes(normalized.toLowerCase()))
+      .slice(0, 6)
+      .map((item: ExperienceItem) => ({ group: "Experience" as const, label: `${String(item.role ?? "Role")} @ ${String(item.org ?? "Org")}`, href: "/admin/experience", subtitle: String(item.status ?? "") })),
+    ...messages
+      .filter((item: MessageItem) => `${item.sender ?? ""} ${item.subject ?? ""}`.toLowerCase().includes(normalized.toLowerCase()))
+      .slice(0, 6)
+      .map((item: MessageItem) => ({ group: "Messages" as const, label: String(item.subject ?? "Message"), href: "/admin/messages", subtitle: `${String(item.sender ?? "Unknown")} · ${String(item.status ?? "")}` })),
+    ...media
+      .filter((item: MediaItem) => `${item.key ?? ""} ${item.url ?? ""}`.toLowerCase().includes(normalized.toLowerCase()))
+      .slice(0, 6)
+      .map((item: MediaItem) => ({ group: "Media" as const, label: String(item.key ?? "Media"), href: "/admin/media", subtitle: String(item.type ?? "") })),
   ];
 }

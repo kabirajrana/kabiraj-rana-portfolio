@@ -1,4 +1,4 @@
-import { prisma } from "@/lib/db/prisma";
+import { backendApiRequest } from "@/lib/backend-api";
 
 type AnalyticsEventType = "PAGE_VIEW" | "PROJECT_VIEW" | "GITHUB_CLICK" | "RESUME_DOWNLOAD" | "CONTACT_SUBMIT";
 
@@ -9,25 +9,33 @@ export async function trackEvent(input: {
   device?: string | null;
   metadata?: Record<string, unknown>;
 }) {
-  await prisma.analyticsEvent.create({
-    data: {
+  await backendApiRequest("/v1/analytics/events", {
+    method: "POST",
+    body: JSON.stringify({
       eventType: input.eventType,
       path: input.path,
       referrer: input.referrer ?? null,
       device: input.device ?? null,
-      metadata: (input.metadata ?? null) as never,
-    },
+      metadata: input.metadata ?? null,
+    }),
+    headers: { "Content-Type": "application/json" },
+    cache: "no-store",
   });
 }
 
 export async function getAnalyticsOverview(days = 30) {
-  const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
+  const response = await backendApiRequest<Array<{ eventType: string; path: string; referrer: string | null; device: string | null; createdAt: string | Date; id?: string }>>(
+    `/v1/analytics/events?days=${encodeURIComponent(String(days))}`,
+    { method: "GET" },
+  );
 
-  const events = await prisma.analyticsEvent.findMany({
-    where: { createdAt: { gte: since } },
-    select: { eventType: true, path: true, referrer: true, device: true, createdAt: true },
-    orderBy: { createdAt: "asc" },
-  });
+  if (!response) {
+    return [];
+  }
 
-  return events;
+  return response.map((event, index) => ({
+    ...event,
+    id: event.id ?? `event-${index}`,
+    createdAt: event.createdAt instanceof Date ? event.createdAt : new Date(event.createdAt),
+  }));
 }

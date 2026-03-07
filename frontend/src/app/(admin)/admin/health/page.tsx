@@ -5,10 +5,10 @@ import { PageHeader } from "@/components/admin/PageHeader";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { prisma } from "@/lib/db/prisma";
+import { contentRepository } from "@/lib/db/repositories";
 
 export default async function AdminHealthPage() {
-  const latest = await prisma.healthReport.findFirst({ orderBy: { createdAt: "desc" } });
+  const latest = await contentRepository.getLatestHealthReport();
   const checks = (latest?.checks as Array<{ key: string; level: "ok" | "warning" | "error"; message: string; count: number; href?: string }> | null) ?? [];
 
   return (

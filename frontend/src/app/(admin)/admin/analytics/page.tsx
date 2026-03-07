@@ -2,7 +2,7 @@ import { format } from "date-fns";
 
 import { PageHeader } from "@/components/admin/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { prisma } from "@/lib/db/prisma";
+import { getAnalyticsOverview } from "@/lib/analytics/events";
 
 type AnalyticsEventRow = {
   id: string;
@@ -13,11 +13,7 @@ type AnalyticsEventRow = {
 };
 
 export default async function AdminAnalyticsPage() {
-  const events: AnalyticsEventRow[] = await prisma.analyticsEvent.findMany({
-    take: 2000,
-    orderBy: { createdAt: "desc" },
-    select: { id: true, eventType: true, path: true, referrer: true, createdAt: true },
-  });
+  const events = (await getAnalyticsOverview(90)).slice(-2000) as AnalyticsEventRow[];
 
   const topReferrers = Object.entries(
     events.reduce<Record<string, number>>((acc, event) => {

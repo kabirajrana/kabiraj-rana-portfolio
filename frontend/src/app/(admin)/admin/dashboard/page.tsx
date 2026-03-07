@@ -4,25 +4,21 @@ import { DashboardCharts } from "@/components/admin/DashboardCharts";
 import { PageHeader } from "@/components/admin/PageHeader";
 import { StatCard } from "@/components/admin/StatCard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { getAnalyticsOverview } from "@/lib/analytics/events";
 import { dashboardRepository } from "@/lib/db/repositories";
-import { prisma } from "@/lib/db/prisma";
 
 type ActivityItem = Awaited<ReturnType<typeof dashboardRepository.getRecentActivity>>[number];
+type AnalyticsEvent = { eventType: string; path: string; createdAt: Date };
 
 export default async function AdminDashboardPage() {
   const [kpis, recentActivity, pageViews] = await Promise.all([
     dashboardRepository.getKpis(),
     dashboardRepository.getRecentActivity(),
-    prisma.analyticsEvent.findMany({
-      where: { eventType: "PAGE_VIEW" },
-      orderBy: { createdAt: "desc" },
-      take: 1000,
-      select: { path: true, createdAt: true },
-    }),
+    getAnalyticsOverview(30),
   ]);
 
   const dailyMap = new Map<string, number>();
-  for (const event of pageViews) {
+  for (const event of (pageViews as AnalyticsEvent[]).filter((event) => event.eventType === "PAGE_VIEW")) {
     const key = format(event.createdAt, "MMM dd");
     dailyMap.set(key, (dailyMap.get(key) ?? 0) + 1);
   }

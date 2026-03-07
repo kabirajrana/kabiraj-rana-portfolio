@@ -1,7 +1,6 @@
 import { z } from "zod";
 
 const serverEnvSchema = z.object({
-  DATABASE_URL: z.string().min(1),
   ADMIN_JWT_SECRET: z.string().min(32),
   ADMIN_SESSION_COOKIE: z.string().default("admin_session"),
   ADMIN_SESSION_TTL_SECONDS: z.coerce.number().int().positive().default(60 * 60 * 24 * 7),
@@ -19,7 +18,6 @@ const serverEnvSchema = z.object({
 });
 
 export const serverEnv = serverEnvSchema.parse({
-  DATABASE_URL: process.env.DATABASE_URL ?? "postgresql://postgres:postgres@localhost:5432/kabiraj_portfolio",
   ADMIN_JWT_SECRET: process.env.ADMIN_JWT_SECRET ?? "replace_with_long_random_secret_replace_with_long_random_secret",
   ADMIN_SESSION_COOKIE: process.env.ADMIN_SESSION_COOKIE,
   ADMIN_SESSION_TTL_SECONDS: process.env.ADMIN_SESSION_TTL_SECONDS,

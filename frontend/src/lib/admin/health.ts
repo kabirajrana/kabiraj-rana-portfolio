@@ -1,5 +1,5 @@
-import { prisma } from "@/lib/db/prisma";
-import { researchDelegate } from "@/lib/db/research-delegate";
+import { backendApiRequest } from "@/lib/backend-api";
+import { contentRepository } from "@/lib/db/repositories";
 
 function isUrlValid(url?: string | null) {
   if (!url) return false;
@@ -27,12 +27,12 @@ type HealthMedia = { id: string; key: string; usedBy: unknown };
 
 export async function runHealthCheckReport() {
   const [projects, research, certifications, seo, media, github] = await Promise.all([
-    prisma.project.findMany({ select: { id: true, title: true, githubUrl: true, liveUrl: true, featured: true, coverImage: true, status: true } }),
-    researchDelegate.findMany({ select: { id: true, title: true, codeUrl: true, featured: true, coverImage: true, status: true } }),
-    prisma.certification.findMany({ select: { id: true, title: true, credentialUrl: true } }),
-    prisma.seoConfig.findMany({ select: { pageKey: true, metaTitle: true, metaDescription: true } }),
-    prisma.mediaAsset.findMany({ select: { id: true, key: true, usedBy: true } }),
-    prisma.gitHubSetting.findFirst({ orderBy: { updatedAt: "desc" }, select: { lastError: true, lastSyncAt: true } }),
+    contentRepository.listProjects(),
+    contentRepository.listResearch(),
+    contentRepository.listAllCertifications(),
+    contentRepository.listSeoConfigs(),
+    contentRepository.listMedia(),
+    contentRepository.getGithubSettings(),
   ]);
 
   const typedProjects = projects as HealthProject[];
@@ -112,14 +112,25 @@ export async function runHealthCheckReport() {
   const warnings = checks.filter((item) => item.level === "warning").length;
   const errors = checks.filter((item) => item.level === "error").length;
 
-  const report = await prisma.healthReport.create({
-    data: {
-      checks: checks as never,
+  const report =
+    (await backendApiRequest<Record<string, unknown>>("/v1/admin/health/reports", {
+      method: "POST",
+      body: JSON.stringify({
+        checks,
+        warnings,
+        errors,
+        summary: `${errors} errors · ${warnings} warnings`,
+      }),
+      headers: { "Content-Type": "application/json" },
+      cache: "no-store",
+    })) ?? {
+      id: "ephemeral",
+      checks,
       warnings,
       errors,
       summary: `${errors} errors · ${warnings} warnings`,
-    },
-  });
+      createdAt: new Date(),
+    };
 
   return { report, checks, warnings, errors };
 }

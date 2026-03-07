@@ -44,7 +44,7 @@ export default async function AdminProjectsPage({
       status: (params.status as "DRAFT" | "PUBLISHED" | "ARCHIVED" | undefined) ?? undefined,
       page,
       pageSize,
-    }).then((result) => result[1]),
+    }).then((result: readonly [ProjectRow[], number]) => result[1]),
   ]);
 
   const projects = projectRows[0] as ProjectRow[];

@@ -4,7 +4,16 @@ import { restoreRevisionAction } from "@/app/(admin)/admin/actions";
 import { PageHeader } from "@/components/admin/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { prisma } from "@/lib/db/prisma";
+import { listContentRevisions } from "@/lib/admin/revisions";
+
+type RevisionRow = {
+  id: string;
+  versionNumber: number;
+  action: string;
+  createdAt: Date;
+  snapshot: unknown;
+  actor?: { name?: string | null; email?: string | null } | null;
+};
 
 export default async function AdminRevisionsPage({
   searchParams,
@@ -15,12 +24,8 @@ export default async function AdminRevisionsPage({
   const entityType = params.entityType ?? "Project";
   const entityId = params.entityId ?? "";
 
-  const revisions = entityId
-    ? await prisma.contentRevision.findMany({
-        where: { entityType, entityId },
-        orderBy: { createdAt: "desc" },
-        include: { actor: { select: { email: true, name: true } } },
-      })
+  const revisions: RevisionRow[] = entityId
+    ? ((await listContentRevisions(entityType, entityId)) as RevisionRow[])
     : [];
 
   return (

@@ -21,9 +21,11 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     return buildMetadata({ title: "Research Not Found", description: "The requested research publication does not exist.", path: `/research/${slug}` });
   }
 
+  const abstract = typeof (item as Record<string, unknown>).abstract === "string" ? ((item as Record<string, unknown>).abstract as string) : "";
+
   return buildMetadata({
     title: (item.seoTitle as string | undefined) || item.title,
-    description: (item.seoDescription as string | undefined) || (item.summary as string | undefined) || (item.abstract as string | undefined) || "",
+    description: (item.seoDescription as string | undefined) || (item.summary as string | undefined) || abstract || "",
     path: `/research/${item.slug}`,
   });
 }

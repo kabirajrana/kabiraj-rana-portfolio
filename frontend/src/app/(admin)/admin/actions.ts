@@ -17,8 +17,6 @@ import { siteSettingsSchema } from "@/lib/admin/settings";
 import { clearPreviewCookie, createPreviewToken, setPreviewCookie } from "@/lib/admin/preview";
 import { trackEvent } from "@/lib/analytics/events";
 import { createAuditLog } from "@/lib/db/audit-log";
-import { prisma } from "@/lib/db/prisma";
-import { researchDelegate } from "@/lib/db/research-delegate";
 import { contentRepository } from "@/lib/db/repositories";
 import { serverEnv } from "@/lib/env.server";
 import { checkRateLimit } from "@/lib/rate-limit";
@@ -70,8 +68,8 @@ async function ensureUniqueSlug(baseSlug: string, entity: "project" | "research"
   while (true) {
     const existing =
       entity === "project"
-        ? await prisma.project.findUnique({ where: { slug: candidate } })
-        : await researchDelegate.findUnique({ where: { slug: candidate } });
+        ? await contentRepository.findProjectBySlug(candidate)
+        : await contentRepository.findResearchBySlug(candidate);
 
     if (!existing || existing.id === id) {
       return candidate;
@@ -105,9 +103,7 @@ export async function adminLoginAction(formData: FormData) {
   }
 
   const normalizedEmail = parsed.data.email.trim().toLowerCase();
-  const user = await prisma.adminUser.findFirst({
-    where: { email: { equals: normalizedEmail, mode: "insensitive" } },
-  });
+  const user = await contentRepository.getAdminUserByEmail(normalizedEmail);
   if (!user) {
     return { success: false, message: "Invalid credentials." };
   }
@@ -132,7 +128,7 @@ export async function adminLoginAction(formData: FormData) {
     maxAge: serverEnv.ADMIN_SESSION_TTL_SECONDS,
   });
 
-  await prisma.adminUser.update({ where: { id: user.id }, data: { lastLoginAt: new Date() } });
+  await contentRepository.updateAdminLastLogin(String(user.id));
 
   await createAuditLog({ actorId: user.id, action: "LOGIN", resource: "AdminUser", resourceId: user.id });
 
@@ -281,7 +277,7 @@ export async function deleteProjectAction(id: string) {
 export async function reorderProjectsAction(ids: string[]) {
   const session = await requireAdminSession();
 
-  await Promise.all(ids.map((id, index) => prisma.project.update({ where: { id }, data: { sortOrder: index } })));
+  await contentRepository.reorderProjects(ids);
   await createAuditLog({ actorId: session.userId, action: "REORDER", resource: "Project" });
   revalidatePath("/admin/projects");
   revalidatePath("/projects");
@@ -569,15 +565,16 @@ export async function deleteResearchFilterTabAction(id: string) {
 
 export async function exportResearchMarkdownAction(id: string) {
   await requireAdminSession();
-  const article = await researchDelegate.findUnique({ where: { id } });
+  const article = await contentRepository.getResearchById(id);
   if (!article) return null;
 
   const turndown = new TurndownService();
+  const abstract = typeof (article as Record<string, unknown>).abstract === "string" ? ((article as Record<string, unknown>).abstract as string) : "";
   const sections = Object.entries((article.content ?? {}) as Record<string, unknown>)
     .map(([key, value]) => `## ${key}\n\n${String(value ?? "")}`)
     .join("\n\n");
   const markdown = turndown.turndown(sections);
-  return `# ${article.title}\n\n${article.summary ?? article.abstract ?? ""}\n\n${markdown}`;
+  return `# ${article.title}\n\n${article.summary ?? abstract}\n\n${markdown}`;
 }
 
 export async function updateGithubSettingsAction(formData: FormData) {
@@ -650,15 +647,13 @@ export async function submitContactMessageAction(formData: FormData) {
     return { success: false, message: `Too many submissions. Retry in ${limit.retryAfterSeconds}s.` };
   }
 
-  await prisma.message.create({
-    data: {
-      ...parsed.data,
-      ipAddress: ip,
-      userAgent: (await headers()).get("user-agent") ?? null,
-      metadata: {
-        source: "public-contact",
-        submittedAt: new Date().toISOString(),
-      },
+  await contentRepository.createMessage({
+    ...parsed.data,
+    ipAddress: ip,
+    userAgent: (await headers()).get("user-agent") ?? null,
+    metadata: {
+      source: "public-contact",
+      submittedAt: new Date().toISOString(),
     },
   });
 

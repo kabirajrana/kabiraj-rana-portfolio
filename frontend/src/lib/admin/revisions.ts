@@ -1,5 +1,4 @@
-import { prisma } from "@/lib/db/prisma";
-import { researchDelegate } from "@/lib/db/research-delegate";
+import { backendApiRequest } from "@/lib/backend-api";
 
 export async function createContentRevision(input: {
   entityType: "Project" | "Experience" | "Research" | "SiteContent";
@@ -8,75 +7,36 @@ export async function createContentRevision(input: {
   actorAdminId?: string;
   snapshot: unknown;
 }) {
-  const last = await prisma.contentRevision.findFirst({
-    where: { entityType: input.entityType, entityId: input.entityId },
-    orderBy: { versionNumber: "desc" },
-    select: { versionNumber: true },
+  const response = await backendApiRequest<Record<string, unknown>>("/v1/admin/revisions", {
+    method: "POST",
+    body: JSON.stringify(input),
+    headers: { "Content-Type": "application/json" },
+    cache: "no-store",
   });
 
-  return prisma.contentRevision.create({
-    data: {
-      entityType: input.entityType,
-      entityId: input.entityId,
-      action: input.action,
-      snapshot: input.snapshot as never,
-      actorAdminId: input.actorAdminId,
-      versionNumber: (last?.versionNumber ?? 0) + 1,
-    },
-  });
+  return response ?? { ...input, id: `revision-${Date.now()}`, versionNumber: 1, createdAt: new Date() };
 }
 
 export async function listContentRevisions(entityType: string, entityId: string) {
-  return prisma.contentRevision.findMany({
-    where: { entityType, entityId },
-    orderBy: { createdAt: "desc" },
-    include: { actor: { select: { email: true, name: true } } },
-  });
+  const response = await backendApiRequest<Array<Record<string, unknown>>>(
+    `/v1/admin/revisions?entityType=${encodeURIComponent(entityType)}&entityId=${encodeURIComponent(entityId)}`,
+    { method: "GET" },
+  );
+
+  return response ?? [];
 }
 
 export async function restoreContentRevision(revisionId: string, actorAdminId?: string) {
-  const revision = await prisma.contentRevision.findUnique({ where: { id: revisionId } });
-  if (!revision) {
-    throw new Error("Revision not found");
+  const response = await backendApiRequest<{ entityType: string; entityId: string }>(`/v1/admin/revisions/${encodeURIComponent(revisionId)}/restore`, {
+    method: "POST",
+    body: JSON.stringify({ actorAdminId }),
+    headers: { "Content-Type": "application/json" },
+    cache: "no-store",
+  });
+
+  if (!response) {
+    throw new Error("Failed to restore revision");
   }
 
-  const snapshot = revision.snapshot as Record<string, unknown>;
-
-  if (revision.entityType === "Project") {
-    const restored = await prisma.project.update({
-      where: { id: revision.entityId },
-      data: snapshot as never,
-    });
-    await createContentRevision({
-      entityType: "Project",
-      entityId: restored.id,
-      action: "RESTORE",
-      actorAdminId,
-      snapshot,
-    });
-    return { entityType: revision.entityType, entityId: restored.id };
-  }
-
-  if (revision.entityType === "Experience") {
-    const restored = await prisma.experience.update({ where: { id: revision.entityId }, data: snapshot as never });
-    await createContentRevision({ entityType: "Experience", entityId: restored.id, action: "RESTORE", actorAdminId, snapshot });
-    return { entityType: revision.entityType, entityId: restored.id };
-  }
-
-  if (revision.entityType === "Research") {
-    const restored = await researchDelegate.update({ where: { id: revision.entityId }, data: snapshot as never });
-    await createContentRevision({ entityType: "Research", entityId: restored.id, action: "RESTORE", actorAdminId, snapshot });
-    return { entityType: revision.entityType, entityId: restored.id };
-  }
-
-  if (revision.entityType === "SiteContent") {
-    const restored = await prisma.siteContent.update({
-      where: { id: revision.entityId },
-      data: snapshot as never,
-    });
-    await createContentRevision({ entityType: "SiteContent", entityId: restored.id, action: "RESTORE", actorAdminId, snapshot });
-    return { entityType: revision.entityType, entityId: restored.id };
-  }
-
-  throw new Error("Unsupported revision entity type");
+  return response;
 }

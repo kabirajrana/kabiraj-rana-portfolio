@@ -22,7 +22,7 @@ function getBaseUrlFromHeaders(headerStore: Headers) {
 	const proto = headerStore.get("x-forwarded-proto") ?? "http";
 
 	if (!host) {
-		return "http://localhost:3000";
+		return "https://www.example.com";
 	}
 
 	return `${proto}://${host}`;

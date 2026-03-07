@@ -1,5 +1,4 @@
-import { prisma } from "@/lib/db/prisma";
-import type { Prisma } from "@prisma/client";
+import { backendApiRequest } from "@/lib/backend-api";
 
 export async function createAuditLog(input: {
   actorId?: string;
@@ -14,8 +13,9 @@ export async function createAuditLog(input: {
   userAgent?: string;
   metadata?: Record<string, unknown>;
 }) {
-  await prisma.auditLog.create({
-    data: {
+  await backendApiRequest("/v1/admin/audit-logs", {
+    method: "POST",
+    body: JSON.stringify({
       actorId: input.actorId,
       actorAdminId: input.actorAdminId ?? input.actorId,
       action: input.action,
@@ -26,7 +26,9 @@ export async function createAuditLog(input: {
       userAgent: input.userAgent,
       resource: input.resource,
       resourceId: input.resourceId,
-      metadata: input.metadata as Prisma.InputJsonValue,
-    },
+      metadata: input.metadata ?? null,
+    }),
+    headers: { "Content-Type": "application/json" },
+    cache: "no-store",
   });
 }
