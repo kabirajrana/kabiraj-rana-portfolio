@@ -1,11 +1,12 @@
 "use client";
 
-import { AnimatePresence, MotionConfig, motion } from "framer-motion";
+import { AnimatePresence, MotionConfig, motion, type Variants } from "framer-motion";
 import { type ReactNode, useEffect, useMemo, useRef, useState } from "react";
 
 const INITIAL_MIN_DURATION = 900;
 const EXIT_DURATION = 420;
 const LOAD_FALLBACK_TIMEOUT = 2800;
+const EASE_SMOOTH: [number, number, number, number] = [0.22, 1, 0.36, 1];
 
 const LOADING_STATES = [
   "Initializing Neural Core",
@@ -15,14 +16,14 @@ const LOADING_STATES = [
   "Compiling Experience",
 ] as const;
 
-const overlayVariants = {
+const overlayVariants: Variants = {
   enter: { opacity: 1, filter: "blur(0px)" },
-  exit: { opacity: 0, filter: "blur(8px)", transition: { duration: 0.45, ease: [0.22, 1, 0.36, 1] } },
+  exit: { opacity: 0, filter: "blur(8px)", transition: { duration: 0.45, ease: EASE_SMOOTH } },
 };
 
-const panelVariants = {
+const panelVariants: Variants = {
   enter: { opacity: 1, y: 0, scale: 1 },
-  exit: { opacity: 0, y: 12, scale: 0.985, transition: { duration: 0.4, ease: [0.22, 1, 0.36, 1] } },
+  exit: { opacity: 0, y: 12, scale: 0.985, transition: { duration: 0.4, ease: EASE_SMOOTH } },
 };
 
 function usePrefersReducedMotion() {
