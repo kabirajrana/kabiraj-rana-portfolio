@@ -5,6 +5,7 @@ import { fetchGitHubGraphQLDashboardDataWithOptions } from "@/lib/github/graphql
 import { fetchGitHubRecentPublicEvents } from "@/lib/github/rest";
 import type { GitHubDashboardResponse } from "@/types/github";
 
+export const dynamic = "force-dynamic";
 export const revalidate = 60;
 
 let lastKnownGoodSnapshot: GitHubDashboardResponse | null = null;
