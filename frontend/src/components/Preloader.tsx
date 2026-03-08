@@ -78,15 +78,37 @@ function InternalNeuralGraph({ reducedMotion }: { reducedMotion: boolean }) {
 
   const queueDots = [0, 1, 2, 3];
 
-  const getNode = (id: string) => nodes.find((node) => node.id === id) ?? nodes[0];
+  const isFiniteNumber = (value: unknown): value is number => typeof value === "number" && Number.isFinite(value);
+
+  const validNodes = nodes.filter((node) => isFiniteNumber(node.x) && isFiniteNumber(node.y));
+  const validNodeMap = new Map(validNodes.map((node) => [node.id, node]));
+
+  const validLinks = links
+    .map(([fromId, toId]) => {
+      const from = validNodeMap.get(fromId);
+      const to = validNodeMap.get(toId);
+      if (!from || !to) {
+        return null;
+      }
+      return { fromId, toId, from, to };
+    })
+    .filter((entry): entry is { fromId: string; toId: string; from: (typeof validNodes)[number]; to: (typeof validNodes)[number] } => entry !== null);
+
+  const particlePath = {
+    cx: [24, 40, 56, 68, 56, 40, 24],
+    cy: [30, 44, 34, 52, 66, 64, 30],
+  } as const;
+
+  const hasValidParticlePath =
+    particlePath.cx.length > 0 &&
+    particlePath.cx.length === particlePath.cy.length &&
+    particlePath.cx.every(isFiniteNumber) &&
+    particlePath.cy.every(isFiniteNumber);
 
   return (
     <div className="pointer-events-none absolute inset-[40px]">
       <svg viewBox="0 0 100 100" className="h-full w-full" aria-hidden="true">
-        {links.map(([fromId, toId], index) => {
-          const from = getNode(fromId);
-          const to = getNode(toId);
-
+        {validLinks.map(({ fromId, toId, from, to }, index) => {
           return (
             <motion.line
               key={`${fromId}-${toId}`}
@@ -108,7 +130,7 @@ function InternalNeuralGraph({ reducedMotion }: { reducedMotion: boolean }) {
           );
         })}
 
-        {nodes.map((node, index) => {
+        {validNodes.map((node, index) => {
           const fill = node.tone === "violet" ? "hsl(var(--accent-2) / 0.82)" : node.tone === "blue" ? "hsl(205 92% 72% / 0.84)" : "hsl(var(--accent) / 0.9)";
 
           return (
@@ -130,6 +152,7 @@ function InternalNeuralGraph({ reducedMotion }: { reducedMotion: boolean }) {
                 cx={node.x}
                 cy={node.y}
                 r="2.1"
+                initial={{ cx: node.x, cy: node.y, r: 2.1, opacity: reducedMotion ? 0.24 : 0.32 }}
                 fill="none"
                 stroke={fill}
                 strokeWidth="0.28"
@@ -148,21 +171,26 @@ function InternalNeuralGraph({ reducedMotion }: { reducedMotion: boolean }) {
           );
         })}
 
-        <motion.circle
-          r="1.05"
-          fill="hsl(var(--accent) / 0.96)"
-          animate={{
-            cx: [24, 40, 56, 68, 56, 40, 24],
-            cy: [30, 44, 34, 52, 66, 64, 30],
-            opacity: reducedMotion ? 0 : [0, 1, 1, 0.55, 0],
-          }}
-          transition={{
-            duration: reducedMotion ? 0.001 : 3.3,
-            repeat: reducedMotion ? 0 : Number.POSITIVE_INFINITY,
-            ease: "easeInOut",
-          }}
-          style={{ filter: "drop-shadow(0 0 6px rgba(34,211,238,0.65))" }}
-        />
+        {hasValidParticlePath ? (
+          <motion.circle
+            cx={particlePath.cx[0]}
+            cy={particlePath.cy[0]}
+            r={1.05}
+            initial={{ cx: particlePath.cx[0], cy: particlePath.cy[0], r: 1.05, opacity: 0 }}
+            fill="hsl(var(--accent) / 0.96)"
+            animate={{
+              cx: particlePath.cx,
+              cy: particlePath.cy,
+              opacity: reducedMotion ? 0 : [0, 1, 1, 0.55, 0],
+            }}
+            transition={{
+              duration: reducedMotion ? 0.001 : 3.3,
+              repeat: reducedMotion ? 0 : Number.POSITIVE_INFINITY,
+              ease: "easeInOut",
+            }}
+            style={{ filter: "drop-shadow(0 0 6px rgba(34,211,238,0.65))" }}
+          />
+        ) : null}
       </svg>
 
       <div className="absolute right-[8%] top-[12%] flex items-center gap-1.5">
