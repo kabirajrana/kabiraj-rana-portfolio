@@ -106,6 +106,9 @@ function InternalNeuralGraph({ reducedMotion }: { reducedMotion: boolean }) {
     cy: [30, 44, 34, 52, 66, 64, 30],
   } as const;
 
+  const particleCxFrames = [...particlePath.cx];
+  const particleCyFrames = [...particlePath.cy];
+
   const hasValidParticlePath =
     particlePath.cx.length > 0 &&
     particlePath.cx.length === particlePath.cy.length &&
@@ -186,8 +189,8 @@ function InternalNeuralGraph({ reducedMotion }: { reducedMotion: boolean }) {
             initial={{ cx: particlePath.cx[0], cy: particlePath.cy[0], r: 1.05, opacity: 0 }}
             fill="hsl(var(--accent) / 0.96)"
             animate={{
-              cx: particlePath.cx,
-              cy: particlePath.cy,
+              cx: particleCxFrames,
+              cy: particleCyFrames,
               opacity: reducedMotion ? 0 : [0, 1, 1, 0.55, 0],
             }}
             transition={{
