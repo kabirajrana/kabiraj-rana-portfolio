@@ -848,6 +848,44 @@
       "userAgent": null,
       "createdAt": "2026-03-08T04:51:27.201557+00:00",
       "updatedAt": "2026-03-08T04:51:27.201557+00:00"
+    },
+    {
+      "id": "b10b944b-9478-42cf-bef4-355474cdc01d",
+      "actorId": "admin-1",
+      "actor": {
+        "name": null,
+        "email": null
+      },
+      "action": "LOGIN",
+      "resource": "AdminUser",
+      "resourceId": "admin-1",
+      "entityType": "AdminUser",
+      "entityId": "admin-1",
+      "summary": null,
+      "metadata": null,
+      "ip": null,
+      "userAgent": null,
+      "createdAt": "2026-03-08T05:04:42.855539+00:00",
+      "updatedAt": "2026-03-08T05:04:42.855539+00:00"
+    },
+    {
+      "id": "329249a5-5cbd-4581-ad72-77b17b8fd95d",
+      "actorId": "admin-1",
+      "actor": {
+        "name": null,
+        "email": null
+      },
+      "action": "LOGIN",
+      "resource": "AdminUser",
+      "resourceId": "admin-1",
+      "entityType": "AdminUser",
+      "entityId": "admin-1",
+      "summary": null,
+      "metadata": null,
+      "ip": null,
+      "userAgent": null,
+      "createdAt": "2026-03-08T05:05:09.163170+00:00",
+      "updatedAt": "2026-03-08T05:05:09.163170+00:00"
     }
   ],
   "revisions": [
@@ -1266,9 +1304,9 @@
       "name": "Admin",
       "role": "ADMIN",
       "passwordHash": "$2b$10$GL99C9IyYX/d7tXHxfmVkuT2Gc.FXO0F3kd7T59fnfDaz1xCJDQ46",
-      "lastLoginAt": "2026-03-08T04:51:26.009073+00:00",
+      "lastLoginAt": "2026-03-08T05:05:09.136490+00:00",
       "createdAt": "2026-03-07T11:19:56.292629+00:00",
-      "updatedAt": "2026-03-08T04:51:26.009073+00:00"
+      "updatedAt": "2026-03-08T05:05:09.136490+00:00"
     }
   ]
 }
