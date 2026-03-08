@@ -39,6 +39,13 @@ import { slugify } from "@/lib/utils";
 
 type PublishStatus = "DRAFT" | "PUBLISHED" | "SCHEDULED" | "ARCHIVED";
 type MessageStatus = "UNREAD" | "READ" | "ARCHIVED" | "DELETED";
+type AdminAuthUser = {
+  id: string;
+  email: string;
+  role: string;
+  name: string;
+  passwordHash: string;
+};
 
 function parseList(raw: FormDataEntryValue | null): string[] {
   return String(raw ?? "")
@@ -67,6 +74,31 @@ function parseScheduledAt(raw: FormDataEntryValue | null): Date | null {
 
 function looksLikeBcryptHash(value: unknown): value is string {
   return typeof value === "string" && /^\$2[abxy]\$\d{2}\$/.test(value);
+}
+
+function toAdminAuthUser(value: unknown): AdminAuthUser | null {
+  if (!value || typeof value !== "object") {
+    return null;
+  }
+
+  const candidate = value as Record<string, unknown>;
+  const id = String(candidate.id ?? "").trim();
+  const email = String(candidate.email ?? "").trim();
+  const role = String(candidate.role ?? "").trim();
+  const name = String(candidate.name ?? "").trim();
+  const passwordHash = String(candidate.passwordHash ?? "").trim();
+
+  if (!id || !email || !role || !name || !passwordHash) {
+    return null;
+  }
+
+  return {
+    id,
+    email,
+    role,
+    name,
+    passwordHash,
+  };
 }
 
 function normalizeAdminNextPath(raw: FormDataEntryValue | null): string {
@@ -131,9 +163,9 @@ export async function adminLoginAction(formData: FormData) {
   }
 
   const normalizedEmail = parsed.data.email.trim().toLowerCase();
-  let user: Record<string, any> | null = null;
+  let user: AdminAuthUser | null = null;
   try {
-    user = await contentRepository.getAdminUserByEmail(normalizedEmail);
+    user = toAdminAuthUser(await contentRepository.getAdminUserByEmail(normalizedEmail));
   } catch (error) {
     console.error("[admin-auth] Failed to fetch admin user from backend API", {
       email: normalizedEmail,
