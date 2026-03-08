@@ -6,8 +6,6 @@ import { Topbar } from "@/components/admin/Topbar";
 import { requireAdminSession } from "@/lib/auth/guards";
 import { dashboardRepository } from "@/lib/db/repositories";
 
-import { adminLogoutAction } from "./actions";
-
 export const dynamic = "force-dynamic";
 
 export default async function AdminLayout({ children }: { children: ReactNode }) {
@@ -18,7 +16,7 @@ export default async function AdminLayout({ children }: { children: ReactNode })
     <div className="flex min-h-screen overflow-x-clip">
       <Sidebar />
       <div className="mx-auto min-w-0 w-full max-w-[1600px] px-3 sm:px-4 lg:px-8">
-        <Topbar onLogout={adminLogoutAction} notifications={notifications} />
+        <Topbar notifications={notifications} />
         {children}
       </div>
       <CommandPalette />

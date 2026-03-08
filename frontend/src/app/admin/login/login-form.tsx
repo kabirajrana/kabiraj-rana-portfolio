@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
 import { adminLoginAction } from "@/app/(admin)/admin/actions";
@@ -13,7 +12,6 @@ export function LoginForm({ csrfToken }: { csrfToken: string }) {
   const [pending, startTransition] = useTransition();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const router = useRouter();
 
   return (
     <Card className="mx-auto w-full max-w-md border-border/70">
@@ -39,8 +37,12 @@ export function LoginForm({ csrfToken }: { csrfToken: string }) {
               }
 
               toast.success("Welcome back");
-              router.push("/admin/dashboard");
-              router.refresh();
+
+              // Use full navigation so the fresh session cookie is guaranteed
+              // to be sent with the first admin dashboard request.
+              setTimeout(() => {
+                window.location.replace("/admin/dashboard");
+              }, 200);
             });
           }}
         >

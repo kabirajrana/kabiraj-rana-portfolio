@@ -603,7 +603,12 @@ export const contentRepository = {
   },
 
   async createMessage(input: Record<string, unknown>) {
-    return (await apiSend<Record<string, any>>("/v1/admin/messages", "POST", input)) ?? input;
+    const response = await apiSend<Record<string, any>>("/v1/admin/messages", "POST", input);
+    if (!response || !response.id) {
+      throw new Error("Unable to save contact message. Backend API is unreachable or misconfigured.");
+    }
+
+    return response;
   },
 
   async updateMessageStatus(id: string, status: MessageStatus) {

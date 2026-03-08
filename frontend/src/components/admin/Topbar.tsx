@@ -9,10 +9,8 @@ import { adminNavItems } from "@/components/admin/admin-nav-items";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
 export function Topbar({
-  onLogout,
   notifications,
 }: {
-  onLogout: () => Promise<void>;
   notifications: {
     unreadMessages: number;
     githubError: string | null;
@@ -144,9 +142,7 @@ export function Topbar({
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuItem asChild>
-              <form action={onLogout}>
-                <button type="submit" className="w-full text-left">Sign out</button>
-              </form>
+              <Link href="/admin/logout" className="w-full text-left">Sign out</Link>
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem>Account</DropdownMenuItem>

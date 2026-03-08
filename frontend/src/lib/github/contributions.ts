@@ -109,12 +109,25 @@ export async function getContributionsByYearWithOptions(
 }> {
 	const token = process.env.GITHUB_TOKEN;
 	const revalidateSeconds = options?.revalidateSeconds ?? 120;
+	const { start, end, from, to } = getYearBounds(year);
 
 	if (!token) {
-		throw new Error("Missing GITHUB_TOKEN");
-	}
+		const days: GitHubContributionDay[] = [];
+		for (const day = new Date(start); day <= end; day.setUTCDate(day.getUTCDate() + 1)) {
+			days.push({
+				date: toDateOnly(day),
+				count: 0,
+				level: 0,
+				weekday: day.getUTCDay(),
+			});
+		}
 
-	const { start, end, from, to } = getYearBounds(year);
+		return {
+			year,
+			total: 0,
+			days,
+		};
+	}
 
 	const response = await fetch(GITHUB_GRAPHQL_URL, {
 		method: "POST",

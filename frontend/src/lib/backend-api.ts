@@ -1,7 +1,7 @@
 const API_TIMEOUT_MS = 8000;
 
 function getApiBaseUrl(): string | null {
-  const raw = process.env.NEXT_PUBLIC_API_URL;
+  const raw = process.env.BACKEND_API_URL ?? process.env.API_URL ?? process.env.NEXT_PUBLIC_API_URL;
   if (!raw || !raw.trim()) {
     return null;
   }

@@ -82,6 +82,108 @@ type GitHubGraphQLResponse = {
 	errors?: Array<{ message: string }>;
 };
 
+type GitHubUserResponse = {
+	name: string | null;
+	login: string;
+	avatar_url: string;
+	bio: string | null;
+	html_url: string;
+	followers: number;
+	following: number;
+	public_repos: number;
+};
+
+type GitHubRepoResponse = {
+	name: string;
+	description: string | null;
+	html_url: string;
+	stargazers_count: number;
+	forks_count: number;
+	updated_at: string;
+	language: string | null;
+	topics?: string[];
+	pinned?: boolean;
+};
+
+async function fetchGitHubPublicProfileAndRepos(
+	username: string,
+	options?: { revalidateSeconds?: number; forceFresh?: boolean }
+): Promise<Pick<GitHubDashboardData, "profile" | "pinnedRepos">> {
+	const revalidateSeconds = options?.revalidateSeconds ?? 300;
+	const requestInit = options?.forceFresh ? { cache: "no-store" as const } : { next: { revalidate: revalidateSeconds } };
+
+	const [userResponse, reposResponse] = await Promise.all([
+		fetch(`https://api.github.com/users/${username}`, {
+			headers: {
+				Accept: "application/vnd.github+json",
+				"X-GitHub-Api-Version": "2022-11-28",
+			},
+			...requestInit,
+		}),
+		fetch(`https://api.github.com/users/${username}/repos?per_page=100&sort=updated`, {
+			headers: {
+				Accept: "application/vnd.github+json",
+				"X-GitHub-Api-Version": "2022-11-28",
+			},
+			...requestInit,
+		}),
+	]);
+
+	if (!userResponse.ok) {
+		throw new Error(`GitHub user endpoint failed with status ${userResponse.status}`);
+	}
+
+	if (!reposResponse.ok) {
+		throw new Error(`GitHub repos endpoint failed with status ${reposResponse.status}`);
+	}
+
+	const user = (await userResponse.json()) as GitHubUserResponse;
+	const repos = (await reposResponse.json()) as GitHubRepoResponse[];
+
+	const profile: GitHubProfile = {
+		name: user.name ?? user.login,
+		login: user.login,
+		avatarUrl: user.avatar_url,
+		bio: user.bio ?? "",
+		followers: user.followers,
+		following: user.following,
+		publicRepos: user.public_repos,
+		url: user.html_url,
+	};
+
+	const pinnedRepos: GitHubPinnedRepo[] = repos
+		.filter((repo) => !repo.pinned)
+		.sort((a, b) => {
+			const starDiff = b.stargazers_count - a.stargazers_count;
+			if (starDiff !== 0) {
+				return starDiff;
+			}
+
+			return new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime();
+		})
+		.slice(0, 6)
+		.map((repo) => ({
+			name: repo.name,
+			description: repo.description ?? "No description available.",
+			url: repo.html_url,
+			primaryLanguage: repo.language
+				? {
+						name: repo.language,
+						color: "#94a3b8",
+				  }
+				: null,
+			stars: repo.stargazers_count,
+			forks: repo.forks_count,
+			updatedAt: repo.updated_at,
+			topics: Array.isArray(repo.topics) ? repo.topics : [],
+		}));
+
+	return {
+		profile,
+		pinnedRepos,
+	};
+}
+
 export async function fetchGitHubGraphQLDashboardData(): Promise<Pick<GitHubDashboardData, "profile" | "pinnedRepos">> {
 	return fetchGitHubGraphQLDashboardDataWithOptions();
 }
@@ -95,7 +197,7 @@ export async function fetchGitHubGraphQLDashboardDataWithOptions(options?: {
 	const revalidateSeconds = options?.revalidateSeconds ?? 300;
 
 	if (!token) {
-		throw new Error("Missing GITHUB_TOKEN");
+		return fetchGitHubPublicProfileAndRepos(username, options);
 	}
 
 	const response = await fetch(GITHUB_GRAPHQL_URL, {
@@ -114,13 +216,22 @@ export async function fetchGitHubGraphQLDashboardDataWithOptions(options?: {
 	});
 
 	if (!response.ok) {
+		if (response.status === 401 || response.status === 403) {
+			return fetchGitHubPublicProfileAndRepos(username, options);
+		}
+
 		throw new Error(`GitHub GraphQL failed with status ${response.status}`);
 	}
 
 	const payload = (await response.json()) as GitHubGraphQLResponse;
 
 	if (payload.errors?.length) {
-		throw new Error(payload.errors.map((error) => error.message).join("; "));
+		const message = payload.errors.map((error) => error.message).join("; ");
+		if (message.toLowerCase().includes("bad credentials")) {
+			return fetchGitHubPublicProfileAndRepos(username, options);
+		}
+
+		throw new Error(message);
 	}
 
 	if (!payload.data?.user) {
