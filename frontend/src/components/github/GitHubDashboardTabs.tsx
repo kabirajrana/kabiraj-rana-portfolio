@@ -12,8 +12,36 @@ const tabItems = ["Overview", "Repos", "Activity", "Contributions"] as const;
 
 type TabItem = (typeof tabItems)[number];
 
+function hasValidContributions(days: GitHubDashboardData["contributions"]["days"]) {
+	if (!Array.isArray(days) || days.length === 0) {
+		return false;
+	}
+
+	return days.some((day) => {
+		if (!day || typeof day !== "object") {
+			return false;
+		}
+
+		const hasValidDate = typeof day.date === "string" && /^\d{4}-\d{2}-\d{2}$/.test(day.date);
+		const hasValidCount = Number.isFinite(day.count);
+		const hasValidWeekday = Number.isInteger(day.weekday) && day.weekday >= 0 && day.weekday <= 6;
+		const hasValidLevel = Number.isInteger(day.level) && day.level >= 0 && day.level <= 4;
+
+		return hasValidDate && hasValidCount && hasValidWeekday && hasValidLevel;
+	});
+}
+
+function renderContributionUnavailableNotice() {
+	return (
+		<div className="rounded-xl border border-amber-400/40 bg-amber-500/10 px-4 py-3 text-sm text-amber-100">
+			Contributions data is temporarily unavailable. Profile, repositories, and activity are still live.
+		</div>
+	);
+}
+
 export function GitHubDashboardTabs({ data }: { data: GitHubDashboardData }) {
 	const [activeTab, setActiveTab] = useState<TabItem>("Overview");
+	const canRenderContributions = hasValidContributions(data.contributions.days);
 
 	const content = useMemo(() => {
 		if (activeTab === "Repos") {
@@ -25,6 +53,10 @@ export function GitHubDashboardTabs({ data }: { data: GitHubDashboardData }) {
 		}
 
 		if (activeTab === "Contributions") {
+			if (!canRenderContributions) {
+				return renderContributionUnavailableNotice();
+			}
+
 			return (
 				<ContributionCalendar
 					username={data.profile.login}
@@ -38,18 +70,22 @@ export function GitHubDashboardTabs({ data }: { data: GitHubDashboardData }) {
 
 		return (
 			<div className="space-y-8">
-				<ContributionCalendar
-					username={data.profile.login}
-					initialYear={data.contributions.year}
-					availableYears={data.contributions.availableYears}
-					initialTotal={data.contributions.total}
-					initialDays={data.contributions.days}
-				/>
+				{canRenderContributions ? (
+					<ContributionCalendar
+						username={data.profile.login}
+						initialYear={data.contributions.year}
+						availableYears={data.contributions.availableYears}
+						initialTotal={data.contributions.total}
+						initialDays={data.contributions.days}
+					/>
+				) : (
+					renderContributionUnavailableNotice()
+				)}
 				<PinnedReposGrid repos={data.pinnedRepos} />
 				<RecentActivity events={data.recentEvents} />
 			</div>
 		);
-	}, [activeTab, data]);
+	}, [activeTab, canRenderContributions, data]);
 
 	return (
 		<div className="space-y-6">

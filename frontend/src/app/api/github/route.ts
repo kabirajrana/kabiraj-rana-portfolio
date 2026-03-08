@@ -10,6 +10,11 @@ export const revalidate = 60;
 
 let lastKnownGoodSnapshot: GitHubDashboardResponse | null = null;
 
+type GitHubRouteWarning = {
+	message: string;
+	userVisible: boolean;
+};
+
 function normalizeEnv(value: string | undefined): string {
 	const trimmed = String(value ?? "").trim();
 	if ((trimmed.startsWith("\"") && trimmed.endsWith("\"")) || (trimmed.startsWith("'") && trimmed.endsWith("'"))) {
@@ -133,13 +138,16 @@ export async function GET(request: Request) {
 			}),
 		]);
 
-		const warnings: string[] = [];
+		const warnings: GitHubRouteWarning[] = [];
 
 		const profileAndRepos =
 			graphqlDataResult.status === "fulfilled"
 				? graphqlDataResult.value
 				: (() => {
-					warnings.push(toFriendlyGitHubErrorMessage(graphqlDataResult.reason));
+					warnings.push({
+						message: toFriendlyGitHubErrorMessage(graphqlDataResult.reason),
+						userVisible: true,
+					});
 					return {
 						profile: createProfileFallback(username),
 						pinnedRepos: [],
@@ -150,7 +158,16 @@ export async function GET(request: Request) {
 			contributionsResult.status === "fulfilled"
 				? contributionsResult.value
 				: (() => {
-					warnings.push(toFriendlyGitHubErrorMessage(contributionsResult.reason));
+					const message = toFriendlyGitHubErrorMessage(contributionsResult.reason);
+					warnings.push({
+						message,
+						userVisible: false,
+					});
+					console.warn("[github-api] Contributions unavailable; returning safe empty contributions", {
+						username,
+						year: selectedYear,
+						reason: message,
+					});
 					return {
 						year: selectedYear,
 						total: 0,
@@ -162,7 +179,10 @@ export async function GET(request: Request) {
 			recentEventsResult.status === "fulfilled"
 				? recentEventsResult.value
 				: (() => {
-					warnings.push(toFriendlyGitHubErrorMessage(recentEventsResult.reason));
+					warnings.push({
+						message: toFriendlyGitHubErrorMessage(recentEventsResult.reason),
+						userVisible: true,
+					});
 					return [];
 				  })();
 
@@ -172,13 +192,14 @@ export async function GET(request: Request) {
 			contributionsResult.status === "rejected";
 
 		if (allFailed && lastKnownGoodSnapshot) {
+			const firstWarning = warnings[0]?.message ?? "GitHub service unavailable";
 			return NextResponse.json(
 				{
 					...lastKnownGoodSnapshot,
 					meta: {
 						...lastKnownGoodSnapshot.meta,
 						stale: true,
-						warning: `Using last known GitHub snapshot: ${warnings[0] ?? "GitHub service unavailable"}`,
+						warning: `Using last known GitHub snapshot: ${firstWarning}`,
 					},
 				},
 				{
@@ -189,6 +210,9 @@ export async function GET(request: Request) {
 				}
 			);
 		}
+
+		const userVisibleWarnings = warnings.filter((warning) => warning.userVisible);
+		const firstUserVisibleWarning = userVisibleWarnings[0]?.message;
 
 		const response: GitHubDashboardResponse = {
 			data: {
@@ -204,7 +228,7 @@ export async function GET(request: Request) {
 			meta: {
 				generatedAt: new Date().toISOString(),
 				stale: warnings.length > 0,
-				...(warnings.length > 0 ? { warning: `GitHub data partially unavailable: ${warnings[0]}` } : {}),
+				...(firstUserVisibleWarning ? { warning: `GitHub data partially unavailable: ${firstUserVisibleWarning}` } : {}),
 			},
 		};
 

@@ -49,6 +49,87 @@ type ContributionsByYearResponse = {
 	errors?: Array<{ message: string }>;
 };
 
+type ParsedContributionRow = {
+	date: string;
+	count: number;
+};
+
+function parseNumber(value: string | undefined): number | null {
+	if (!value) {
+		return null;
+	}
+	const parsed = Number(value);
+	if (!Number.isFinite(parsed)) {
+		return null;
+	}
+	return parsed;
+}
+
+function parseDateFromTooltipOrAria(raw: string): string | null {
+	const dateMatch = raw.match(/\b(\d{4}-\d{2}-\d{2})\b/);
+	if (dateMatch?.[1]) {
+		return dateMatch[1];
+	}
+
+	const readableDateMatch = raw.match(/on\s+([A-Za-z]{3,9}\s+\d{1,2},\s+\d{4})/i);
+	if (!readableDateMatch?.[1]) {
+		return null;
+	}
+
+	const parsed = new Date(readableDateMatch[1]);
+	if (Number.isNaN(parsed.getTime())) {
+		return null;
+	}
+
+	return parsed.toISOString().slice(0, 10);
+}
+
+function parseCountFromTooltipOrAria(raw: string): number | null {
+	const countMatch = raw.match(/\b(\d+)\s+contribution/i);
+	return parseNumber(countMatch?.[1]);
+}
+
+function parseContributionRowsFromPayload(payload: string): ParsedContributionRow[] {
+	const rows: ParsedContributionRow[] = [];
+
+	// SVG variant used by /users/:username/contributions where rects may have data-count or only data-level.
+	for (const rect of payload.match(/<rect\b[^>]*>/g) ?? []) {
+		const dateMatch = rect.match(/data-date="([^"]+)"/);
+		if (!dateMatch?.[1]) {
+			continue;
+		}
+
+		const count =
+			parseNumber(rect.match(/data-count="(\d+)"/)?.[1]) ??
+			parseNumber(rect.match(/aria-label="(\d+)\s+contribution/)?.[1]) ??
+			parseNumber(rect.match(/data-level="(\d+)"/)?.[1]);
+
+		if (count === null) {
+			continue;
+		}
+
+		rows.push({ date: dateMatch[1], count });
+	}
+
+	// HTML fallback variant where contribution data appears in tooltip/text blocks.
+	for (const tooltip of payload.match(/<(?:tool-tip|td)\b[^>]*>[\s\S]*?<\/(?:tool-tip|td)>/g) ?? []) {
+		const normalizedText = tooltip.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
+		if (!normalizedText) {
+			continue;
+		}
+
+		const date = parseDateFromTooltipOrAria(normalizedText);
+		const count = parseCountFromTooltipOrAria(normalizedText);
+		if (!date || count === null) {
+			continue;
+		}
+
+		rows.push({ date, count });
+	}
+
+	return rows;
+}
+
 async function fetchPublicContributionCalendar(
 	username: string,
 	year: number,
@@ -71,28 +152,41 @@ async function fetchPublicContributionCalendar(
 	});
 
 	if (!response.ok) {
+		console.error("[github-contributions] Public contributions request failed", {
+			mode: "public-scrape",
+			username,
+			year,
+			status: response.status,
+			contentType: response.headers.get("content-type") ?? "unknown",
+		});
 		throw new Error(`GitHub public contributions failed with status ${response.status}`);
 	}
 
 	const svg = await response.text();
-	const rectPattern = /<rect\b[^>]*>/g;
-	const datePattern = /data-date="([^"]+)"/;
-	const countPattern = /data-count="(\d+)"/;
 	const countByDate = new Map<string, number>();
-
-	for (const rect of svg.match(rectPattern) ?? []) {
-		const dateMatch = rect.match(datePattern);
-		const countMatch = rect.match(countPattern);
-		if (!dateMatch || !countMatch) {
-			continue;
-		}
-
-		countByDate.set(dateMatch[1], Number(countMatch[1]));
+	for (const row of parseContributionRowsFromPayload(svg)) {
+		countByDate.set(row.date, row.count);
 	}
 
 	if (countByDate.size === 0) {
+		console.error("[github-contributions] Public contributions parsing failed", {
+			mode: "public-scrape",
+			username,
+			year,
+			contentType: response.headers.get("content-type") ?? "unknown",
+			payloadLength: svg.length,
+			payloadHead: svg.slice(0, 240),
+		});
 		throw new Error("Failed to parse GitHub public contributions payload");
 	}
+
+	console.info("[github-contributions] Parsed public contributions payload", {
+		mode: "public-scrape",
+		username,
+		year,
+		contentType: response.headers.get("content-type") ?? "unknown",
+		parsedDays: countByDate.size,
+	});
 
 	const maxCount = Math.max(0, ...Array.from(countByDate.values()));
 	const days: GitHubContributionDay[] = [];
@@ -191,11 +285,18 @@ export async function getContributionsByYearWithOptions(
 
 	if (!normalizedToken) {
 		console.warn("[github-contributions] GITHUB_TOKEN missing; falling back to public contributions scraping", {
+			mode: "public-scrape",
 			username,
 			year,
 		});
 		return fetchPublicContributionCalendar(username, year, options);
 	}
+
+	console.info("[github-contributions] Using authenticated GraphQL contribution query", {
+		mode: "graphql-auth",
+		username,
+		year,
+	});
 
 	const response = await fetch(GITHUB_GRAPHQL_URL, {
 		method: "POST",
@@ -217,13 +318,22 @@ export async function getContributionsByYearWithOptions(
 	if (!response.ok) {
 		if (response.status === 401 || response.status === 403) {
 			console.warn("[github-contributions] GraphQL auth failed; falling back to public contributions", {
+				mode: "graphql-auth",
 				status: response.status,
+				contentType: response.headers.get("content-type") ?? "unknown",
 				username,
 				year,
 			});
 			return fetchPublicContributionCalendar(username, year, options);
 		}
 
+		console.error("[github-contributions] GraphQL contribution request failed", {
+			mode: "graphql-auth",
+			status: response.status,
+			contentType: response.headers.get("content-type") ?? "unknown",
+			username,
+			year,
+		});
 		throw new Error(`GitHub contribution query failed with status ${response.status}`);
 	}
 
@@ -233,16 +343,29 @@ export async function getContributionsByYearWithOptions(
 		const message = payload.errors.map((error) => error.message).join("; ");
 		if (message.toLowerCase().includes("bad credentials")) {
 			console.warn("[github-contributions] GraphQL bad credentials; falling back to public contributions", {
+				mode: "graphql-auth",
 				username,
 				year,
 			});
 			return fetchPublicContributionCalendar(username, year, options);
 		}
 
+		console.error("[github-contributions] GraphQL payload returned errors", {
+			mode: "graphql-auth",
+			username,
+			year,
+			message,
+		});
+
 		throw new Error(message);
 	}
 
 	if (!payload.data?.user) {
+		console.error("[github-contributions] GraphQL payload missing user", {
+			mode: "graphql-auth",
+			username,
+			year,
+		});
 		throw new Error("GitHub contribution query returned no user");
 	}
 

@@ -11,11 +11,16 @@ import { Toaster } from "@/components/ui/sonner";
 import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
+const SITE_URL = "https://www.kabirajrana.com.np";
 
 export const metadata: Metadata = {
 	title: "Kabiraj Rana | AI/ML Engineer",
 	description:
 		"Kabiraj Rana is an AI/ML engineer building production-grade AI systems, intelligent web applications, and applied machine learning projects.",
+	metadataBase: new URL(SITE_URL),
+	alternates: {
+		canonical: "/",
+	},
 	icons: {
 		icon: [
 			{ url: "/Favicon/favicon.ico" },

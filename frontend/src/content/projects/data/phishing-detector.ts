@@ -28,8 +28,8 @@ export const phishingDetectorProject: Project = {
 		"FastAPI inference service consumed by the web client",
 	],
 	links: {
-		github: "https://github.com/your-username/phishing-detector",
-		demo: "https://demo.example.com/phishing-detector",
+		github: "https://github.com/kabirajrana/phishing-website-detection",
+		demo: "https://phishing-website-detection-kabi.streamlit.app/",
 	},
 	gallery: ["Feature dashboard", "Prediction view", "Model metrics"],
 };

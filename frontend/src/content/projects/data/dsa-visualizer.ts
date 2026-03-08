@@ -28,8 +28,8 @@ export const dsaVisualizerProject: Project = {
 		"Config-driven algorithm descriptors for scalability",
 	],
 	links: {
-		github: "https://github.com/your-username/dsa-visualizer",
-		demo: "https://demo.example.com/dsa-visualizer",
+		github: "/kabiraj-rana-cv.pdf",
+		demo: "https://www.algovx.me/",
 	},
 	gallery: ["Sorting panel", "Pathfinding arena", "Complexity insights"],
 };

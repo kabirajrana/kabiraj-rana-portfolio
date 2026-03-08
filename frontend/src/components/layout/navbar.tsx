@@ -140,7 +140,7 @@ export function Navbar() {
 							variant="outline"
 							className="hidden h-9 rounded-full border border-border/42 bg-[linear-gradient(140deg,hsl(var(--surface)/0.9)_0%,hsl(var(--background)/0.95)_100%)] px-4 text-xs font-semibold text-text/82 shadow-[0_5px_10px_-12px_hsl(var(--accent)/0.2)] transition-[border-color,background-color,transform,box-shadow,color] duration-400 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-0.5 hover:border-border/62 hover:bg-[linear-gradient(140deg,hsl(var(--surface)/0.95)_0%,hsl(var(--background)/0.98)_100%)] hover:text-text/86 hover:shadow-[0_8px_14px_-12px_hsl(var(--accent)/0.24)] md:inline-flex"
 						>
-							<a href="/Kabiraj-Rana-CV.pdf" download>
+							<a href="/kabiraj-rana-cv.pdf" download>
 								<span className="inline-flex items-center gap-1 tracking-[0.08em]">
 									<ArrowDown size={12} />
 									Download CV
@@ -187,7 +187,7 @@ export function Navbar() {
 								);
 							})}
 								<Button asChild variant="outline" size="sm" className="mt-2 h-10 rounded-xl">
-									<a href="/Kabiraj-Rana-CV.pdf" download>
+									<a href="/kabiraj-rana-cv.pdf" download>
 										<span className="inline-flex items-center gap-1">
 											<ArrowDown size={14} />
 											Download CV
