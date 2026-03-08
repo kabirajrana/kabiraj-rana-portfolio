@@ -3,7 +3,7 @@
 import { certifications, experiences } from "@/content/site/experience";
 import { projects as fallbackProjects } from "@/content/projects";
 import { researchEntries } from "@/data/research";
-import { backendApiRequest, resolveBackendApiBaseUrl } from "@/lib/backend-api";
+import { backendApiRequest, backendApiRequestOrThrow } from "@/lib/backend-api";
 import { DEFAULT_PROJECT_CATEGORIES, isAllProjectFilter, normalizeProjectCategory } from "@/lib/projects/categories";
 
 type PublishStatus = "DRAFT" | "PUBLISHED" | "SCHEDULED" | "ARCHIVED";
@@ -719,29 +719,15 @@ export const contentRepository = {
   },
 
   async getAdminUserByEmail(email: string) {
-    const baseUrl = resolveBackendApiBaseUrl();
-    if (!baseUrl) {
-      throw new Error("Missing backend API URL. Set BACKEND_API_URL, API_URL, or NEXT_PUBLIC_API_URL.");
-    }
-
-    try {
-      const response = await fetch(`${baseUrl}/v1/admin/users/by-email?email=${encodeURIComponent(email)}`, {
+    const payload = await backendApiRequestOrThrow<Record<string, any> | null>(
+      `/v1/admin/users/by-email?email=${encodeURIComponent(email)}`,
+      {
         method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-        },
         cache: "no-store",
-      });
+      },
+    );
 
-      if (!response.ok) {
-        throw new Error(`Backend auth lookup failed with status ${response.status}`);
-      }
-
-      const payload = (await response.json()) as Record<string, any> | null;
-      return payload ? reviveDates(payload) : null;
-    } catch (error) {
-      throw new Error(error instanceof Error ? error.message : "Failed to reach backend auth API");
-    }
+    return payload ? reviveDates(payload) : null;
   },
 
   async updateAdminLastLogin(id: string) {
