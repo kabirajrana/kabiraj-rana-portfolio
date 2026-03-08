@@ -55,6 +55,14 @@ def _seed_password_matches_hash(password: str, password_hash: str) -> bool:
         return False
 
 
+def _seed_email_from_env() -> str:
+    return (os.getenv("ADMIN_SEED_EMAIL") or os.getenv("ADMIN_LOGIN_EMAIL") or "").strip().lower()
+
+
+def _seed_password_from_env() -> str:
+    return os.getenv("ADMIN_SEED_PASSWORD") or os.getenv("ADMIN_LOGIN_PASSWORD") or ""
+
+
 class JsonAdminStore:
     def __init__(self, file_path: Path) -> None:
         self.file_path = file_path
@@ -62,8 +70,8 @@ class JsonAdminStore:
 
     def _default_data(self) -> dict[str, Any]:
         now = _utc_now_iso()
-        default_admin_email = os.getenv("ADMIN_SEED_EMAIL", "admin@example.com")
-        seed_password = os.getenv("ADMIN_SEED_PASSWORD", "")
+        default_admin_email = _seed_email_from_env() or "admin@example.com"
+        seed_password = _seed_password_from_env()
         default_admin_hash = os.getenv("ADMIN_PASSWORD_HASH", "")
         if not default_admin_hash and seed_password:
             default_admin_hash = _hash_seed_password(seed_password)
@@ -319,9 +327,9 @@ class JsonAdminStore:
             changed = True
         else:
             first = users[0] if isinstance(users[0], dict) else {}
-            seed_email = os.getenv("ADMIN_SEED_EMAIL", "").strip().lower()
-            seed_password = os.getenv("ADMIN_SEED_PASSWORD", "")
-            configured_email = seed_email or os.getenv("ADMIN_SEED_EMAIL", defaults["admin_users"][0]["email"])
+            seed_email = _seed_email_from_env()
+            seed_password = _seed_password_from_env()
+            configured_email = seed_email or defaults["admin_users"][0]["email"]
 
             if seed_email and str(first.get("email", "")).strip().lower() != seed_email:
                 first["email"] = seed_email
