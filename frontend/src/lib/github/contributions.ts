@@ -41,6 +41,71 @@ type ContributionsByYearResponse = {
 	errors?: Array<{ message: string }>;
 };
 
+async function fetchPublicContributionCalendar(
+	username: string,
+	year: number,
+	options?: { revalidateSeconds?: number; forceFresh?: boolean }
+): Promise<{
+	year: number;
+	total: number;
+	days: GitHubContributionDay[];
+}> {
+	const revalidateSeconds = options?.revalidateSeconds ?? 120;
+	const { start, end } = getYearBounds(year);
+	const from = `${year}-01-01`;
+	const to = `${year}-12-31`;
+
+	const response = await fetch(`https://github.com/users/${username}/contributions?from=${from}&to=${to}`, {
+		headers: {
+			Accept: "image/svg+xml,text/html;q=0.9,*/*;q=0.8",
+		},
+		...(options?.forceFresh ? { cache: "no-store" as const } : { next: { revalidate: revalidateSeconds } }),
+	});
+
+	if (!response.ok) {
+		throw new Error(`GitHub public contributions failed with status ${response.status}`);
+	}
+
+	const svg = await response.text();
+	const rectPattern = /<rect\b[^>]*>/g;
+	const datePattern = /data-date="([^"]+)"/;
+	const countPattern = /data-count="(\d+)"/;
+	const countByDate = new Map<string, number>();
+
+	for (const rect of svg.match(rectPattern) ?? []) {
+		const dateMatch = rect.match(datePattern);
+		const countMatch = rect.match(countPattern);
+		if (!dateMatch || !countMatch) {
+			continue;
+		}
+
+		countByDate.set(dateMatch[1], Number(countMatch[1]));
+	}
+
+	const maxCount = Math.max(0, ...Array.from(countByDate.values()));
+	const days: GitHubContributionDay[] = [];
+	let total = 0;
+
+	for (const day = new Date(start); day <= end; day.setUTCDate(day.getUTCDate() + 1)) {
+		const date = toDateOnly(day);
+		const count = countByDate.get(date) ?? 0;
+		total += count;
+
+		days.push({
+			date,
+			count,
+			level: getLevelFromCount(count, maxCount),
+			weekday: day.getUTCDay(),
+		});
+	}
+
+	return {
+		year,
+		total,
+		days,
+	};
+}
+
 function toDateOnly(date: Date) {
 	return date.toISOString().slice(0, 10);
 }
@@ -112,21 +177,7 @@ export async function getContributionsByYearWithOptions(
 	const { start, end, from, to } = getYearBounds(year);
 
 	if (!token) {
-		const days: GitHubContributionDay[] = [];
-		for (const day = new Date(start); day <= end; day.setUTCDate(day.getUTCDate() + 1)) {
-			days.push({
-				date: toDateOnly(day),
-				count: 0,
-				level: 0,
-				weekday: day.getUTCDay(),
-			});
-		}
-
-		return {
-			year,
-			total: 0,
-			days,
-		};
+		return fetchPublicContributionCalendar(username, year, options);
 	}
 
 	const response = await fetch(GITHUB_GRAPHQL_URL, {
@@ -147,13 +198,22 @@ export async function getContributionsByYearWithOptions(
 	});
 
 	if (!response.ok) {
+		if (response.status === 401 || response.status === 403) {
+			return fetchPublicContributionCalendar(username, year, options);
+		}
+
 		throw new Error(`GitHub contribution query failed with status ${response.status}`);
 	}
 
 	const payload = (await response.json()) as ContributionsByYearResponse;
 
 	if (payload.errors?.length) {
-		throw new Error(payload.errors.map((error) => error.message).join("; "));
+		const message = payload.errors.map((error) => error.message).join("; ");
+		if (message.toLowerCase().includes("bad credentials")) {
+			return fetchPublicContributionCalendar(username, year, options);
+		}
+
+		throw new Error(message);
 	}
 
 	if (!payload.data?.user) {

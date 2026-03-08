@@ -5,10 +5,13 @@ from datetime import timezone
 import json
 import os
 from pathlib import Path
+import re
 from tempfile import NamedTemporaryFile
 from threading import Lock
 from typing import Any
 from uuid import uuid4
+
+import bcrypt
 
 
 def _utc_now_iso() -> str:
@@ -35,6 +38,23 @@ def _as_list(value: Any) -> list[Any]:
     return value if isinstance(value, list) else []
 
 
+def _looks_like_bcrypt_hash(value: Any) -> bool:
+    return isinstance(value, str) and bool(re.match(r"^\$2[abxy]\$\d{2}\$", value))
+
+
+def _hash_seed_password(password: str) -> str:
+    return bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt(rounds=12)).decode("utf-8")
+
+
+def _seed_password_matches_hash(password: str, password_hash: str) -> bool:
+    if not _looks_like_bcrypt_hash(password_hash):
+        return False
+    try:
+        return bcrypt.checkpw(password.encode("utf-8"), password_hash.encode("utf-8"))
+    except ValueError:
+        return False
+
+
 class JsonAdminStore:
     def __init__(self, file_path: Path) -> None:
         self.file_path = file_path
@@ -43,7 +63,10 @@ class JsonAdminStore:
     def _default_data(self) -> dict[str, Any]:
         now = _utc_now_iso()
         default_admin_email = os.getenv("ADMIN_SEED_EMAIL", "admin@example.com")
+        seed_password = os.getenv("ADMIN_SEED_PASSWORD", "")
         default_admin_hash = os.getenv("ADMIN_PASSWORD_HASH", "")
+        if not default_admin_hash and seed_password:
+            default_admin_hash = _hash_seed_password(seed_password)
         return {
             "messages": [],
             "projects": [],
@@ -296,12 +319,29 @@ class JsonAdminStore:
             changed = True
         else:
             first = users[0] if isinstance(users[0], dict) else {}
+            seed_email = os.getenv("ADMIN_SEED_EMAIL", "").strip().lower()
+            seed_password = os.getenv("ADMIN_SEED_PASSWORD", "")
+            configured_email = seed_email or os.getenv("ADMIN_SEED_EMAIL", defaults["admin_users"][0]["email"])
+
+            if seed_email and str(first.get("email", "")).strip().lower() != seed_email:
+                first["email"] = seed_email
+                changed = True
+
             if not str(first.get("email", "")).strip():
-                first["email"] = os.getenv("ADMIN_SEED_EMAIL", defaults["admin_users"][0]["email"])
+                first["email"] = configured_email
                 changed = True
+
+            env_admin_hash = os.getenv("ADMIN_PASSWORD_HASH", "")
             if "passwordHash" not in first:
-                first["passwordHash"] = os.getenv("ADMIN_PASSWORD_HASH", defaults["admin_users"][0]["passwordHash"])
+                first["passwordHash"] = env_admin_hash or defaults["admin_users"][0]["passwordHash"]
                 changed = True
+
+            if seed_email and str(first.get("email", "")).strip().lower() == seed_email and seed_password:
+                current_hash = str(first.get("passwordHash", ""))
+                if not _seed_password_matches_hash(seed_password, current_hash):
+                    first["passwordHash"] = _hash_seed_password(seed_password)
+                    changed = True
+
             if "role" not in first:
                 first["role"] = "ADMIN"
                 changed = True
