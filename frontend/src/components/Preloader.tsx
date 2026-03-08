@@ -83,8 +83,15 @@ function InternalNeuralGraph({ reducedMotion }: { reducedMotion: boolean }) {
   const validNodes = nodes.filter((node) => isFiniteNumber(node.x) && isFiniteNumber(node.y));
   const validNodeMap = new Map(validNodes.map((node) => [node.id, node]));
 
+  type ValidLink = {
+    fromId: (typeof links)[number][0];
+    toId: (typeof links)[number][1];
+    from: (typeof validNodes)[number];
+    to: (typeof validNodes)[number];
+  };
+
   const validLinks = links
-    .map(([fromId, toId]) => {
+    .map<ValidLink | null>(([fromId, toId]) => {
       const from = validNodeMap.get(fromId);
       const to = validNodeMap.get(toId);
       if (!from || !to) {
@@ -92,7 +99,7 @@ function InternalNeuralGraph({ reducedMotion }: { reducedMotion: boolean }) {
       }
       return { fromId, toId, from, to };
     })
-    .filter((entry): entry is { fromId: string; toId: string; from: (typeof validNodes)[number]; to: (typeof validNodes)[number] } => entry !== null);
+    .filter((entry): entry is ValidLink => entry !== null);
 
   const particlePath = {
     cx: [24, 40, 56, 68, 56, 40, 24],
