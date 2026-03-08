@@ -28,7 +28,7 @@ export const dsaVisualizerProject: Project = {
 		"Config-driven algorithm descriptors for scalability",
 	],
 	links: {
-		github: "/kabiraj-rana-cv.pdf",
+		github: "https://github.com/kabirajrana/DSA-Visualizer-Pro",
 		demo: "https://www.algovx.me/",
 	},
 	gallery: ["Sorting panel", "Pathfinding arena", "Complexity insights"],
