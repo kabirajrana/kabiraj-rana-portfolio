@@ -8,7 +8,15 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 
-export function LoginForm({ csrfToken }: { csrfToken: string }) {
+function normalizeNextPath(input: string) {
+  if (!input.startsWith("/") || input.startsWith("//") || input.startsWith("/\\")) {
+    return "/admin/dashboard";
+  }
+
+  return input.startsWith("/admin") ? input : "/admin/dashboard";
+}
+
+export function LoginForm({ csrfToken, nextPath }: { csrfToken: string; nextPath: string }) {
   const [pending, startTransition] = useTransition();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -28,6 +36,7 @@ export function LoginForm({ csrfToken }: { csrfToken: string }) {
             formData.set("email", email);
             formData.set("password", password);
             formData.set("csrfToken", csrfToken);
+            formData.set("next", normalizeNextPath(nextPath));
 
             startTransition(async () => {
               const result = await adminLoginAction(formData);
@@ -38,10 +47,12 @@ export function LoginForm({ csrfToken }: { csrfToken: string }) {
 
               toast.success("Welcome back");
 
+              const redirectTo = normalizeNextPath(String(result.redirectTo ?? nextPath));
+
               // Use full navigation so the fresh session cookie is guaranteed
               // to be sent with the first admin dashboard request.
               setTimeout(() => {
-                window.location.replace("/admin/dashboard");
+                window.location.replace(redirectTo);
               }, 200);
             });
           }}

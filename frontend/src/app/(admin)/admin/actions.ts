@@ -69,6 +69,19 @@ function looksLikeBcryptHash(value: unknown): value is string {
   return typeof value === "string" && /^\$2[abxy]\$\d{2}\$/.test(value);
 }
 
+function normalizeAdminNextPath(raw: FormDataEntryValue | null): string {
+  const value = String(raw ?? "").trim();
+  if (!value || !value.startsWith("/")) {
+    return "/admin/dashboard";
+  }
+
+  if (value.startsWith("//") || value.startsWith("/\\")) {
+    return "/admin/dashboard";
+  }
+
+  return value.startsWith("/admin") ? value : "/admin/dashboard";
+}
+
 async function ensureUniqueSlug(baseSlug: string, entity: "project" | "research", id?: string) {
   let candidate = baseSlug;
   let counter = 1;
@@ -89,6 +102,7 @@ async function ensureUniqueSlug(baseSlug: string, entity: "project" | "research"
 }
 
 export async function adminLoginAction(formData: FormData) {
+  const nextPath = normalizeAdminNextPath(formData.get("next"));
   const parsed = adminLoginSchema.safeParse({
     email: formData.get("email"),
     password: formData.get("password"),
@@ -96,6 +110,9 @@ export async function adminLoginAction(formData: FormData) {
   });
 
   if (!parsed.success) {
+    console.warn("[admin-auth] Invalid login payload", {
+      issues: parsed.error.issues.length,
+    });
     return { success: false, message: "Invalid login payload." };
   }
 
@@ -107,12 +124,28 @@ export async function adminLoginAction(formData: FormData) {
 
   const csrfValid = await validateCsrfToken(parsed.data.csrfToken);
   if (!csrfValid) {
+    console.warn("[admin-auth] CSRF validation failed", {
+      email: parsed.data.email,
+    });
     return { success: false, message: "CSRF validation failed." };
   }
 
   const normalizedEmail = parsed.data.email.trim().toLowerCase();
-  const user = await contentRepository.getAdminUserByEmail(normalizedEmail);
+  let user: Record<string, any> | null = null;
+  try {
+    user = await contentRepository.getAdminUserByEmail(normalizedEmail);
+  } catch (error) {
+    console.error("[admin-auth] Failed to fetch admin user from backend API", {
+      email: normalizedEmail,
+      message: error instanceof Error ? error.message : "unknown",
+    });
+    return { success: false, message: "Authentication service unavailable. Check backend URL/env configuration." };
+  }
+
   if (!user) {
+    console.warn("[admin-auth] Admin user not found", {
+      email: normalizedEmail,
+    });
     return { success: false, message: "Invalid credentials." };
   }
 
@@ -130,6 +163,11 @@ export async function adminLoginAction(formData: FormData) {
   }
 
   if (!validPassword || user.role !== "ADMIN") {
+    console.warn("[admin-auth] Credential verification failed", {
+      email: normalizedEmail,
+      hasBcrypt: looksLikeBcryptHash(user.passwordHash),
+      role: user.role,
+    });
     return { success: false, message: "Invalid credentials." };
   }
 
@@ -152,7 +190,13 @@ export async function adminLoginAction(formData: FormData) {
 
   await createAuditLog({ actorId: user.id, action: "LOGIN", resource: "AdminUser", resourceId: user.id });
 
-  return { success: true, message: "Logged in" };
+  console.info("[admin-auth] Login success", {
+    userId: user.id,
+    email: user.email,
+    nextPath,
+  });
+
+  return { success: true, message: "Logged in", redirectTo: nextPath };
 }
 
 export async function adminLogoutAction() {

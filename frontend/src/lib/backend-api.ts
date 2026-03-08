@@ -9,6 +9,10 @@ function getApiBaseUrl(): string | null {
   return raw.replace(/\/$/, "");
 }
 
+export function resolveBackendApiBaseUrl(): string | null {
+  return getApiBaseUrl();
+}
+
 export function hasBackendApiBaseUrl(): boolean {
   return Boolean(getApiBaseUrl());
 }
