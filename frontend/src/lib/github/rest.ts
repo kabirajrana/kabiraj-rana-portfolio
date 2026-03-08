@@ -2,6 +2,14 @@ import "server-only";
 
 import type { GitHubEvent } from "@/types/github";
 
+function normalizeEnv(value: string | undefined): string {
+	const trimmed = String(value ?? "").trim();
+	if ((trimmed.startsWith("\"") && trimmed.endsWith("\"")) || (trimmed.startsWith("'") && trimmed.endsWith("'"))) {
+		return trimmed.slice(1, -1).trim();
+	}
+	return trimmed;
+}
+
 type GitHubPublicEvent = {
 	id: string;
 	type: string;
@@ -74,9 +82,10 @@ function mapEventUrl(event: GitHubPublicEvent) {
 export async function fetchGitHubRecentPublicEvents(options?: {
 	revalidateSeconds?: number;
 	forceFresh?: boolean;
+	username?: string;
 }): Promise<GitHubEvent[]> {
-	const token = process.env.GITHUB_TOKEN;
-	const username = process.env.GITHUB_USERNAME ?? "kabirajrana";
+	const token = normalizeEnv(process.env.GITHUB_TOKEN);
+	const username = normalizeEnv(options?.username) || normalizeEnv(process.env.GITHUB_USERNAME) || "kabirajrana";
 	const revalidateSeconds = options?.revalidateSeconds ?? 90;
 
 	const baseHeaders: Record<string, string> = {
@@ -100,6 +109,9 @@ export async function fetchGitHubRecentPublicEvents(options?: {
 
 	// Invalid/expired PAT should not fully break public events; retry once without auth.
 	if (token && response.status === 401) {
+		console.warn("[github-rest] Authenticated events request returned 401; retrying without token", {
+			username,
+		});
 		response = await fetch(`https://api.github.com/users/${username}/events/public?per_page=20`, {
 			headers: baseHeaders,
 			...requestInit,

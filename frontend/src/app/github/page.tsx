@@ -13,9 +13,17 @@ export const metadata = buildMetadata({
 });
 
 function getBaseUrlFromHeaders(headerStore: Headers) {
-	const explicit = process.env.NEXT_PUBLIC_SITE_URL;
+	const explicit = String(process.env.NEXT_PUBLIC_SITE_URL ?? "").trim();
 	if (explicit) {
-		return explicit;
+		try {
+			const parsed = new URL(explicit);
+			const host = parsed.hostname.toLowerCase();
+			if (host !== "www.example.com" && host !== "example.com") {
+				return parsed.origin;
+			}
+		} catch {
+			// Ignore invalid NEXT_PUBLIC_SITE_URL and derive from request headers.
+		}
 	}
 
 	const host = headerStore.get("x-forwarded-host") ?? headerStore.get("host");

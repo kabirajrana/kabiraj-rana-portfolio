@@ -4,6 +4,14 @@ import type { GitHubContributionDay } from "@/types/github";
 
 const GITHUB_GRAPHQL_URL = "https://api.github.com/graphql";
 
+function normalizeEnv(value: string | undefined): string {
+	const trimmed = String(value ?? "").trim();
+	if ((trimmed.startsWith("\"") && trimmed.endsWith("\"")) || (trimmed.startsWith("'") && trimmed.endsWith("'"))) {
+		return trimmed.slice(1, -1).trim();
+	}
+	return trimmed;
+}
+
 const CONTRIBUTIONS_QUERY = `
 query ContributionsByYear($login: String!, $from: DateTime!, $to: DateTime!) {
   user(login: $login) {
@@ -80,6 +88,10 @@ async function fetchPublicContributionCalendar(
 		}
 
 		countByDate.set(dateMatch[1], Number(countMatch[1]));
+	}
+
+	if (countByDate.size === 0) {
+		throw new Error("Failed to parse GitHub public contributions payload");
 	}
 
 	const maxCount = Math.max(0, ...Array.from(countByDate.values()));
@@ -173,10 +185,15 @@ export async function getContributionsByYearWithOptions(
 	days: GitHubContributionDay[];
 }> {
 	const token = process.env.GITHUB_TOKEN;
+	const normalizedToken = normalizeEnv(token);
 	const revalidateSeconds = options?.revalidateSeconds ?? 120;
 	const { start, end, from, to } = getYearBounds(year);
 
-	if (!token) {
+	if (!normalizedToken) {
+		console.warn("[github-contributions] GITHUB_TOKEN missing; falling back to public contributions scraping", {
+			username,
+			year,
+		});
 		return fetchPublicContributionCalendar(username, year, options);
 	}
 
@@ -184,7 +201,7 @@ export async function getContributionsByYearWithOptions(
 		method: "POST",
 		headers: {
 			"Content-Type": "application/json",
-			Authorization: `Bearer ${token}`,
+			Authorization: `Bearer ${normalizedToken}`,
 		},
 		...(options?.forceFresh ? { cache: "no-store" as const } : { next: { revalidate: revalidateSeconds } }),
 		body: JSON.stringify({
@@ -199,6 +216,11 @@ export async function getContributionsByYearWithOptions(
 
 	if (!response.ok) {
 		if (response.status === 401 || response.status === 403) {
+			console.warn("[github-contributions] GraphQL auth failed; falling back to public contributions", {
+				status: response.status,
+				username,
+				year,
+			});
 			return fetchPublicContributionCalendar(username, year, options);
 		}
 
@@ -210,6 +232,10 @@ export async function getContributionsByYearWithOptions(
 	if (payload.errors?.length) {
 		const message = payload.errors.map((error) => error.message).join("; ");
 		if (message.toLowerCase().includes("bad credentials")) {
+			console.warn("[github-contributions] GraphQL bad credentials; falling back to public contributions", {
+				username,
+				year,
+			});
 			return fetchPublicContributionCalendar(username, year, options);
 		}
 

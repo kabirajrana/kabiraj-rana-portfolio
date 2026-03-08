@@ -9,8 +9,29 @@ export const revalidate = 60;
 
 let lastKnownGoodSnapshot: GitHubDashboardResponse | null = null;
 
+function normalizeEnv(value: string | undefined): string {
+	const trimmed = String(value ?? "").trim();
+	if ((trimmed.startsWith("\"") && trimmed.endsWith("\"")) || (trimmed.startsWith("'") && trimmed.endsWith("'"))) {
+		return trimmed.slice(1, -1).trim();
+	}
+	return trimmed;
+}
+
+function resolveGitHubUsernameForApi(): string {
+	const configured = normalizeEnv(process.env.GITHUB_USERNAME);
+	if (configured) {
+		return configured;
+	}
+
+	if (process.env.NODE_ENV === "production") {
+		throw new Error("Missing GITHUB_USERNAME in production environment");
+	}
+
+	return "kabirajrana";
+}
+
 function createEmptyFallback(message: string): GitHubDashboardResponse {
-	const username = process.env.GITHUB_USERNAME ?? "kabirajrana";
+	const username = normalizeEnv(process.env.GITHUB_USERNAME) || "kabirajrana";
 	const currentYear = new Date().getFullYear();
 
 	return {
@@ -80,7 +101,11 @@ function createProfileFallback(username: string) {
 
 export async function GET(request: Request) {
 	try {
-		const username = process.env.GITHUB_USERNAME ?? "kabirajrana";
+		const username = resolveGitHubUsernameForApi();
+		const token = normalizeEnv(process.env.GITHUB_TOKEN);
+		if (!token) {
+			console.warn("[github-api] GITHUB_TOKEN is missing; using public GitHub endpoints and contribution scraping fallback");
+		}
 		const currentYear = new Date().getFullYear();
 		const searchParams = new URL(request.url).searchParams;
 		const selectedYear = parseYear(searchParams);
@@ -92,10 +117,12 @@ export async function GET(request: Request) {
 
 		const [graphqlDataResult, recentEventsResult, contributionsResult] = await Promise.allSettled([
 			fetchGitHubGraphQLDashboardDataWithOptions({
+				username,
 				revalidateSeconds: profileRevalidate,
 				forceFresh: forceRefresh,
 			}),
 			fetchGitHubRecentPublicEvents({
+				username,
 				revalidateSeconds: eventsRevalidate,
 				forceFresh: forceRefresh && isCurrentYear,
 			}),
@@ -182,6 +209,12 @@ export async function GET(request: Request) {
 
 		if (!response.meta.stale) {
 			lastKnownGoodSnapshot = response;
+		} else {
+			console.warn("[github-api] Returning stale/partial GitHub data", {
+				username,
+				warning: response.meta.warning ?? null,
+				year: selectedYear,
+			});
 		}
 
 		return NextResponse.json(response, {
@@ -196,6 +229,10 @@ export async function GET(request: Request) {
 		});
 	} catch (error) {
 		const message = toFriendlyGitHubErrorMessage(error);
+		console.error("[github-api] Failed to build GitHub dashboard payload", {
+			message,
+			error: error instanceof Error ? error.message : "unknown",
+		});
 
 		if (lastKnownGoodSnapshot) {
 			return NextResponse.json(

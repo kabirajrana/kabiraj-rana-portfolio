@@ -34,7 +34,12 @@ export function uploadAsset(
         return;
       }
 
-      reject(new Error(xhr.responseText || "Upload failed"));
+      try {
+        const payload = JSON.parse(xhr.responseText) as { error?: string };
+        reject(new Error(payload.error ?? "Upload failed"));
+      } catch {
+        reject(new Error(xhr.responseText || "Upload failed"));
+      }
     };
 
     xhr.onerror = () => reject(new Error("Network error during upload"));

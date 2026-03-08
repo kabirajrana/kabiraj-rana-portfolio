@@ -8,6 +8,14 @@ import type {
 
 const GITHUB_GRAPHQL_URL = "https://api.github.com/graphql";
 
+function normalizeEnv(value: string | undefined): string {
+	const trimmed = String(value ?? "").trim();
+	if ((trimmed.startsWith("\"") && trimmed.endsWith("\"")) || (trimmed.startsWith("'") && trimmed.endsWith("'"))) {
+		return trimmed.slice(1, -1).trim();
+	}
+	return trimmed;
+}
+
 const DASHBOARD_QUERY = `
 query GitHubDashboard($login: String!) {
   user(login: $login) {
@@ -191,12 +199,14 @@ export async function fetchGitHubGraphQLDashboardData(): Promise<Pick<GitHubDash
 export async function fetchGitHubGraphQLDashboardDataWithOptions(options?: {
 	revalidateSeconds?: number;
 	forceFresh?: boolean;
+	username?: string;
 }): Promise<Pick<GitHubDashboardData, "profile" | "pinnedRepos">> {
-	const token = process.env.GITHUB_TOKEN;
-	const username = process.env.GITHUB_USERNAME ?? "kabirajrana";
+	const token = normalizeEnv(process.env.GITHUB_TOKEN);
+	const username = normalizeEnv(options?.username) || normalizeEnv(process.env.GITHUB_USERNAME) || "kabirajrana";
 	const revalidateSeconds = options?.revalidateSeconds ?? 300;
 
 	if (!token) {
+		console.warn("[github-graphql] GITHUB_TOKEN missing; using public REST fallback", { username });
 		return fetchGitHubPublicProfileAndRepos(username, options);
 	}
 
@@ -217,6 +227,10 @@ export async function fetchGitHubGraphQLDashboardDataWithOptions(options?: {
 
 	if (!response.ok) {
 		if (response.status === 401 || response.status === 403) {
+			console.warn("[github-graphql] GraphQL auth failed; using public REST fallback", {
+				status: response.status,
+				username,
+			});
 			return fetchGitHubPublicProfileAndRepos(username, options);
 		}
 
@@ -228,6 +242,9 @@ export async function fetchGitHubGraphQLDashboardDataWithOptions(options?: {
 	if (payload.errors?.length) {
 		const message = payload.errors.map((error) => error.message).join("; ");
 		if (message.toLowerCase().includes("bad credentials")) {
+			console.warn("[github-graphql] GraphQL bad credentials; using public REST fallback", {
+				username,
+			});
 			return fetchGitHubPublicProfileAndRepos(username, options);
 		}
 

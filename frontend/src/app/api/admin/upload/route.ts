@@ -23,22 +23,56 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "S3 upload endpoint is not configured yet" }, { status: 501 });
   }
 
-  if (!serverEnv.CLOUDINARY_CLOUD_NAME || !serverEnv.CLOUDINARY_API_KEY || !serverEnv.CLOUDINARY_API_SECRET) {
-    return NextResponse.json({ error: "Cloudinary credentials missing" }, { status: 500 });
+  const cloudName = serverEnv.CLOUDINARY_CLOUD_NAME?.trim();
+  const cloudinaryApiKey = serverEnv.CLOUDINARY_API_KEY?.trim();
+  const cloudinaryApiSecret = serverEnv.CLOUDINARY_API_SECRET?.trim();
+
+  const missingCloudinaryEnv: string[] = [];
+  if (!cloudName) {
+    missingCloudinaryEnv.push("CLOUDINARY_CLOUD_NAME");
+  }
+  if (!cloudinaryApiKey) {
+    missingCloudinaryEnv.push("CLOUDINARY_API_KEY");
+  }
+  if (!cloudinaryApiSecret) {
+    missingCloudinaryEnv.push("CLOUDINARY_API_SECRET");
+  }
+
+  if (missingCloudinaryEnv.length > 0) {
+    console.error("[admin-upload] Missing Cloudinary configuration", {
+      missing: missingCloudinaryEnv,
+      uploadProvider: serverEnv.UPLOAD_PROVIDER,
+    });
+
+    return NextResponse.json(
+      {
+        error: `Cloudinary credentials missing: ${missingCloudinaryEnv.join(", ")}`,
+        missingVariables: missingCloudinaryEnv,
+      },
+      { status: 500 },
+    );
+  }
+
+  const ensuredCloudName = cloudName;
+  const ensuredCloudinaryApiKey = cloudinaryApiKey;
+  const ensuredCloudinaryApiSecret = cloudinaryApiSecret;
+
+  if (!ensuredCloudName || !ensuredCloudinaryApiKey || !ensuredCloudinaryApiSecret) {
+    return NextResponse.json({ error: "Cloudinary configuration validation failed" }, { status: 500 });
   }
 
   const timestamp = Math.floor(Date.now() / 1000);
-  const paramsToSign = `timestamp=${timestamp}${serverEnv.CLOUDINARY_API_SECRET}`;
+  const paramsToSign = `timestamp=${timestamp}${ensuredCloudinaryApiSecret}`;
   const signature = createHash("sha1").update(paramsToSign).digest("hex");
 
   const uploadBody = new FormData();
   uploadBody.set("file", file);
-  uploadBody.set("api_key", serverEnv.CLOUDINARY_API_KEY);
+  uploadBody.set("api_key", ensuredCloudinaryApiKey);
   uploadBody.set("timestamp", String(timestamp));
   uploadBody.set("signature", signature);
 
   const response = await fetch(
-    `https://api.cloudinary.com/v1_1/${serverEnv.CLOUDINARY_CLOUD_NAME}/auto/upload`,
+    `https://api.cloudinary.com/v1_1/${ensuredCloudName}/auto/upload`,
     {
       method: "POST",
       body: uploadBody,
@@ -47,6 +81,11 @@ export async function POST(request: Request) {
 
   if (!response.ok) {
     const error = await response.text();
+    console.error("[admin-upload] Cloudinary upload failed", {
+      status: response.status,
+      statusText: response.statusText,
+      body: error.slice(0, 500),
+    });
     return NextResponse.json({ error }, { status: 500 });
   }
 
