@@ -11,15 +11,18 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 type CredentialType = "certificate" | "certification";
 
-type CredentialRow = {
+export type CredentialRow = {
   id: string;
-  type?: string;
-  codeLabel?: string;
+  type: CredentialType;
+  codeLabel: string;
   title: string;
-  credentialUrl?: string;
-  sortOrder?: number;
-  isVisible?: boolean;
-  createdAt?: Date;
+  issuer: string | null;
+  issuedDate: Date | null;
+  credentialUrl: string;
+  isVisible: boolean;
+  sortOrder: number;
+  createdAt: Date;
+  updatedAt: Date;
 };
 
 function normalizeType(value: string | undefined): CredentialType {

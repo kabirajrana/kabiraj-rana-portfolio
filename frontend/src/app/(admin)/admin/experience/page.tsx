@@ -7,6 +7,7 @@ import {
 } from "@/app/(admin)/admin/actions";
 import { ConfirmDialog } from "@/components/admin/ConfirmDialog";
 import { CredentialsManager } from "@/components/admin/CredentialsManager";
+import type { CredentialRow } from "@/components/admin/CredentialsManager";
 import { DataTable } from "@/components/admin/DataTable";
 import { PageHeader } from "@/components/admin/PageHeader";
 import { Badge } from "@/components/ui/badge";
@@ -16,12 +17,58 @@ import { contentRepository } from "@/lib/db/repositories";
 
 type ExperienceRow = Awaited<ReturnType<typeof contentRepository.listExperience>>[number];
 
+function toSafeDate(value: unknown): Date {
+  if (value instanceof Date && !Number.isNaN(value.getTime())) {
+    return value;
+  }
+
+  if (typeof value === "string" || typeof value === "number") {
+    const parsed = new Date(value);
+    if (!Number.isNaN(parsed.getTime())) {
+      return parsed;
+    }
+  }
+
+  return new Date(0);
+}
+
+function toSafeNullableDate(value: unknown): Date | null {
+  if (value == null || value === "") {
+    return null;
+  }
+
+  const parsed = toSafeDate(value);
+  return Number.isNaN(parsed.getTime()) || parsed.getTime() === 0 ? null : parsed;
+}
+
+function mapCredentialRows(rows: unknown[]): CredentialRow[] {
+  return rows.map((row, index) => {
+    const source = (row && typeof row === "object" ? row : {}) as Record<string, unknown>;
+
+    return {
+      id: String(source.id ?? `credential-${index}`),
+      title: String(source.title ?? ""),
+      type: String(source.type ?? "").toLowerCase() === "certificate" ? "certificate" : "certification",
+      codeLabel: String(source.codeLabel ?? source.code ?? `CERT-${index + 1}`),
+      issuer: source.issuer == null || String(source.issuer).trim() === "" ? null : String(source.issuer),
+      issuedDate: toSafeNullableDate(source.issuedDate),
+      credentialUrl: String(source.credentialUrl ?? ""),
+      isVisible: Boolean(source.isVisible ?? source.visible ?? true),
+      sortOrder: Number(source.sortOrder ?? source.displayOrder ?? 0),
+      createdAt: toSafeDate(source.createdAt),
+      updatedAt: toSafeDate(source.updatedAt),
+    };
+  });
+}
+
 export default async function AdminExperiencePage() {
   const [config, items, certifications] = await Promise.all([
     contentRepository.getExperiencePageConfig(),
     contentRepository.listExperience(),
     contentRepository.listAllCertifications(),
   ]);
+
+  const credentialRows: CredentialRow[] = mapCredentialRows(Array.isArray(certifications) ? certifications : []);
 
   return (
     <section className="space-y-4 pb-8">
@@ -100,7 +147,7 @@ export default async function AdminExperiencePage() {
         ]}
       />
 
-      <CredentialsManager rows={certifications} />
+      <CredentialsManager rows={credentialRows} />
     </section>
   );
 }
