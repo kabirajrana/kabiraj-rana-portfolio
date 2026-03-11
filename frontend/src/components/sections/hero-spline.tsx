@@ -1,12 +1,14 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { usePathname } from "next/navigation";
 
 const SPLINE_SCRIPT_ID = "spline-viewer-script";
 const SPLINE_SCRIPT_SRC = "https://unpkg.com/@splinetool/viewer@1.12.61/build/spline-viewer.js";
 const SPLINE_SCENE_URL = "https://prod.spline.design/qlD3FB-Q1FFpnEzi/scene.splinecode";
 
 export function HeroSplineModel() {
+	const pathname = usePathname();
 	const [isReady, setIsReady] = useState(false);
 	const [isDesktop, setIsDesktop] = useState(false);
 	const [hasRenderableSize, setHasRenderableSize] = useState(false);
@@ -14,6 +16,7 @@ export function HeroSplineModel() {
 	const [isPageVisible, setIsPageVisible] = useState(true);
 	const [canMountViewer, setCanMountViewer] = useState(false);
 	const containerRef = useRef<HTMLDivElement | null>(null);
+	const shouldEnableViewer = pathname === "/";
 
 	useEffect(() => {
 		if (typeof window === "undefined") {
@@ -32,7 +35,7 @@ export function HeroSplineModel() {
 	}, []);
 
 	useEffect(() => {
-		if (!isDesktop || !isReady) {
+		if (!shouldEnableViewer || !isDesktop || !isReady) {
 			setHasRenderableSize(false);
 			return;
 		}
@@ -64,9 +67,14 @@ export function HeroSplineModel() {
 			observer.disconnect();
 			window.removeEventListener("resize", updateRenderableState);
 		};
-	}, [isDesktop, isReady]);
+	}, [shouldEnableViewer, isDesktop, isReady]);
 
 	useEffect(() => {
+		if (!shouldEnableViewer) {
+			setIsInViewport(false);
+			return;
+		}
+
 		const element = containerRef.current;
 		if (!element || typeof window === "undefined") {
 			setIsInViewport(false);
@@ -82,7 +90,7 @@ export function HeroSplineModel() {
 
 		observer.observe(element);
 		return () => observer.disconnect();
-	}, [isDesktop]);
+	}, [shouldEnableViewer, isDesktop]);
 
 	useEffect(() => {
 		if (typeof document === "undefined") {
@@ -102,7 +110,7 @@ export function HeroSplineModel() {
 	}, []);
 
 	useEffect(() => {
-		if (!isDesktop) {
+		if (!shouldEnableViewer || !isDesktop) {
 			setIsReady(false);
 			return;
 		}
@@ -149,9 +157,9 @@ export function HeroSplineModel() {
 			script.removeEventListener("load", handleLoad);
 			script.removeEventListener("error", handleError);
 		};
-	}, [isDesktop]);
+	}, [shouldEnableViewer, isDesktop]);
 
-	const canRenderViewer = isReady && hasRenderableSize && isInViewport && isPageVisible;
+	const canRenderViewer = shouldEnableViewer && isReady && hasRenderableSize && isInViewport && isPageVisible;
 
 	useEffect(() => {
 		if (!canRenderViewer || typeof window === "undefined") {
@@ -181,6 +189,23 @@ export function HeroSplineModel() {
 			window.cancelAnimationFrame(frameB);
 		};
 	}, [canRenderViewer]);
+
+	useEffect(() => {
+		const host = containerRef.current;
+
+		return () => {
+			if (host) {
+				host.querySelectorAll("spline-viewer").forEach((node) => node.remove());
+			}
+
+			if (typeof document !== "undefined") {
+				const hasAnyViewer = document.querySelector("spline-viewer");
+				if (!hasAnyViewer) {
+					document.getElementById(SPLINE_SCRIPT_ID)?.remove();
+				}
+			}
+		};
+	}, []);
 
 	if (!isDesktop) {
 		return null;
