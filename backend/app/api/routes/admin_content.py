@@ -346,9 +346,9 @@ async def upsert_experience_page_config(payload: dict[str, Any]) -> dict[str, An
 
 
 @router.get("/content/certifications")
-async def list_certifications(visible: int | None = Query(default=None)) -> ListResponse:
+async def list_certifications(visible: int | None = Query(default=None), credential_type: str | None = Query(default=None, alias="type")) -> ListResponse:
     store = get_admin_store()
-    rows = store.list_certifications(visible_only=bool(visible))
+    rows = store.list_certifications(visible_only=bool(visible), credential_type=credential_type)
     return ListResponse(items=rows, total=len(rows))
 
 

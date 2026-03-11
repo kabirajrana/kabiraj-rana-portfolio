@@ -12,6 +12,7 @@ export function HeroSplineModel() {
 	const [hasRenderableSize, setHasRenderableSize] = useState(false);
 	const [isInViewport, setIsInViewport] = useState(false);
 	const [isPageVisible, setIsPageVisible] = useState(true);
+	const [canMountViewer, setCanMountViewer] = useState(false);
 	const containerRef = useRef<HTMLDivElement | null>(null);
 
 	useEffect(() => {
@@ -150,18 +151,47 @@ export function HeroSplineModel() {
 		};
 	}, [isDesktop]);
 
+	const canRenderViewer = isReady && hasRenderableSize && isInViewport && isPageVisible;
+
+	useEffect(() => {
+		if (!canRenderViewer || typeof window === "undefined") {
+			setCanMountViewer(false);
+			return;
+		}
+
+		let frameA = 0;
+		let frameB = 0;
+
+		// Delay mount by two frames so custom element layout is stable before WebGL bootstraps.
+		frameA = window.requestAnimationFrame(() => {
+			frameB = window.requestAnimationFrame(() => {
+				const element = containerRef.current;
+				if (!element) {
+					setCanMountViewer(false);
+					return;
+				}
+
+				const rect = element.getBoundingClientRect();
+				setCanMountViewer(rect.width > 0 && rect.height > 0);
+			});
+		});
+
+		return () => {
+			window.cancelAnimationFrame(frameA);
+			window.cancelAnimationFrame(frameB);
+		};
+	}, [canRenderViewer]);
+
 	if (!isDesktop) {
 		return null;
 	}
 
-	const canRenderViewer = isReady && hasRenderableSize && isInViewport && isPageVisible;
-
 	return (
-		<div ref={containerRef} className="h-[300px] w-full max-w-[560px] md:h-[420px] lg:h-[480px]" aria-hidden="true">
-			{canRenderViewer ? (
+		<div ref={containerRef} className="block h-[300px] w-full max-w-[560px] min-h-[300px] md:h-[420px] md:min-h-[420px] lg:h-[480px] lg:min-h-[480px]" aria-hidden="true">
+			{canRenderViewer && canMountViewer ? (
 				<spline-viewer
 					url={SPLINE_SCENE_URL}
-					className="h-[300px] w-full max-w-[560px] md:h-[420px] lg:h-[480px]"
+					className="block h-[300px] w-full max-w-[560px] min-h-[300px] md:h-[420px] md:min-h-[420px] lg:h-[480px] lg:min-h-[480px]"
 				/>
 			) : null}
 		</div>

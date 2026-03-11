@@ -7,6 +7,10 @@ import { buildMetadata } from "@/lib/seo";
 type ExperienceRow = Awaited<ReturnType<typeof contentRepository.listExperience>>[number];
 type CertificationRow = Awaited<ReturnType<typeof contentRepository.listCertifications>>[number];
 
+function normalizeCredentialType(value: unknown): "certificate" | "certification" {
+	return String(value ?? "").trim().toLowerCase() === "certificate" ? "certificate" : "certification";
+}
+
 export const metadata = buildMetadata({
 	title: "Experience",
 	description: "Experience timeline, education, and certifications of Kabiraj Rana.",
@@ -14,7 +18,7 @@ export const metadata = buildMetadata({
 });
 
 export default async function ExperiencePage() {
-	const [config, experienceRows, certifications] = await Promise.all([
+	const [config, experienceRows, credentials] = await Promise.all([
 		contentRepository.getExperiencePageConfig(),
 		contentRepository.listExperience(),
 		contentRepository.listCertifications(),
@@ -32,7 +36,16 @@ export default async function ExperiencePage() {
 			sidePlacement: item.sidePlacement,
 		}));
 
-	const mappedCerts = (certifications as CertificationRow[]).map((item: CertificationRow) => ({
+	const typedCredentials = credentials as CertificationRow[];
+
+	const mappedCerts = typedCredentials.filter((item: CertificationRow) => normalizeCredentialType((item as { type?: unknown }).type) === "certification").map((item: CertificationRow) => ({
+		id: item.id,
+		codeLabel: item.codeLabel,
+		title: item.title,
+		href: item.credentialUrl,
+	}));
+
+	const mappedCertificates = typedCredentials.filter((item: CertificationRow) => normalizeCredentialType((item as { type?: unknown }).type) === "certificate").map((item: CertificationRow) => ({
 		id: item.id,
 		codeLabel: item.codeLabel,
 		title: item.title,
@@ -55,6 +68,7 @@ export default async function ExperiencePage() {
 			</Container>
 			<ExperienceSection
 				experiences={mappedExperience}
+				certificates={mappedCertificates}
 				certifications={mappedCerts}
 				showTimeline={config?.showTimeline ?? true}
 				showCertifications={config?.showCertifications ?? true}

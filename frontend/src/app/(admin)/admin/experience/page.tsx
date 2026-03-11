@@ -1,13 +1,12 @@
 import { format } from "date-fns";
 
 import {
-  deleteCertificationAction,
   deleteExperienceAction,
-  upsertCertificationAction,
   upsertExperienceAction,
   upsertExperiencePageConfigAction,
 } from "@/app/(admin)/admin/actions";
 import { ConfirmDialog } from "@/components/admin/ConfirmDialog";
+import { CredentialsManager } from "@/components/admin/CredentialsManager";
 import { DataTable } from "@/components/admin/DataTable";
 import { PageHeader } from "@/components/admin/PageHeader";
 import { Badge } from "@/components/ui/badge";
@@ -16,7 +15,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { contentRepository } from "@/lib/db/repositories";
 
 type ExperienceRow = Awaited<ReturnType<typeof contentRepository.listExperience>>[number];
-type CertificationRow = Awaited<ReturnType<typeof contentRepository.listAllCertifications>>[number];
 
 export default async function AdminExperiencePage() {
   const [config, items, certifications] = await Promise.all([
@@ -102,47 +100,7 @@ export default async function AdminExperiencePage() {
         ]}
       />
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Certifications</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          <form action={upsertCertificationAction} className="grid gap-2 md:grid-cols-5">
-            <input name="codeLabel" placeholder="C1" className="rounded-xl border border-border bg-surface p-2.5" />
-            <input name="title" placeholder="Certification title" className="rounded-xl border border-border bg-surface p-2.5 md:col-span-2" />
-            <input name="credentialUrl" placeholder="Credential URL" className="rounded-xl border border-border bg-surface p-2.5" />
-            <input type="number" name="sortOrder" defaultValue={0} className="rounded-xl border border-border bg-surface p-2.5" />
-            <label className="flex items-center gap-2 rounded-xl border border-border bg-surface p-2.5"><input type="checkbox" name="isVisible" defaultChecked />Visible</label>
-            <Button type="submit" className="md:col-span-5">Add Certification</Button>
-          </form>
-
-          <DataTable<CertificationRow>
-            rows={certifications}
-            emptyLabel="No certifications"
-            columns={[
-              { key: "code", header: "Code", render: (row) => row.codeLabel },
-              { key: "title", header: "Title", render: (row) => row.title },
-              { key: "url", header: "URL", render: (row) => <a href={row.credentialUrl} className="text-accent">View</a> },
-              {
-                key: "actions",
-                header: "Actions",
-                render: (row) => (
-                  <ConfirmDialog
-                    triggerLabel="Delete"
-                    title="Delete certification"
-                    description="This action cannot be undone."
-                    confirmLabel="Delete"
-                    onConfirm={async () => {
-                      "use server";
-                      await deleteCertificationAction(row.id);
-                    }}
-                  />
-                ),
-              },
-            ]}
-          />
-        </CardContent>
-      </Card>
+      <CredentialsManager rows={certifications} />
     </section>
   );
 }

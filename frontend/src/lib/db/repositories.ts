@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-import { certifications, experiences } from "@/content/site/experience";
+import { certificates, certifications, experiences } from "@/content/site/experience";
 import { projects as fallbackProjects } from "@/content/projects";
 import { researchEntries } from "@/data/research";
 import { backendApiRequest, backendApiRequestOrThrow } from "@/lib/backend-api";
@@ -198,9 +198,15 @@ function toFallbackExperienceRows() {
 }
 
 function toFallbackCertificationRows() {
-  return certifications.map((item, index) => ({
+  const fallbackItems = [
+    ...certificates.map((item) => ({ ...item, type: "certificate" as const })),
+    ...certifications.map((item) => ({ ...item, type: "certification" as const })),
+  ];
+
+  return fallbackItems.map((item, index) => ({
     id: item.id,
     title: item.title,
+    type: item.type,
     codeLabel: `CERT-${index + 1}`,
     issuer: "Certification Provider",
     issuedDate: null,
@@ -422,24 +428,40 @@ export const contentRepository = {
     return (await apiSend<Record<string, any>>("/v1/admin/content/experience/page-config", "PUT", input)) ?? input;
   },
 
-  async listCertifications() {
-    const rows = await getListFromApi<Record<string, any>>("/v1/content/certifications?visible=1");
+  async listCertifications(input?: { type?: "certificate" | "certification"; visible?: boolean }) {
+    const params = new URLSearchParams();
+    if (input?.visible ?? true) params.set("visible", "1");
+    if (input?.type) params.set("type", input.type);
+    const query = params.toString();
+    const rows = await getListFromApi<Record<string, any>>(`/v1/content/certifications${query ? `?${query}` : ""}`);
     return rows.length ? rows : toFallbackCertificationRows();
   },
 
-  async listAllCertifications() {
-    const rows = await getListFromApi<Record<string, any>>("/v1/content/certifications");
+  async listAllCertifications(input?: { type?: "certificate" | "certification" }) {
+    const params = new URLSearchParams();
+    if (input?.type) params.set("type", input.type);
+    const query = params.toString();
+    const rows = await getListFromApi<Record<string, any>>(`/v1/content/certifications${query ? `?${query}` : ""}`);
     return rows.length ? rows : toFallbackCertificationRows();
   },
 
   async upsertCertification(input: CertificationCreateInput & { id?: string }) {
     const method = input.id ? "PUT" : "POST";
     const path = input.id ? `/v1/admin/content/certifications/${input.id}` : "/v1/admin/content/certifications";
-    return (await apiSend<Record<string, any>>(path, method, input)) ?? input;
+    return reviveDates(
+      await backendApiRequestOrThrow<Record<string, any>>(path, {
+        method,
+        body: JSON.stringify(input),
+      })
+    );
   },
 
   async deleteCertification(id: string) {
-    return (await apiSend<Record<string, any>>(`/v1/admin/content/certifications/${id}`, "DELETE")) ?? { count: 0 };
+    return reviveDates(
+      await backendApiRequestOrThrow<Record<string, any>>(`/v1/admin/content/certifications/${id}`, {
+        method: "DELETE",
+      })
+    );
   },
 
   async reorderExperience(ids: string[]) {

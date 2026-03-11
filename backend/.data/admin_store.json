@@ -886,6 +886,63 @@
       "userAgent": null,
       "createdAt": "2026-03-08T05:05:09.163170+00:00",
       "updatedAt": "2026-03-08T05:05:09.163170+00:00"
+    },
+    {
+      "id": "4fccecc7-0f12-452a-8990-adfeaa98e3b6",
+      "actorId": "admin-1",
+      "actor": {
+        "name": null,
+        "email": null
+      },
+      "action": "UPSERT",
+      "resource": "Certification",
+      "resourceId": "865f6a2f-9532-4993-8d98-5b82c8c91d66",
+      "entityType": "Certification",
+      "entityId": "865f6a2f-9532-4993-8d98-5b82c8c91d66",
+      "summary": null,
+      "metadata": null,
+      "ip": null,
+      "userAgent": null,
+      "createdAt": "2026-03-11T05:26:20.967351+00:00",
+      "updatedAt": "2026-03-11T05:26:20.967351+00:00"
+    },
+    {
+      "id": "e80f37c5-647a-4263-a3a5-bf65645e4d57",
+      "actorId": "admin-1",
+      "actor": {
+        "name": null,
+        "email": null
+      },
+      "action": "DELETE",
+      "resource": "Certification",
+      "resourceId": "865f6a2f-9532-4993-8d98-5b82c8c91d66",
+      "entityType": "Certification",
+      "entityId": "865f6a2f-9532-4993-8d98-5b82c8c91d66",
+      "summary": null,
+      "metadata": null,
+      "ip": null,
+      "userAgent": null,
+      "createdAt": "2026-03-11T05:27:05.182164+00:00",
+      "updatedAt": "2026-03-11T05:27:05.182164+00:00"
+    },
+    {
+      "id": "52547d2d-8b29-4e53-a744-08269e7f957e",
+      "actorId": "admin-1",
+      "actor": {
+        "name": null,
+        "email": null
+      },
+      "action": "UPSERT",
+      "resource": "Certification",
+      "resourceId": "f9e11948-0a63-4fd0-9262-3f8d7cffb990",
+      "entityType": "Certification",
+      "entityId": "f9e11948-0a63-4fd0-9262-3f8d7cffb990",
+      "summary": null,
+      "metadata": null,
+      "ip": null,
+      "userAgent": null,
+      "createdAt": "2026-03-11T05:27:53.999942+00:00",
+      "updatedAt": "2026-03-11T05:27:53.999942+00:00"
     }
   ],
   "revisions": [
@@ -1216,7 +1273,8 @@
       "sortOrder": 0,
       "isVisible": true,
       "createdAt": "2026-03-07T11:19:56.293385+00:00",
-      "updatedAt": "2026-03-07T11:19:56.293385+00:00"
+      "updatedAt": "2026-03-07T11:19:56.293385+00:00",
+      "type": "certification"
     },
     {
       "id": "C2",
@@ -1226,7 +1284,8 @@
       "sortOrder": 1,
       "isVisible": true,
       "createdAt": "2026-03-07T11:19:56.293385+00:00",
-      "updatedAt": "2026-03-07T11:19:56.293385+00:00"
+      "updatedAt": "2026-03-07T11:19:56.293385+00:00",
+      "type": "certification"
     },
     {
       "id": "C3",
@@ -1236,7 +1295,8 @@
       "sortOrder": 2,
       "isVisible": true,
       "createdAt": "2026-03-07T11:19:56.293385+00:00",
-      "updatedAt": "2026-03-07T11:19:56.293385+00:00"
+      "updatedAt": "2026-03-07T11:19:56.293385+00:00",
+      "type": "certification"
     },
     {
       "id": "C4",
@@ -1246,7 +1306,8 @@
       "sortOrder": 3,
       "isVisible": true,
       "createdAt": "2026-03-07T11:19:56.293385+00:00",
-      "updatedAt": "2026-03-07T11:19:56.293385+00:00"
+      "updatedAt": "2026-03-07T11:19:56.293385+00:00",
+      "type": "certification"
     },
     {
       "id": "C5",
@@ -1256,7 +1317,8 @@
       "sortOrder": 4,
       "isVisible": true,
       "createdAt": "2026-03-07T11:19:56.293385+00:00",
-      "updatedAt": "2026-03-07T11:19:56.293385+00:00"
+      "updatedAt": "2026-03-07T11:19:56.293385+00:00",
+      "type": "certification"
     },
     {
       "codeLabel": "C6",
@@ -1266,7 +1328,19 @@
       "isVisible": true,
       "id": "d3a10034-b737-43ca-a9f1-35eb03c638ac",
       "createdAt": "2026-03-07T11:35:31.817101+00:00",
-      "updatedAt": "2026-03-07T11:35:31.817101+00:00"
+      "updatedAt": "2026-03-07T11:35:31.817101+00:00",
+      "type": "certification"
+    },
+    {
+      "type": "certificate",
+      "codeLabel": "C1",
+      "title": "Advanced DAta scienctitst",
+      "credentialUrl": "https://c4mpus.com/",
+      "sortOrder": 0,
+      "isVisible": true,
+      "id": "f9e11948-0a63-4fd0-9262-3f8d7cffb990",
+      "createdAt": "2026-03-11T05:27:53.916604+00:00",
+      "updatedAt": "2026-03-11T05:27:53.916604+00:00"
     }
   ],
   "experience_page_config": {

@@ -540,6 +540,7 @@ export async function upsertCertificationAction(formData: FormData) {
   const session = await requireAdminSession();
   const payload = certificationSchema.parse({
     id: String(formData.get("id") ?? "") || undefined,
+    type: String(formData.get("type") ?? "certification"),
     codeLabel: String(formData.get("codeLabel") ?? ""),
     title: String(formData.get("title") ?? ""),
     credentialUrl: parseText(formData.get("credentialUrl")),

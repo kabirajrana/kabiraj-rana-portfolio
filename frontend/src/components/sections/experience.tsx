@@ -1,3 +1,7 @@
+"use client";
+
+import { useMemo, useState } from "react";
+
 import { ExperienceCard } from "@/components/cards/experience-card";
 import { FadeIn } from "@/components/motion/fade-in";
 import { Container } from "@/components/layout/container";
@@ -5,6 +9,7 @@ import type { CertificationItem, ExperienceItem } from "@/types/site";
 
 export function ExperienceSection({
 	experiences,
+	certificates,
 	certifications,
 	showTimeline,
 	showCertifications,
@@ -12,12 +17,26 @@ export function ExperienceSection({
 	certSubtitle,
 }: {
 	experiences: ExperienceItem[];
+	certificates: CertificationItem[];
 	certifications: CertificationItem[];
 	showTimeline: boolean;
 	showCertifications: boolean;
 	certTitle: string;
 	certSubtitle: string;
 }) {
+	const [activeCredentialTab, setActiveCredentialTab] = useState<"certificate" | "certification">("certificate");
+
+	const activeCredentials = useMemo(
+		() => (activeCredentialTab === "certificate" ? certificates : certifications),
+		[activeCredentialTab, certificates, certifications]
+	);
+
+	const credentialHeading = activeCredentialTab === "certificate" ? "Certificates" : certTitle;
+	const credentialSubtext =
+		activeCredentialTab === "certificate"
+			? "Selected certificates and verified learning milestones."
+			: certSubtitle;
+
 	return (
 		<Container className="pb-14 md:pb-20">
 			{showTimeline ? (
@@ -68,18 +87,39 @@ export function ExperienceSection({
 			{showCertifications ? (
 			<FadeIn delay={0.2} className="mt-16 md:mt-20">
 				<div className="rounded-3xl border border-border/70 bg-card/70 p-6 shadow-[0_14px_44px_-26px_rgba(0,0,0,0.55)] backdrop-blur md:p-8">
-					<span className="inline-flex rounded-full border border-primary/35 bg-primary/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-primary">
-						Certifications
-					</span>
+					<div className="inline-flex flex-wrap items-center gap-2.5 text-xs font-semibold uppercase tracking-[0.18em] text-primary">
+						<button
+							type="button"
+							onClick={() => setActiveCredentialTab("certificate")}
+							className={`rounded-full px-3 py-1 transition-all duration-300 ${
+								activeCredentialTab === "certificate"
+									? "border border-primary/60 bg-primary text-primary-foreground shadow-[0_10px_26px_-14px_hsl(var(--primary)/0.95),inset_0_1px_0_hsl(var(--primary-foreground)/0.2)]"
+									: "border border-primary/35 bg-primary/10 text-primary/90 shadow-[0_10px_24px_-18px_hsl(var(--primary)/0.7),inset_0_1px_0_hsl(var(--primary)/0.24)] hover:-translate-y-0.5 hover:border-primary/55 hover:bg-primary/16 hover:text-primary"
+							}`}
+						>
+							Certificates
+						</button>
+						<button
+							type="button"
+							onClick={() => setActiveCredentialTab("certification")}
+							className={`rounded-full px-3 py-1 transition-all duration-300 ${
+								activeCredentialTab === "certification"
+									? "border border-primary/60 bg-primary text-primary-foreground shadow-[0_10px_26px_-14px_hsl(var(--primary)/0.95),inset_0_1px_0_hsl(var(--primary-foreground)/0.2)]"
+									: "border border-primary/35 bg-primary/10 text-primary/90 shadow-[0_10px_24px_-18px_hsl(var(--primary)/0.7),inset_0_1px_0_hsl(var(--primary)/0.24)] hover:-translate-y-0.5 hover:border-primary/55 hover:bg-primary/16 hover:text-primary"
+							}`}
+						>
+							Certifications
+						</button>
+					</div>
 					<h3 className="mt-4 text-2xl font-semibold tracking-tight text-foreground sm:text-3xl md:text-[2rem]">
-						{certTitle}
+						{credentialHeading}
 					</h3>
 					<p className="mt-3 max-w-2xl text-sm leading-relaxed text-muted sm:text-base">
-						{certSubtitle}
+						{credentialSubtext}
 					</p>
 
-					<div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-						{certifications.map((item, idx) => (
+					<div className="mt-6 grid gap-3 transition-opacity duration-300 sm:grid-cols-2 lg:grid-cols-3">
+						{activeCredentials.map((item, idx) => (
 							<FadeIn key={item.id} delay={0.08 + idx * 0.08}>
 								<div className="group rounded-xl border border-border/70 bg-background/60 p-4 transition-all duration-300 hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-[0_12px_34px_-24px_hsl(var(--primary))]">
 									<p className="inline-flex rounded-full border border-primary/30 bg-primary/10 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-primary shadow-[0_0_0_1px_hsl(var(--primary)/0.1),0_10px_24px_-16px_hsl(var(--primary)/0.8)]">

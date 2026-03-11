@@ -87,7 +87,8 @@ export const projectsPageConfigSchema = z.object({
 });
 
 export const certificationSchema = z.object({
-  id: z.string().cuid().optional(),
+  id: z.string().min(1).optional(),
+  type: z.enum(["certificate", "certification"]).default("certification"),
   codeLabel: z.string().min(1),
   title: z.string().min(2),
   credentialUrl: optionalUrlSchema,

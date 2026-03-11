@@ -38,6 +38,10 @@ def _as_list(value: Any) -> list[Any]:
     return value if isinstance(value, list) else []
 
 
+def _normalize_credential_type(value: Any) -> str:
+    return "certificate" if str(value or "").strip().lower() == "certificate" else "certification"
+
+
 def _looks_like_bcrypt_hash(value: Any) -> bool:
     return isinstance(value, str) and bool(re.match(r"^\$2[abxy]\$\d{2}\$", value))
 
@@ -269,21 +273,26 @@ class JsonAdminStore:
     def _default_certification_rows(self) -> list[dict[str, Any]]:
         now = _utc_now_iso()
         items = [
-            ("C1", "IMB Data science Certificate", "https://coursera.org/share/d10000f3f38062a33e79d7e3f942ef32"),
-            ("C2", "AI for everyone - Deep Learning.AI", "https://coursera.org/share/bcb1acdf1fe4c763862449ab3095094b"),
+            ("certificate", "CT1", "Data Analysis with Python", "https://coursera.org/share/d10000f3f38062a33e79d7e3f942ef32"),
+            ("certificate", "CT2", "Prompt Engineering for Generative AI", "https://coursera.org/share/fdbaa5d73fe1e2d3576c74bfc07fe33e"),
+            ("certificate", "CT3", "Python for Data Science Foundations", "https://broadwayinfosys.com/certificate-verification-code/eyJpdiI6Ii9tRnNnMktZRml0aTZnZHVDRE1rL0E9PSIsInZhbHVlIjoiVDhtZEsvanluQVJzUk0yQjhicjVJZz09IiwibWFjIjoiMmYyNzAyMzhjOTQ0NzA0YzZmYzMzMWJkMDc2MDg1OWJjM2EwMjU1NWJiMTNmMjVkYmJhNTdmOWY3NmNlMjZmYSIsInRhZyI6IiJ9"),
+            ("certification", "C1", "IMB Data science Certificate", "https://coursera.org/share/d10000f3f38062a33e79d7e3f942ef32"),
+            ("certification", "C2", "AI for everyone - Deep Learning.AI", "https://coursera.org/share/bcb1acdf1fe4c763862449ab3095094b"),
             (
+                "certification",
                 "C3",
                 "Data Science with Python",
                 "https://broadwayinfosys.com/certificate-verification-code/eyJpdiI6Ii9tRnNnMktZRml0aTZnZHVDRE1rL0E9PSIsInZhbHVlIjoiVDhtZEsvanluQVJzUk0yQjhicjVJZz09IiwibWFjIjoiMmYyNzAyMzhjOTQ0NzA0YzZmYzMzMWJkMDc2MDg1OWJjM2EwMjU1NWJiMTNmMjVkYmJhNTdmOWY3NmNlMjZmYSIsInRhZyI6IiJ9",
             ),
-            ("C4", "Generative AI with Large Language Models", "https://coursera.org/share/fdbaa5d73fe1e2d3576c74bfc07fe33e"),
-            ("C5", "Machine Learning-Udemy", "https://coursera.org/share/fdbaa5d73fe1e2d3576c74bfc07fe33e"),
+            ("certification", "C4", "Generative AI with Large Language Models", "https://coursera.org/share/fdbaa5d73fe1e2d3576c74bfc07fe33e"),
+            ("certification", "C5", "Machine Learning-Udemy", "https://coursera.org/share/fdbaa5d73fe1e2d3576c74bfc07fe33e"),
         ]
         rows: list[dict[str, Any]] = []
-        for idx, (code, title, url) in enumerate(items):
+        for idx, (credential_type, code, title, url) in enumerate(items):
             rows.append(
                 {
                     "id": code,
+                    "type": credential_type,
                     "codeLabel": code,
                     "title": title,
                     "credentialUrl": url,
@@ -370,9 +379,24 @@ class JsonAdminStore:
                 changed = True
 
         cert_rows = data.get("certifications")
-        if not isinstance(cert_rows, list) or len(cert_rows) < 3:
+        if not isinstance(cert_rows, list):
             data["certifications"] = self._default_certification_rows()
             changed = True
+        else:
+            normalized_rows: list[dict[str, Any]] = []
+            for row in cert_rows:
+                if not isinstance(row, dict):
+                    continue
+                next_row = dict(row)
+                next_row["type"] = _normalize_credential_type(next_row.get("type"))
+                if "isVisible" not in next_row:
+                    next_row["isVisible"] = True
+                if "sortOrder" not in next_row:
+                    next_row["sortOrder"] = 0
+                normalized_rows.append(next_row)
+                if next_row != row:
+                    changed = True
+            data["certifications"] = normalized_rows
 
         return data, changed
 
@@ -716,19 +740,31 @@ class JsonAdminStore:
             self._write_unlocked(data)
             return row
 
-    def list_certifications(self, visible_only: bool = False) -> list[dict[str, Any]]:
+    def list_certifications(self, visible_only: bool = False, credential_type: str | None = None) -> list[dict[str, Any]]:
         with self._lock:
             data = self._read_unlocked()
             rows = self._collection_list(data, "certifications")
+            if credential_type:
+                desired_type = _normalize_credential_type(credential_type)
+                rows = [row for row in rows if _normalize_credential_type(row.get("type")) == desired_type]
             if visible_only:
                 rows = [row for row in rows if bool(row.get("isVisible", True))]
-            rows.sort(key=lambda row: int(row.get("sortOrder", 0)))
+            rows.sort(key=lambda row: (int(row.get("sortOrder", 0)), str(row.get("createdAt", ""))))
             return rows
 
     def upsert_certification(self, payload: dict[str, Any], certification_id: str | None = None) -> dict[str, Any]:
         with self._lock:
             data = self._read_unlocked()
-            row = self._upsert_in_collection(data, "certifications", payload, certification_id)
+            normalized_payload = dict(payload)
+            normalized_payload["type"] = _normalize_credential_type(normalized_payload.get("type"))
+            # Backward-compatible aliases for potential newer naming.
+            if "code" in normalized_payload and "codeLabel" not in normalized_payload:
+                normalized_payload["codeLabel"] = normalized_payload.get("code")
+            if "displayOrder" in normalized_payload and "sortOrder" not in normalized_payload:
+                normalized_payload["sortOrder"] = normalized_payload.get("displayOrder")
+            if "visible" in normalized_payload and "isVisible" not in normalized_payload:
+                normalized_payload["isVisible"] = normalized_payload.get("visible")
+            row = self._upsert_in_collection(data, "certifications", normalized_payload, certification_id)
             self._write_unlocked(data)
             return row
 

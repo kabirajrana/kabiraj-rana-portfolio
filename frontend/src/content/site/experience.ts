@@ -69,3 +69,21 @@ export const certifications: CertificationItem[] = [
 		href: "https://coursera.org/share/fdbaa5d73fe1e2d3576c74bfc07fe33e",
 	},
 ];
+
+export const certificates: CertificationItem[] = [
+	{
+		id: "CT1",
+		title: "Data Analysis with Python",
+		href: "https://coursera.org/share/d10000f3f38062a33e79d7e3f942ef32",
+	},
+	{
+		id: "CT2",
+		title: "Prompt Engineering for Generative AI",
+		href: "https://coursera.org/share/fdbaa5d73fe1e2d3576c74bfc07fe33e",
+	},
+	{
+		id: "CT3",
+		title: "Python for Data Science Foundations",
+		href: "https://broadwayinfosys.com/certificate-verification-code/eyJpdiI6Ii9tRnNnMktZRml0aTZnZHVDRE1rL0E9PSIsInZhbHVlIjoiVDhtZEsvanluQVJzUk0yQjhicjVJZz09IiwibWFjIjoiMmYyNzAyMzhjOTQ0NzA0YzZmYzMzMWJkMDc2MDg1OWJjM2EwMjU1NWJiMTNmMjVkYmJhNTdmOWY3NmNlMjZmYSIsInRhZyI6IiJ9",
+	},
+];
