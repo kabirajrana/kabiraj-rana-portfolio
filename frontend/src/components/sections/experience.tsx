@@ -50,7 +50,7 @@ export function ExperienceSection({
 						return (
 							<FadeIn key={`${item.title}-${item.period}`} delay={idx * 0.08}>
 								<div className="grid grid-cols-1 items-start gap-4 md:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] md:gap-6">
-									<div className={isRight ? "hidden md:block" : "md:block md:pr-1"}>
+									<div className={isRight ? "hidden md:block" : "hidden md:block md:pr-1"}>
 										{!isRight ? (
 											<div className="md:ml-auto md:max-w-[520px]">
 												<ExperienceCard item={item} align="left" />
