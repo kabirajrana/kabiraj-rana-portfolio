@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { GoogleAnalytics } from "@next/third-parties/google";
 import { Inter } from "next/font/google";
 import Script from "next/script";
 import type { ReactNode } from "react";
@@ -81,6 +82,7 @@ export default function RootLayout({ children }: Readonly<{ children: ReactNode 
 					<GlobalInteractionLayer />
 				</PreloaderProvider>
 				<Toaster richColors theme="dark" />
+				<GoogleAnalytics gaId="G-LNGXX4LNCR" />
 			</body>
 		</html>
 	);
