@@ -65,7 +65,7 @@ export function ExperienceSection({
 										</span>
 									</div>
 
-									<div className={isRight ? "md:block md:pl-1" : "hidden md:block"}>
+									<div className={isRight ? "hidden md:block md:pl-1" : "hidden md:block"}>
 										{isRight ? (
 											<div className="md:mr-auto md:max-w-[520px]">
 												<ExperienceCard item={item} align="right" />

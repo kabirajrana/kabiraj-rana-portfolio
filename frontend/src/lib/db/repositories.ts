@@ -3,7 +3,7 @@
 import { certificates, certifications, experiences } from "@/content/site/experience";
 import { projects as fallbackProjects } from "@/content/projects";
 import { researchEntries } from "@/data/research";
-import { backendApiRequest, backendApiRequestOrThrow } from "@/lib/backend-api";
+import { backendApiRequest, backendApiRequestOrThrow, hasBackendApiBaseUrl } from "@/lib/backend-api";
 import { DEFAULT_PROJECT_CATEGORIES, isAllProjectFilter, normalizeProjectCategory } from "@/lib/projects/categories";
 
 type PublishStatus = "DRAFT" | "PUBLISHED" | "SCHEDULED" | "ARCHIVED";
@@ -49,6 +49,10 @@ type TopbarNotifications = {
   healthErrors: number;
   dueScheduled: number;
 };
+
+function shouldUseStaticFallbackData(): boolean {
+  return process.env.NODE_ENV !== "production" && !hasBackendApiBaseUrl();
+}
 
 const dateFieldPattern = /(At|Date)$/;
 
@@ -407,7 +411,11 @@ export const contentRepository = {
 
   async listExperience() {
     const rows = await getListFromApi<Record<string, any>>("/v1/content/experience");
-    return rows.length ? rows : toFallbackExperienceRows();
+    if (rows.length > 0) {
+      return rows;
+    }
+
+    return shouldUseStaticFallbackData() ? toFallbackExperienceRows() : rows;
   },
 
   async upsertExperience(input: ExperienceCreateInput & { id?: string }) {
@@ -434,7 +442,11 @@ export const contentRepository = {
     if (input?.type) params.set("type", input.type);
     const query = params.toString();
     const rows = await getListFromApi<Record<string, any>>(`/v1/content/certifications${query ? `?${query}` : ""}`);
-    return rows.length ? rows : toFallbackCertificationRows();
+    if (rows.length > 0) {
+      return rows;
+    }
+
+    return shouldUseStaticFallbackData() ? toFallbackCertificationRows() : rows;
   },
 
   async listAllCertifications(input?: { type?: "certificate" | "certification" }) {
@@ -442,7 +454,11 @@ export const contentRepository = {
     if (input?.type) params.set("type", input.type);
     const query = params.toString();
     const rows = await getListFromApi<Record<string, any>>(`/v1/content/certifications${query ? `?${query}` : ""}`);
-    return rows.length ? rows : toFallbackCertificationRows();
+    if (rows.length > 0) {
+      return rows;
+    }
+
+    return shouldUseStaticFallbackData() ? toFallbackCertificationRows() : rows;
   },
 
   async upsertCertification(input: CertificationCreateInput & { id?: string }) {
