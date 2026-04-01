@@ -19,6 +19,7 @@ import { trackEvent } from "@/lib/analytics/events";
 import { createAuditLog } from "@/lib/db/audit-log";
 import { contentRepository } from "@/lib/db/repositories";
 import { BackendApiError, probeBackendApiHealth, resolveBackendApiEndpoint } from "@/lib/backend-api";
+import { sendContactAutoReplyEmail, sendContactNotificationEmail } from "@/lib/email/resend";
 import { serverEnv } from "@/lib/env.server";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { adminLoginSchema } from "@/lib/validators/auth";
@@ -782,17 +783,61 @@ export async function submitContactMessageAction(formData: FormData) {
     return { success: false, message: `Too many submissions. Retry in ${limit.retryAfterSeconds}s.` };
   }
 
+  const submittedAt = new Date();
+
   await contentRepository.createMessage({
     ...parsed.data,
     ipAddress: ip,
     userAgent: (await headers()).get("user-agent") ?? null,
     metadata: {
       source: "public-contact",
-      submittedAt: new Date().toISOString(),
+      submittedAt: submittedAt.toISOString(),
     },
   });
 
-  await trackEvent({ eventType: "CONTACT_SUBMIT", path: "/contact", referrer: (await headers()).get("referer") });
+  try {
+    await sendContactNotificationEmail({
+      fullName: parsed.data.sender,
+      email: parsed.data.email,
+      subject: parsed.data.subject,
+      message: parsed.data.body,
+      submittedAt,
+    });
+  } catch (error) {
+    console.error("Contact owner email delivery failed", {
+      sender: parsed.data.sender,
+      email: parsed.data.email,
+      subject: parsed.data.subject,
+      submittedAt: submittedAt.toISOString(),
+      error: error instanceof Error ? error.message : error,
+    });
+
+    return { success: false, message: "Message saved, but email delivery failed. Please try again shortly." };
+  }
+
+  void sendContactAutoReplyEmail({
+    fullName: parsed.data.sender,
+    email: parsed.data.email,
+    subject: parsed.data.subject,
+    message: parsed.data.body,
+    submittedAt,
+  }).catch((error) => {
+    console.warn("Contact auto-reply email delivery skipped", {
+      sender: parsed.data.sender,
+      email: parsed.data.email,
+      subject: parsed.data.subject,
+      submittedAt: submittedAt.toISOString(),
+      error: error instanceof Error ? error.message : error,
+    });
+  });
+
+  void trackEvent({ eventType: "CONTACT_SUBMIT", path: "/contact", referrer: (await headers()).get("referer") }).catch((error) => {
+    console.warn("Contact analytics tracking skipped", {
+      sender: parsed.data.sender,
+      email: parsed.data.email,
+      error: error instanceof Error ? error.message : error,
+    });
+  });
 
   return { success: true, message: "Message sent" };
 }

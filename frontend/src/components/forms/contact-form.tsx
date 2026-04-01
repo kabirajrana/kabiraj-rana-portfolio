@@ -1,7 +1,10 @@
 "use client";
 
+import { useEffect, useRef, useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
+import { CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
 import { z } from "zod";
 
@@ -21,6 +24,10 @@ const formSchema = z.object({
 type FormValues = z.infer<typeof formSchema>;
 
 export function ContactForm() {
+	const [wasSent, setWasSent] = useState(false);
+	const [showSuccess, setShowSuccess] = useState(false);
+	const successTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
 	const {
 		register,
 		handleSubmit,
@@ -37,8 +44,31 @@ export function ContactForm() {
 		},
 	});
 
+	useEffect(() => {
+		return () => {
+			if (successTimeoutRef.current) {
+				clearTimeout(successTimeoutRef.current);
+			}
+		};
+	}, []);
+
+	const dismissSuccessState = () => {
+		if (!showSuccess && !wasSent) {
+			return;
+		}
+
+		setShowSuccess(false);
+		setWasSent(false);
+
+		if (successTimeoutRef.current) {
+			clearTimeout(successTimeoutRef.current);
+			successTimeoutRef.current = null;
+		}
+	};
+
 	const onSubmit = handleSubmit(async (values) => {
 		try {
+			dismissSuccessState();
 			const formData = new FormData();
 			formData.set("name", values.name?.trim() ?? "");
 			formData.set("email", values.email);
@@ -50,7 +80,18 @@ export function ContactForm() {
 			if (!response.success) {
 				throw new Error(response.message);
 			}
-			toast.success("Message sent successfully.");
+			setWasSent(true);
+			setShowSuccess(true);
+
+			if (successTimeoutRef.current) {
+				clearTimeout(successTimeoutRef.current);
+			}
+
+			successTimeoutRef.current = setTimeout(() => {
+				setShowSuccess(false);
+				setWasSent(false);
+				successTimeoutRef.current = null;
+			}, 4800);
 			reset();
 		} catch (error) {
 			const detail = error instanceof Error ? error.message : "Unable to send message";
@@ -62,7 +103,7 @@ export function ContactForm() {
 		<div className="rounded-3xl border border-border/65 bg-[linear-gradient(135deg,hsl(var(--background)/0.9)_0%,hsl(var(--surface)/0.82)_100%)] p-4 sm:p-5 md:p-6">
 			<h2 className="text-2xl font-semibold tracking-tight">Send a Message</h2>
 
-			<form onSubmit={onSubmit} className="mt-5 space-y-3.5" noValidate>
+			<form onSubmit={onSubmit} className="mt-5 space-y-3.5" noValidate onInputCapture={dismissSuccessState}>
 				<div className="sr-only" aria-hidden="true">
 					<label htmlFor="website">Website</label>
 					<Input id="website" tabIndex={-1} autoComplete="off" {...register("honeypot")} />
@@ -131,13 +172,44 @@ export function ContactForm() {
 
 				<p className="text-xs text-muted">Typical reply: within 24–48 hours. Message must be at least 10 characters.</p>
 
+				<AnimatePresence mode="wait">
+					{showSuccess ? (
+						<motion.div
+							key="contact-success"
+							initial={{ opacity: 0, y: 10, scale: 0.96 }}
+							animate={{ opacity: 1, y: 0, scale: 1 }}
+							exit={{ opacity: 0, y: -6, scale: 0.98 }}
+							transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+							className="relative overflow-hidden rounded-2xl border border-emerald-300/25 bg-[linear-gradient(140deg,hsl(var(--surface)/0.94)_0%,hsl(var(--background)/0.9)_100%)] p-4"
+						>
+							<div className="pointer-events-none absolute -right-8 -top-8 h-24 w-24 rounded-full bg-emerald-300/12 blur-2xl" />
+							<div className="flex items-start gap-3">
+								<motion.div
+									initial={{ scale: 0.8, opacity: 0.6 }}
+									animate={{ scale: [0.92, 1.06, 1], opacity: 1 }}
+									transition={{ duration: 0.45, ease: "easeOut" }}
+									className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-emerald-300/40 bg-emerald-300/12 text-emerald-200 shadow-[0_0_24px_hsl(150_80%_45%/0.22)]"
+								>
+									<CheckCircle2 className="h-4.5 w-4.5" />
+								</motion.div>
+								<div className="space-y-1">
+									<p className="text-sm font-semibold text-foreground">Message sent successfully.</p>
+									<p className="text-sm leading-relaxed text-muted">
+										I appreciate you reaching out, and I’ll get back to you within 24 hours.
+									</p>
+								</div>
+							</div>
+						</motion.div>
+					) : null}
+				</AnimatePresence>
+
 				<Button
 					type="submit"
 					disabled={isSubmitting}
 					variant="outline"
 					className="h-10 rounded-full px-6 text-base font-medium transition-[transform,border-color,box-shadow] duration-300 hover:-translate-y-0.5 hover:border-accent/45 hover:shadow-[0_10px_20px_-16px_hsl(var(--accent)/0.6)]"
 				>
-					{isSubmitting ? "Sending..." : "Send Message →"}
+					{isSubmitting ? "Sending..." : wasSent ? "Message Sent" : "Send Message"}
 				</Button>
 			</form>
 		</div>

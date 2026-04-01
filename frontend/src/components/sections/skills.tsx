@@ -71,12 +71,26 @@ const technologies = [
 
 export function SkillsSection() {
 	const sectionRef = useRef<HTMLDivElement | null>(null);
+	const technologiesRef = useRef<HTMLDivElement | null>(null);
 	const [isSectionVisible, setIsSectionVisible] = useState(false);
+	const [isTechnologiesVisible, setIsTechnologiesVisible] = useState(false);
 
 	useEffect(() => {
 		const section = sectionRef.current;
 		if (!section) {
 			return;
+		}
+
+		if (typeof window === "undefined" || !("IntersectionObserver" in window)) {
+			setIsSectionVisible(true);
+			return;
+		}
+
+		const rect = section.getBoundingClientRect();
+		const appearsOnInitialViewport = rect.top <= window.innerHeight * 1.05;
+		if (appearsOnInitialViewport) {
+			const id = window.requestAnimationFrame(() => setIsSectionVisible(true));
+			return () => window.cancelAnimationFrame(id);
 		}
 
 		const observer = new IntersectionObserver(
@@ -86,10 +100,48 @@ export function SkillsSection() {
 					observer.disconnect();
 				}
 			},
-			{ threshold: 0.35 }
+			{
+				threshold: 0.1,
+				rootMargin: "0px 0px 14% 0px",
+			}
 		);
 
 		observer.observe(section);
+		return () => observer.disconnect();
+	}, []);
+
+	useEffect(() => {
+		const technologies = technologiesRef.current;
+		if (!technologies) {
+			return;
+		}
+
+		if (typeof window === "undefined" || !("IntersectionObserver" in window)) {
+			setIsTechnologiesVisible(true);
+			return;
+		}
+
+		const rect = technologies.getBoundingClientRect();
+		const appearsOnInitialViewport = rect.top <= window.innerHeight * 1.05;
+		if (appearsOnInitialViewport) {
+			const id = window.requestAnimationFrame(() => setIsTechnologiesVisible(true));
+			return () => window.cancelAnimationFrame(id);
+		}
+
+		const observer = new IntersectionObserver(
+			(entries) => {
+				if (entries[0]?.isIntersecting) {
+					setIsTechnologiesVisible(true);
+					observer.disconnect();
+				}
+			},
+			{
+				threshold: 0.12,
+				rootMargin: "0px 0px 14% 0px",
+			}
+		);
+
+		observer.observe(technologies);
 		return () => observer.disconnect();
 	}, []);
 
@@ -164,17 +216,26 @@ export function SkillsSection() {
 						</div>
 					</div>
 
-					<div className="pt-0.5">
-						<p className="text-xs font-semibold uppercase tracking-[0.3em] text-muted">Technologies I Work With</p>
+					<div ref={technologiesRef} className="pt-0.5">
+						<p
+							className="text-xs font-semibold uppercase tracking-[0.3em] text-muted transition-[opacity,transform] duration-[1220ms] ease-[cubic-bezier(0.16,1,0.3,1)]"
+							style={{
+								opacity: isTechnologiesVisible ? 1 : 0,
+								transform: isTechnologiesVisible ? "translateY(0px)" : "translateY(10px)",
+								transitionDelay: "220ms",
+							}}
+						>
+							Technologies I Work With
+						</p>
 						<div className="mt-6 space-y-7">
 							{technologies.map((group, groupIndex) => (
 								<div
 									key={group.title}
-									className="transition-[opacity,transform] duration-[1700ms] ease-[cubic-bezier(0.16,1,0.3,1)]"
+									className="transition-[opacity,transform] duration-[1220ms] ease-[cubic-bezier(0.16,1,0.3,1)]"
 									style={{
-										opacity: isSectionVisible ? 1 : 0,
-										transform: isSectionVisible ? "translateY(0px)" : "translateY(14px)",
-										transitionDelay: `${860 + groupIndex * 320}ms`,
+										opacity: isTechnologiesVisible ? 1 : 0,
+										transform: isTechnologiesVisible ? "translateY(0px) scale(1)" : "translateY(12px) scale(0.985)",
+										transitionDelay: `${320 + groupIndex * 170}ms`,
 									}}
 								>
 									<h3 className="text-xs font-semibold uppercase tracking-[0.28em] text-muted/90">{group.title}</h3>
@@ -184,11 +245,11 @@ export function SkillsSection() {
 											return (
 												<div
 													key={item.label}
-													className="inline-flex items-center gap-2.5 rounded-full border border-border/75 bg-background/35 px-3.5 py-2 text-sm text-text/90 transition-[opacity,transform,border-color,background-color] duration-[1400ms] ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5 hover:border-border/95 hover:bg-background/55 active:translate-y-[1px] motion-reduce:transform-none motion-reduce:transition-none"
+													className="inline-flex items-center gap-2.5 rounded-full border border-border/75 bg-background/35 px-3.5 py-2 text-sm text-text/90 transition-[opacity,transform,border-color,background-color] duration-[1080ms] ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5 hover:border-border/95 hover:bg-background/55 active:translate-y-[1px] motion-reduce:transform-none motion-reduce:transition-none"
 													style={{
-														opacity: isSectionVisible ? 1 : 0,
-														transform: isSectionVisible ? "translateY(0px)" : "translateY(10px)",
-														transitionDelay: `${980 + groupIndex * 320 + itemIndex * 170}ms`,
+														opacity: isTechnologiesVisible ? 1 : 0,
+														transform: isTechnologiesVisible ? "translateY(0px) scale(1)" : "translateY(8px) scale(0.98)",
+														transitionDelay: `${430 + groupIndex * 170 + itemIndex * 110}ms`,
 													}}
 												>
 													<span className="inline-flex h-5 w-5 items-center justify-center rounded-full border border-border/75 bg-surface/80 text-muted transition-colors duration-500">

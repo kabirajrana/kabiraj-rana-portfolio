@@ -19,6 +19,9 @@ const serverEnvSchema = z.object({
   S3_BUCKET: z.string().optional(),
   S3_ACCESS_KEY_ID: z.string().optional(),
   S3_SECRET_ACCESS_KEY: z.string().optional(),
+  RESEND_API_KEY: z.string().optional(),
+  CONTACT_TO_EMAIL: z.string().email().optional(),
+  CONTACT_FROM_EMAIL: z.string().email().optional(),
 });
 
 export const serverEnv = serverEnvSchema.parse({
@@ -40,4 +43,7 @@ export const serverEnv = serverEnvSchema.parse({
   S3_BUCKET: process.env.S3_BUCKET,
   S3_ACCESS_KEY_ID: process.env.S3_ACCESS_KEY_ID,
   S3_SECRET_ACCESS_KEY: process.env.S3_SECRET_ACCESS_KEY,
+  RESEND_API_KEY: process.env.RESEND_API_KEY,
+  CONTACT_TO_EMAIL: process.env.CONTACT_TO_EMAIL,
+  CONTACT_FROM_EMAIL: process.env.CONTACT_FROM_EMAIL,
 });

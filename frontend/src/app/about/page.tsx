@@ -69,7 +69,7 @@ export const metadata = buildMetadata({
 export default function AboutPage() {
 	return (
 		<Container className="py-14 md:py-20">
-			<FadeIn className="relative overflow-hidden rounded-3xl border border-border/65 bg-[linear-gradient(132deg,hsl(var(--background)/0.98)_0%,hsl(var(--surface)/0.94)_56%,hsl(var(--surface-2)/0.9)_100%)] p-5 sm:p-6 md:p-8">
+			<div className="relative overflow-hidden rounded-3xl border border-border/65 bg-[linear-gradient(132deg,hsl(var(--background)/0.98)_0%,hsl(var(--surface)/0.94)_56%,hsl(var(--surface-2)/0.9)_100%)] p-5 sm:p-6 md:p-8">
 				<div className="pointer-events-none absolute -left-10 -top-10 h-56 w-56 rounded-full bg-accent/10 blur-3xl" aria-hidden="true" />
 				<div className="pointer-events-none absolute -bottom-24 right-0 h-64 w-64 rounded-full bg-[hsl(var(--accent-2)/0.12)] blur-3xl" aria-hidden="true" />
 
@@ -157,7 +157,7 @@ export default function AboutPage() {
 						</blockquote>
 					</section>
 				</div>
-			</FadeIn>
+			</div>
 		</Container>
 	);
 }

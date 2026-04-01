@@ -49,7 +49,9 @@ export function HeroSplineModel() {
 		let frameId = 0;
 		const updateRenderableState = () => {
 			const rect = element.getBoundingClientRect();
-			const isVisible = rect.width >= 140 && rect.height >= 180;
+			const style = window.getComputedStyle(element);
+			const hasDisplay = style.display !== "none" && style.visibility !== "hidden";
+			const isVisible = hasDisplay && rect.width >= 140 && rect.height >= 180;
 			setHasRenderableSize(isVisible);
 		};
 
@@ -169,24 +171,33 @@ export function HeroSplineModel() {
 
 		let frameA = 0;
 		let frameB = 0;
+		let mountDelayTimer: ReturnType<typeof window.setTimeout> | null = null;
 
-		// Delay mount by two frames so custom element layout is stable before WebGL bootstraps.
+		// Delay mount until layout is stable and host is visibly renderable before WebGL bootstraps.
 		frameA = window.requestAnimationFrame(() => {
 			frameB = window.requestAnimationFrame(() => {
-				const element = containerRef.current;
-				if (!element) {
-					setCanMountViewer(false);
-					return;
-				}
+				mountDelayTimer = window.setTimeout(() => {
+					const element = containerRef.current;
+					if (!element) {
+						setCanMountViewer(false);
+						return;
+					}
 
-				const rect = element.getBoundingClientRect();
-				setCanMountViewer(rect.width > 0 && rect.height > 0);
+					const rect = element.getBoundingClientRect();
+					const style = window.getComputedStyle(element);
+					const hasDisplay = style.display !== "none" && style.visibility !== "hidden";
+					const hasSize = rect.width >= 140 && rect.height >= 180;
+					setCanMountViewer(hasDisplay && hasSize);
+				}, 120);
 			});
 		});
 
 		return () => {
 			window.cancelAnimationFrame(frameA);
 			window.cancelAnimationFrame(frameB);
+			if (mountDelayTimer !== null) {
+				window.clearTimeout(mountDelayTimer);
+			}
 		};
 	}, [canRenderViewer]);
 

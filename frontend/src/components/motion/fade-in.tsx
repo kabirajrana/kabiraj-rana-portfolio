@@ -9,11 +9,15 @@ export function FadeIn({
 	children,
 	delay = 0,
 	y = 20,
+	durationMs = 860,
+	easing = "cubic-bezier(0.16,1,0.3,1)",
 	className,
 }: {
 	children: ReactNode;
 	delay?: number;
 	y?: number;
+	durationMs?: number;
+	easing?: string;
 	className?: string;
 }) {
 	const elementRef = useRef<HTMLDivElement | null>(null);
@@ -25,6 +29,18 @@ export function FadeIn({
 			return;
 		}
 
+		if (typeof window === "undefined" || !("IntersectionObserver" in window)) {
+			setIsVisible(true);
+			return;
+		}
+
+		const rect = element.getBoundingClientRect();
+		const appearsOnInitialViewport = rect.top <= window.innerHeight * 1.05;
+		if (appearsOnInitialViewport) {
+			const id = window.requestAnimationFrame(() => setIsVisible(true));
+			return () => window.cancelAnimationFrame(id);
+		}
+
 		const observer = new IntersectionObserver(
 			(entries) => {
 				if (entries[0]?.isIntersecting) {
@@ -32,7 +48,10 @@ export function FadeIn({
 					observer.disconnect();
 				}
 			},
-			{ threshold: 0.25 }
+			{
+				threshold: 0.08,
+				rootMargin: "0px 0px 16% 0px",
+			}
 		);
 
 		observer.observe(element);
@@ -42,11 +61,13 @@ export function FadeIn({
 	return (
 		<div
 			ref={elementRef}
-			className={cn("transition-[opacity,transform] duration-500 ease-out", className)}
+			className={cn("transition-[opacity,transform]", className)}
 			style={{
 				opacity: isVisible ? 1 : 0,
 				transform: isVisible ? "translateY(0px)" : `translateY(${y}px)`,
 				transitionDelay: `${Math.max(0, delay) * 1000}ms`,
+				transitionDuration: `${Math.max(250, durationMs)}ms`,
+				transitionTimingFunction: easing,
 			}}
 		>
 			{children}
