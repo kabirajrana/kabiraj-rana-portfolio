@@ -1,4 +1,4 @@
-import { Clock3, Linkedin, Mail, MapPin, Github } from "lucide-react";
+import { Clock3, GitBranch, Link as LinkIcon, Mail, MapPin } from "lucide-react";
 
 import { ContactForm } from "@/components/forms/contact-form";
 import { Container } from "@/components/layout/container";
@@ -75,7 +75,7 @@ export default async function ContactPage() {
 											className="flex items-center justify-between rounded-2xl border border-border/70 bg-background/35 px-4 py-2.5 text-base text-text transition-[border-color,box-shadow] duration-300 hover:border-accent/40 hover:shadow-[0_8px_18px_-14px_hsl(var(--accent)/0.5)]"
 										>
 											<span className="inline-flex items-center gap-2.5">
-												<Github size={18} className="text-muted" />
+												<GitBranch size={18} className="text-muted" />
 												GitHub
 											</span>
 											<span className="text-muted">↗</span>
@@ -90,7 +90,7 @@ export default async function ContactPage() {
 											className="flex items-center justify-between rounded-2xl border border-border/70 bg-background/35 px-4 py-2.5 text-base text-text transition-[border-color,box-shadow] duration-300 hover:border-accent/40 hover:shadow-[0_8px_18px_-14px_hsl(var(--accent)/0.5)]"
 										>
 											<span className="inline-flex items-center gap-2.5">
-												<Linkedin size={18} className="text-muted" />
+												<LinkIcon size={18} className="text-muted" />
 												LinkedIn
 											</span>
 											<span className="text-muted">↗</span>

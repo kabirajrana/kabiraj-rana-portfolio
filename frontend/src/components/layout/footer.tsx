@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { Github, Linkedin, Mail } from "lucide-react";
+import { GitBranch, Link as LinkIcon, Mail } from "lucide-react";
 
 import { navItems } from "@/content/site/nav";
 import { socialLinks } from "@/content/site/socials";
@@ -13,10 +13,10 @@ export function Footer() {
 	const socialIcon = (label: string) => {
 		const normalized = label.toLowerCase();
 		if (normalized.includes("github")) {
-			return <Github size={17} />;
+			return <GitBranch size={17} />;
 		}
 		if (normalized.includes("linkedin")) {
-			return <Linkedin size={17} />;
+			return <LinkIcon size={17} />;
 		}
 		return <Mail size={17} />;
 	};

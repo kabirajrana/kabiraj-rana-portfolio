@@ -762,84 +762,104 @@ export async function deleteMessageAction(id: string) {
 }
 
 export async function submitContactMessageAction(formData: FormData) {
-  if (String(formData.get("honeypot") ?? "").trim().length > 0) {
-    return { success: true, message: "Message sent" };
-  }
-
-  const parsed = messageSchema.safeParse({
-    sender: formData.get("sender"),
-    email: formData.get("email"),
-    subject: formData.get("subject"),
-    body: formData.get("body"),
-  });
-
-  if (!parsed.success) {
-    return { success: false, message: "Invalid message payload" };
-  }
-
-  const ip = (await headers()).get("x-forwarded-for") ?? "local";
-  const limit = checkRateLimit(`message:${ip}`, 6, 15 * 60 * 1000);
-  if (!limit.allowed) {
-    return { success: false, message: `Too many submissions. Retry in ${limit.retryAfterSeconds}s.` };
-  }
-
-  const submittedAt = new Date();
-
-  await contentRepository.createMessage({
-    ...parsed.data,
-    ipAddress: ip,
-    userAgent: (await headers()).get("user-agent") ?? null,
-    metadata: {
-      source: "public-contact",
-      submittedAt: submittedAt.toISOString(),
-    },
-  });
-
   try {
-    await sendContactNotificationEmail({
+    if (String(formData.get("honeypot") ?? "").trim().length > 0) {
+      return { success: true, message: "Message sent" };
+    }
+
+    const parsed = messageSchema.safeParse({
+      sender: formData.get("sender"),
+      email: formData.get("email"),
+      subject: formData.get("subject"),
+      body: formData.get("body"),
+    });
+
+    if (!parsed.success) {
+      return { success: false, message: "Invalid message payload" };
+    }
+
+    const ip = (await headers()).get("x-forwarded-for") ?? "local";
+    const limit = checkRateLimit(`message:${ip}`, 6, 15 * 60 * 1000);
+    if (!limit.allowed) {
+      return { success: false, message: `Too many submissions. Retry in ${limit.retryAfterSeconds}s.` };
+    }
+
+    const submittedAt = new Date();
+
+    try {
+      await contentRepository.createMessage({
+        ...parsed.data,
+        ipAddress: ip,
+        userAgent: (await headers()).get("user-agent") ?? null,
+        metadata: {
+          source: "public-contact",
+          submittedAt: submittedAt.toISOString(),
+        },
+      });
+    } catch (error) {
+      console.error("Contact message persistence failed", {
+        sender: parsed.data.sender,
+        email: parsed.data.email,
+        subject: parsed.data.subject,
+        submittedAt: submittedAt.toISOString(),
+        error: error instanceof Error ? error.message : error,
+      });
+
+      return { success: false, message: "Unable to save contact message. Backend API is unreachable or misconfigured." };
+    }
+
+    try {
+      await sendContactNotificationEmail({
+        fullName: parsed.data.sender,
+        email: parsed.data.email,
+        subject: parsed.data.subject,
+        message: parsed.data.body,
+        submittedAt,
+      });
+    } catch (error) {
+      console.error("Contact owner email delivery failed", {
+        sender: parsed.data.sender,
+        email: parsed.data.email,
+        subject: parsed.data.subject,
+        submittedAt: submittedAt.toISOString(),
+        error: error instanceof Error ? error.message : error,
+      });
+
+      return { success: false, message: "Message saved, but email delivery failed. Please try again shortly." };
+    }
+
+    void sendContactAutoReplyEmail({
       fullName: parsed.data.sender,
       email: parsed.data.email,
       subject: parsed.data.subject,
       message: parsed.data.body,
       submittedAt,
+    }).catch((error) => {
+      console.warn("Contact auto-reply email delivery skipped", {
+        sender: parsed.data.sender,
+        email: parsed.data.email,
+        subject: parsed.data.subject,
+        submittedAt: submittedAt.toISOString(),
+        error: error instanceof Error ? error.message : error,
+      });
     });
+
+    void trackEvent({ eventType: "CONTACT_SUBMIT", path: "/contact", referrer: (await headers()).get("referer") }).catch((error) => {
+      console.warn("Contact analytics tracking skipped", {
+        sender: parsed.data.sender,
+        email: parsed.data.email,
+        error: error instanceof Error ? error.message : error,
+      });
+    });
+
+    return { success: true, message: "Message sent" };
   } catch (error) {
-    console.error("Contact owner email delivery failed", {
-      sender: parsed.data.sender,
-      email: parsed.data.email,
-      subject: parsed.data.subject,
-      submittedAt: submittedAt.toISOString(),
+    console.error("Unhandled contact submission failure", {
       error: error instanceof Error ? error.message : error,
     });
 
-    return { success: false, message: "Message saved, but email delivery failed. Please try again shortly." };
+    return { success: false, message: "Unable to process your message right now. Please try again shortly." };
   }
-
-  void sendContactAutoReplyEmail({
-    fullName: parsed.data.sender,
-    email: parsed.data.email,
-    subject: parsed.data.subject,
-    message: parsed.data.body,
-    submittedAt,
-  }).catch((error) => {
-    console.warn("Contact auto-reply email delivery skipped", {
-      sender: parsed.data.sender,
-      email: parsed.data.email,
-      subject: parsed.data.subject,
-      submittedAt: submittedAt.toISOString(),
-      error: error instanceof Error ? error.message : error,
-    });
-  });
-
-  void trackEvent({ eventType: "CONTACT_SUBMIT", path: "/contact", referrer: (await headers()).get("referer") }).catch((error) => {
-    console.warn("Contact analytics tracking skipped", {
-      sender: parsed.data.sender,
-      email: parsed.data.email,
-      error: error instanceof Error ? error.message : error,
-    });
-  });
-
-  return { success: true, message: "Message sent" };
 }
 
 export async function updateContactPageConfigAction(formData: FormData) {

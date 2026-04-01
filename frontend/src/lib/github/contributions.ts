@@ -92,6 +92,26 @@ function parseCountFromTooltipOrAria(raw: string): number | null {
 function parseContributionRowsFromPayload(payload: string): ParsedContributionRow[] {
 	const rows: ParsedContributionRow[] = [];
 
+	// Current GitHub HTML grid cells expose contribution metadata in <td ... data-date data-level ...>.
+	for (const cell of payload.match(/<td\b[^>]*data-date="[^"]+"[^>]*>/g) ?? []) {
+		const dateMatch = cell.match(/data-date="([^"]+)"/);
+		if (!dateMatch?.[1]) {
+			continue;
+		}
+
+		const count =
+			parseNumber(cell.match(/data-count="(\d+)"/)?.[1]) ??
+			parseNumber(cell.match(/title="(\d+)\s+contribution/)?.[1]) ??
+			parseNumber(cell.match(/aria-label="(\d+)\s+contribution/)?.[1]) ??
+			parseNumber(cell.match(/data-level="(\d+)"/)?.[1]);
+
+		if (count === null) {
+			continue;
+		}
+
+		rows.push({ date: dateMatch[1], count });
+	}
+
 	// SVG variant used by /users/:username/contributions where rects may have data-count or only data-level.
 	for (const rect of payload.match(/<rect\b[^>]*>/g) ?? []) {
 		const dateMatch = rect.match(/data-date="([^"]+)"/);
@@ -128,6 +148,23 @@ function parseContributionRowsFromPayload(payload: string): ParsedContributionRo
 	}
 
 	return rows;
+}
+
+function parseContributionTotalFromPayload(payload: string, year: number): number | null {
+	const escapedYear = String(year).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+	const yearRegex = new RegExp(`([\\d,]+)\\s+contributions?\\s+in\\s+${escapedYear}`, "i");
+	const directMatch = payload.match(yearRegex);
+	if (directMatch?.[1]) {
+		return parseNumber(directMatch[1].replace(/,/g, ""));
+	}
+
+	const normalized = payload.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ");
+	const textMatch = normalized.match(yearRegex);
+	if (textMatch?.[1]) {
+		return parseNumber(textMatch[1].replace(/,/g, ""));
+	}
+
+	return null;
 }
 
 async function fetchPublicContributionCalendar(
@@ -190,12 +227,12 @@ async function fetchPublicContributionCalendar(
 
 	const maxCount = Math.max(0, ...Array.from(countByDate.values()));
 	const days: GitHubContributionDay[] = [];
-	let total = 0;
+	let computedTotal = 0;
 
 	for (const day = new Date(start); day <= end; day.setUTCDate(day.getUTCDate() + 1)) {
 		const date = toDateOnly(day);
 		const count = countByDate.get(date) ?? 0;
-		total += count;
+		computedTotal += count;
 
 		days.push({
 			date,
@@ -205,9 +242,11 @@ async function fetchPublicContributionCalendar(
 		});
 	}
 
+	const parsedTotal = parseContributionTotalFromPayload(svg, year);
+
 	return {
 		year,
-		total,
+		total: parsedTotal ?? computedTotal,
 		days,
 	};
 }
