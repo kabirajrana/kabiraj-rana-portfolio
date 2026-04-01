@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 
+import { FadeIn } from "@/components/motion/fade-in";
 import { ResearchFeaturedItem } from "@/components/research/research-featured-item";
 import { ResearchFilters } from "@/components/research/research-filters";
 import { ResearchHero } from "@/components/research/research-hero";
@@ -65,32 +66,46 @@ export function ResearchClientPage({ entries }: { entries: PublicResearchEntry[]
 
   return (
     <div className="space-y-12">
-      <ResearchHero />
-      <ResearchStats {...stats} />
+      <FadeIn durationMs={1280} y={28}>
+        <ResearchHero />
+      </FadeIn>
+
+      <FadeIn delay={0.1} durationMs={1200} y={22}>
+        <ResearchStats {...stats} />
+      </FadeIn>
 
       {featured.length ? (
-        <section className="space-y-4">
+        <FadeIn delay={0.18} durationMs={1180} y={20}>
+          <section className="space-y-4">
           <h2 className="text-2xl font-semibold tracking-tight">Featured Research</h2>
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-            {featured.map((entry) => (
-              <ResearchFeaturedItem key={entry.id} entry={entry} />
+            {featured.map((entry, index) => (
+              <FadeIn key={entry.id} delay={0.08 + index * 0.1} durationMs={1120} y={18}>
+                <ResearchFeaturedItem entry={entry} />
+              </FadeIn>
             ))}
           </div>
-        </section>
+          </section>
+        </FadeIn>
       ) : null}
 
       {recentPublications.length ? (
-        <section className="space-y-4">
+        <FadeIn delay={0.24} durationMs={1160} y={18}>
+          <section className="space-y-4">
           <h2 className="text-2xl font-semibold tracking-tight">Recent Publications</h2>
           <div className="space-y-1 border-t border-border/50">
-            {recentPublications.map((entry) => (
-              <ResearchListItem key={entry.id} entry={entry} />
+            {recentPublications.map((entry, index) => (
+              <FadeIn key={entry.id} delay={0.08 + index * 0.08} durationMs={1040} y={14}>
+                <ResearchListItem entry={entry} />
+              </FadeIn>
             ))}
           </div>
-        </section>
+          </section>
+        </FadeIn>
       ) : null}
 
-      <section className="space-y-6">
+      <FadeIn delay={0.3} durationMs={1180} y={18}>
+        <section className="space-y-6">
         <h2 className="text-2xl font-semibold tracking-tight">Research Archive</h2>
         <div className="space-y-4 rounded-xl border border-border/60 bg-surface/30 p-4 md:p-6">
           <ResearchSearch value={query} onChange={setQuery} />
@@ -106,9 +121,15 @@ export function ResearchClientPage({ entries }: { entries: PublicResearchEntry[]
 
         <div className="space-y-1 border-t border-border/50">
           {filtered.length ? (
-            filtered.map((entry) => <ResearchListItem key={entry.id} entry={entry} />)
+            filtered.map((entry, index) => (
+              <FadeIn key={entry.id} delay={Math.min(0.08 + index * 0.04, 0.4)} durationMs={980} y={12}>
+                <ResearchListItem entry={entry} />
+              </FadeIn>
+            ))
           ) : (
-            <p className="py-12 text-sm text-muted">No research entries match current filters.</p>
+            <FadeIn delay={0.12} durationMs={920} y={10}>
+              <p className="py-12 text-sm text-muted">No research entries match current filters.</p>
+            </FadeIn>
           )}
         </div>
 
@@ -116,7 +137,8 @@ export function ResearchClientPage({ entries }: { entries: PublicResearchEntry[]
           Showing {filtered.length} of {entries.length} outputs
           {track !== "ALL" ? ` • ${trackLabel}` : ""}
         </p>
-      </section>
+        </section>
+      </FadeIn>
     </div>
   );
 }
