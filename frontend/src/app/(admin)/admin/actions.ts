@@ -785,6 +785,7 @@ export async function submitContactMessageAction(formData: FormData) {
     }
 
     const submittedAt = new Date();
+    let persistedToBackend = true;
 
     try {
       await contentRepository.createMessage({
@@ -797,6 +798,7 @@ export async function submitContactMessageAction(formData: FormData) {
         },
       });
     } catch (error) {
+      persistedToBackend = false;
       console.error("Contact message persistence failed", {
         sender: parsed.data.sender,
         email: parsed.data.email,
@@ -804,8 +806,6 @@ export async function submitContactMessageAction(formData: FormData) {
         submittedAt: submittedAt.toISOString(),
         error: error instanceof Error ? error.message : error,
       });
-
-      return { success: false, message: "Unable to save contact message. Backend API is unreachable or misconfigured." };
     }
 
     try {
@@ -851,6 +851,13 @@ export async function submitContactMessageAction(formData: FormData) {
         error: error instanceof Error ? error.message : error,
       });
     });
+
+    if (!persistedToBackend) {
+      return {
+        success: true,
+        message: "Message sent. Temporary backend sync issue detected, but your email was delivered successfully.",
+      };
+    }
 
     return { success: true, message: "Message sent" };
   } catch (error) {
