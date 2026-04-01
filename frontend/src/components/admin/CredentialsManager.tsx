@@ -109,8 +109,13 @@ export function CredentialsManager({ rows }: { rows: CredentialRow[] }) {
             if (isVisible) formData.set("isVisible", "on");
 
             startTransition(async () => {
+              const result = await upsertCertificationAction(formData);
+              if (!result?.success) {
+                setFormError(result?.message ?? "Failed to save credential.");
+                return;
+              }
+
               try {
-                await upsertCertificationAction(formData);
                 resetForm();
                 router.refresh();
               } catch (error) {

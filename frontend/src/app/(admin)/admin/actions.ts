@@ -572,7 +572,7 @@ export async function upsertExperiencePageConfigAction(formData: FormData) {
 
 export async function upsertCertificationAction(formData: FormData) {
   const session = await requireAdminSession();
-  const payload = certificationSchema.parse({
+  const parsed = certificationSchema.safeParse({
     id: String(formData.get("id") ?? "") || undefined,
     type: String(formData.get("type") ?? "certification"),
     codeLabel: String(formData.get("codeLabel") ?? ""),
@@ -581,10 +581,39 @@ export async function upsertCertificationAction(formData: FormData) {
     sortOrder: Number(formData.get("sortOrder") ?? 0),
     isVisible: formData.get("isVisible") === "on",
   });
-  const item = await contentRepository.upsertCertification(payload);
-  await createAuditLog({ actorId: session.userId, action: "UPSERT", resource: "Certification", resourceId: item.id });
-  revalidatePath("/admin/experience");
-  revalidatePath("/experience");
+
+  if (!parsed.success) {
+    return {
+      success: false,
+      message: "Invalid credential details. Make sure title/code are filled and URL includes https://",
+    };
+  }
+
+  try {
+    const item = await contentRepository.upsertCertification(parsed.data);
+    await createAuditLog({ actorId: session.userId, action: "UPSERT", resource: "Certification", resourceId: item.id });
+    revalidatePath("/admin/experience");
+    revalidatePath("/experience");
+    return { success: true, message: "Credential saved." };
+  } catch (error) {
+    const backendError = error instanceof BackendApiError ? error : null;
+    console.error("Credential save failed", {
+      code: backendError?.code ?? "unknown",
+      status: backendError?.status ?? null,
+      endpoint: backendError?.endpoint ?? null,
+      message: error instanceof Error ? error.message : "unknown",
+    });
+
+    if (backendError?.code === "missing-env" || backendError?.code === "invalid-env") {
+      return { success: false, message: "Credential service misconfigured. Set backend API URL env variables." };
+    }
+
+    if (backendError?.code === "network" || backendError?.code === "timeout") {
+      return { success: false, message: "Credential service is unreachable right now. Please try again." };
+    }
+
+    return { success: false, message: "Unable to save credential right now. Please try again." };
+  }
 }
 
 export async function deleteCertificationAction(id: string) {
