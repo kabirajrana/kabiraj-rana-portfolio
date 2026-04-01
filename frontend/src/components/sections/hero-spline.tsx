@@ -169,9 +169,9 @@ export function HeroSplineModel() {
 			return;
 		}
 
-		let frameA = 0;
-		let frameB = 0;
-		let mountDelayTimer: ReturnType<typeof window.setTimeout> | null = null;
+		let frameA: ReturnType<Window["requestAnimationFrame"]> | null = null;
+		let frameB: ReturnType<Window["requestAnimationFrame"]> | null = null;
+		let mountDelayTimer: ReturnType<Window["setTimeout"]> | null = null;
 
 		// Delay mount until layout is stable and host is visibly renderable before WebGL bootstraps.
 		frameA = window.requestAnimationFrame(() => {
@@ -193,8 +193,12 @@ export function HeroSplineModel() {
 		});
 
 		return () => {
-			window.cancelAnimationFrame(frameA);
-			window.cancelAnimationFrame(frameB);
+			if (frameA !== null) {
+				window.cancelAnimationFrame(frameA);
+			}
+			if (frameB !== null) {
+				window.cancelAnimationFrame(frameB);
+			}
 			if (mountDelayTimer !== null) {
 				window.clearTimeout(mountDelayTimer);
 			}
