@@ -1,4 +1,5 @@
-const API_TIMEOUT_MS = 8000;
+const API_TIMEOUT_MS = 20000;
+const API_RETRY_ATTEMPTS = 2;
 
 type BackendApiEnvSource = "BACKEND_API_URL" | "API_URL" | "NEXT_PUBLIC_API_URL";
 
@@ -155,60 +156,79 @@ export async function backendApiRequestOrThrow<T>(path: string, init?: RequestIn
   const config = getBackendApiConfigOrThrow();
   const endpoint = joinBackendApiUrl(config, path);
 
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), API_TIMEOUT_MS);
+  const method = String(init?.method ?? "GET").toUpperCase();
 
-  try {
-    const response = await fetch(endpoint, {
-      ...init,
-      signal: controller.signal,
-      headers: {
-        "Content-Type": "application/json",
-        ...(init?.headers ?? {}),
-      },
-      next: init?.method && init.method !== "GET" ? { revalidate: 0 } : { revalidate: 120 },
-      cache: init?.method && init.method !== "GET" ? "no-store" : "force-cache",
-    });
-
-    if (!response.ok) {
-      throw new BackendApiError(`Backend API returned HTTP ${response.status} for ${endpoint}`, {
-        code: "http-error",
-        status: response.status,
-        endpoint,
-        source: config.source,
-      });
-    }
+  for (let attempt = 1; attempt <= API_RETRY_ATTEMPTS; attempt += 1) {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), API_TIMEOUT_MS);
 
     try {
-      return (await response.json()) as T;
-    } catch {
-      throw new BackendApiError(`Backend API returned invalid JSON for ${endpoint}`, {
-        code: "invalid-json",
-        endpoint,
-        source: config.source,
+      const response = await fetch(endpoint, {
+        ...init,
+        signal: controller.signal,
+        headers: {
+          "Content-Type": "application/json",
+          ...(init?.headers ?? {}),
+        },
+        next: method !== "GET" ? { revalidate: 0 } : { revalidate: 120 },
+        cache: method !== "GET" ? "no-store" : "force-cache",
       });
-    }
-  } catch (error) {
-    if (error instanceof BackendApiError) {
-      throw error;
-    }
 
-    if (error instanceof Error && error.name === "AbortError") {
-      throw new BackendApiError(`Backend API request timed out for ${endpoint}`, {
-        code: "timeout",
+      if (!response.ok) {
+        throw new BackendApiError(`Backend API returned HTTP ${response.status} for ${endpoint}`, {
+          code: "http-error",
+          status: response.status,
+          endpoint,
+          source: config.source,
+        });
+      }
+
+      try {
+        return (await response.json()) as T;
+      } catch {
+        throw new BackendApiError(`Backend API returned invalid JSON for ${endpoint}`, {
+          code: "invalid-json",
+          endpoint,
+          source: config.source,
+        });
+      }
+    } catch (error) {
+      if (error instanceof BackendApiError && error.code === "http-error") {
+        throw error;
+      }
+
+      const isAbort = error instanceof Error && error.name === "AbortError";
+      const failureCode: BackendApiFailureCode = isAbort ? "timeout" : "network";
+      const canRetry = attempt < API_RETRY_ATTEMPTS;
+
+      if (!canRetry) {
+        throw new BackendApiError(
+          isAbort ? `Backend API request timed out for ${endpoint}` : `Backend API request failed for ${endpoint}`,
+          {
+            code: failureCode,
+            endpoint,
+            source: config.source,
+          },
+        );
+      }
+
+      console.warn("[backend-api] Retrying request after transient failure", {
         endpoint,
-        source: config.source,
+        method,
+        attempt,
+        nextAttempt: attempt + 1,
+        reason: failureCode,
       });
+    } finally {
+      clearTimeout(timeout);
     }
-
-    throw new BackendApiError(`Backend API request failed for ${endpoint}`, {
-      code: "network",
-      endpoint,
-      source: config.source,
-    });
-  } finally {
-    clearTimeout(timeout);
   }
+
+  throw new BackendApiError(`Backend API request failed for ${endpoint}`, {
+    code: "network",
+    endpoint,
+    source: config.source,
+  });
 }
 
 export async function backendApiRequest<T>(

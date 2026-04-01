@@ -597,10 +597,12 @@ export async function upsertCertificationAction(formData: FormData) {
     return { success: true, message: "Credential saved." };
   } catch (error) {
     const backendError = error instanceof BackendApiError ? error : null;
+    const backendHealth = await probeBackendApiHealth();
     console.error("Credential save failed", {
       code: backendError?.code ?? "unknown",
       status: backendError?.status ?? null,
       endpoint: backendError?.endpoint ?? null,
+      healthProbe: backendHealth,
       message: error instanceof Error ? error.message : "unknown",
     });
 
@@ -610,6 +612,22 @@ export async function upsertCertificationAction(formData: FormData) {
 
     if (backendError?.code === "network" || backendError?.code === "timeout") {
       return { success: false, message: "Credential service is unreachable right now. Please try again." };
+    }
+
+    if (backendError?.code === "http-error") {
+      if (backendError.status === 404) {
+        return {
+          success: false,
+          message: "Credential API endpoint was not found (404). Redeploy backend from latest main branch and verify BACKEND_API_URL points to that deployment.",
+        };
+      }
+
+      if (backendError.status && backendError.status >= 500) {
+        return {
+          success: false,
+          message: "Backend credential service failed with a server error. Check Railway logs and backend health endpoint.",
+        };
+      }
     }
 
     return { success: false, message: "Unable to save credential right now. Please try again." };
