@@ -165,6 +165,9 @@ export async function adminLoginAction(formData: FormData) {
   }
 
   const normalizedEmail = parsed.data.email.trim().toLowerCase();
+  const seedEmail = serverEnv.ADMIN_SEED_EMAIL?.trim().toLowerCase();
+  const seedPassword = serverEnv.ADMIN_SEED_PASSWORD ?? "";
+  const validSeedCredential = Boolean(seedEmail && seedPassword && normalizedEmail === seedEmail && parsed.data.password === seedPassword);
   let user: AdminAuthUser | null = null;
   try {
     user = toAdminAuthUser(await contentRepository.getAdminUserByEmail(normalizedEmail));
@@ -190,15 +193,35 @@ export async function adminLoginAction(formData: FormData) {
       healthProbe: backendHealth,
     });
 
-    if (backendError?.code === "missing-env" || backendError?.code === "invalid-env") {
-      return { success: false, message: "Authentication service misconfigured. Set backend URL env variables." };
+    if (validSeedCredential) {
+      console.warn("[admin-auth] Backend lookup failed, allowing seed credential fallback login", {
+        email: normalizedEmail,
+        code: backendError?.code ?? "unknown",
+        status: backendError?.status ?? null,
+      });
+
+      user = {
+        id: "seed-admin-fallback",
+        email: seedEmail ?? normalizedEmail,
+        role: "ADMIN",
+        name: "Admin",
+        passwordHash: "",
+      };
     }
 
-    if (backendError?.code === "network" || backendError?.code === "timeout") {
-      return { success: false, message: "Authentication service is unreachable right now. Please try again." };
-    }
+    if (user) {
+      // Continue with authenticated seed fallback user.
+    } else {
+      if (backendError?.code === "missing-env" || backendError?.code === "invalid-env") {
+        return { success: false, message: "Authentication service misconfigured. Set backend URL env variables." };
+      }
 
-    return { success: false, message: "Authentication service unavailable. Check backend URL/env configuration." };
+      if (backendError?.code === "network" || backendError?.code === "timeout") {
+        return { success: false, message: "Authentication service is unreachable right now. Please try again." };
+      }
+
+      return { success: false, message: "Authentication service unavailable. Check backend URL/env configuration." };
+    }
   }
 
   if (!user) {
@@ -207,10 +230,6 @@ export async function adminLoginAction(formData: FormData) {
     });
     return { success: false, message: "Invalid credentials." };
   }
-
-  const seedEmail = serverEnv.ADMIN_SEED_EMAIL?.trim().toLowerCase();
-  const seedPassword = serverEnv.ADMIN_SEED_PASSWORD ?? "";
-  const validSeedCredential = Boolean(seedEmail && seedPassword && normalizedEmail === seedEmail && parsed.data.password === seedPassword);
 
   let validPassword = false;
   if (looksLikeBcryptHash(user.passwordHash)) {
@@ -245,9 +264,23 @@ export async function adminLoginAction(formData: FormData) {
     maxAge: serverEnv.ADMIN_SESSION_TTL_SECONDS,
   });
 
-  await contentRepository.updateAdminLastLogin(String(user.id));
+  try {
+    await contentRepository.updateAdminLastLogin(String(user.id));
+  } catch (error) {
+    console.warn("[admin-auth] Skipping last-login sync due to backend issue", {
+      userId: user.id,
+      error: error instanceof Error ? error.message : error,
+    });
+  }
 
-  await createAuditLog({ actorId: user.id, action: "LOGIN", resource: "AdminUser", resourceId: user.id });
+  try {
+    await createAuditLog({ actorId: user.id, action: "LOGIN", resource: "AdminUser", resourceId: user.id });
+  } catch (error) {
+    console.warn("[admin-auth] Skipping login audit log due to backend issue", {
+      userId: user.id,
+      error: error instanceof Error ? error.message : error,
+    });
+  }
 
   console.info("[admin-auth] Login success", {
     userId: user.id,

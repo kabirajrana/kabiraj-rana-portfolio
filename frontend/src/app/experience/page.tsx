@@ -1,6 +1,7 @@
 import { Container } from "@/components/layout/container";
 import { FadeIn } from "@/components/motion/fade-in";
 import { ExperienceSection } from "@/components/sections/experience";
+import { certificates as fallbackCertificates, certifications as fallbackCertifications, experiences as fallbackExperiences } from "@/content/site/experience";
 import { contentRepository } from "@/lib/db/repositories";
 import { buildMetadata } from "@/lib/seo";
 
@@ -52,6 +53,20 @@ export default async function ExperiencePage() {
 		href: item.credentialUrl,
 	}));
 
+	const timelineItems = mappedExperience.length > 0 ? mappedExperience : fallbackExperiences;
+	const certificateItems = mappedCertificates.length > 0 ? mappedCertificates : fallbackCertificates.map((item) => ({
+		id: item.id,
+		codeLabel: item.id,
+		title: item.title,
+		href: item.href,
+	}));
+	const certificationItems = mappedCerts.length > 0 ? mappedCerts : fallbackCertifications.map((item) => ({
+		id: item.id,
+		codeLabel: item.id,
+		title: item.title,
+		href: item.href,
+	}));
+
 	return (
 		<>
 			<Container className="pt-16 md:pt-24">
@@ -67,9 +82,9 @@ export default async function ExperiencePage() {
 				</FadeIn>
 			</Container>
 			<ExperienceSection
-				experiences={mappedExperience}
-				certificates={mappedCertificates}
-				certifications={mappedCerts}
+				experiences={timelineItems}
+				certificates={certificateItems}
+				certifications={certificationItems}
 				showTimeline={config?.showTimeline ?? true}
 				showCertifications={config?.showCertifications ?? true}
 				certTitle={config?.certTitle ?? "Formal Intelligence Expansion"}
