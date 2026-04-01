@@ -370,17 +370,12 @@ class JsonAdminStore:
 
         experience_rows = data.get("experience")
         if not isinstance(experience_rows, list):
-            data["experience"] = self._default_experience_rows()
+            data["experience"] = []
             changed = True
-        else:
-            placeholder = bool(experience_rows) and all(str(item.get("role", "")).strip().lower() in {"tester", ""} for item in experience_rows if isinstance(item, dict))
-            if not experience_rows or placeholder:
-                data["experience"] = self._default_experience_rows()
-                changed = True
 
         cert_rows = data.get("certifications")
         if not isinstance(cert_rows, list):
-            data["certifications"] = self._default_certification_rows()
+            data["certifications"] = []
             changed = True
         else:
             normalized_rows: list[dict[str, Any]] = []
