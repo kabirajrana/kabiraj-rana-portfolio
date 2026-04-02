@@ -81,8 +81,8 @@ function reviveDates<T>(value: T): T {
   return output as T;
 }
 
-async function apiGet<T>(path: string): Promise<T | null> {
-  const response = await backendApiRequest<T>(path, { method: "GET" });
+async function apiGet<T>(path: string, init?: RequestInit): Promise<T | null> {
+  const response = await backendApiRequest<T>(path, { method: "GET", ...(init ?? {}) });
   return response ? reviveDates(response) : null;
 }
 
@@ -265,8 +265,8 @@ function toFallbackResearchRows() {
   }));
 }
 
-async function getListFromApi<T>(path: string): Promise<T[]> {
-  const response = await apiGet<ApiListResponse<T> | T[]>(path);
+async function getListFromApi<T>(path: string, init?: RequestInit): Promise<T[]> {
+  const response = await apiGet<ApiListResponse<T> | T[]>(path, init);
   if (!response) {
     return [];
   }
@@ -409,13 +409,14 @@ export const contentRepository = {
     return (await apiSend<Record<string, any>>("/v1/admin/content/projects/page-config", "PUT", input)) ?? input;
   },
 
-  async listExperience() {
-    const rows = await getListFromApi<Record<string, any>>("/v1/content/experience");
+  async listExperience(options?: { useFallback?: boolean }) {
+    const rows = await getListFromApi<Record<string, any>>("/v1/content/experience", { cache: "no-store" });
     if (rows.length > 0) {
       return rows;
     }
 
-    return shouldUseStaticFallbackData() ? toFallbackExperienceRows() : rows;
+    const useFallback = options?.useFallback ?? true;
+    return useFallback && shouldUseStaticFallbackData() ? toFallbackExperienceRows() : rows;
   },
 
   async upsertExperience(input: ExperienceCreateInput & { id?: string }) {
@@ -429,36 +430,38 @@ export const contentRepository = {
   },
 
   async getExperiencePageConfig() {
-    return await apiGet<Record<string, any>>("/v1/content/experience/page-config");
+    return await apiGet<Record<string, any>>("/v1/content/experience/page-config", { cache: "no-store" });
   },
 
   async upsertExperiencePageConfig(input: ExperiencePageConfigCreateInput) {
     return (await apiSend<Record<string, any>>("/v1/admin/content/experience/page-config", "PUT", input)) ?? input;
   },
 
-  async listCertifications(input?: { type?: "certificate" | "certification"; visible?: boolean }) {
+  async listCertifications(input?: { type?: "certificate" | "certification"; visible?: boolean; useFallback?: boolean }) {
     const params = new URLSearchParams();
     if (input?.visible ?? true) params.set("visible", "1");
     if (input?.type) params.set("type", input.type);
     const query = params.toString();
-    const rows = await getListFromApi<Record<string, any>>(`/v1/content/certifications${query ? `?${query}` : ""}`);
+    const rows = await getListFromApi<Record<string, any>>(`/v1/content/certifications${query ? `?${query}` : ""}`, { cache: "no-store" });
     if (rows.length > 0) {
       return rows;
     }
 
-    return shouldUseStaticFallbackData() ? toFallbackCertificationRows() : rows;
+    const useFallback = input?.useFallback ?? true;
+    return useFallback && shouldUseStaticFallbackData() ? toFallbackCertificationRows() : rows;
   },
 
-  async listAllCertifications(input?: { type?: "certificate" | "certification" }) {
+  async listAllCertifications(input?: { type?: "certificate" | "certification"; useFallback?: boolean }) {
     const params = new URLSearchParams();
     if (input?.type) params.set("type", input.type);
     const query = params.toString();
-    const rows = await getListFromApi<Record<string, any>>(`/v1/content/certifications${query ? `?${query}` : ""}`);
+    const rows = await getListFromApi<Record<string, any>>(`/v1/content/certifications${query ? `?${query}` : ""}`, { cache: "no-store" });
     if (rows.length > 0) {
       return rows;
     }
 
-    return shouldUseStaticFallbackData() ? toFallbackCertificationRows() : rows;
+    const useFallback = input?.useFallback ?? true;
+    return useFallback && shouldUseStaticFallbackData() ? toFallbackCertificationRows() : rows;
   },
 
   async upsertCertification(input: CertificationCreateInput & { id?: string }) {

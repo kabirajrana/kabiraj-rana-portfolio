@@ -64,8 +64,8 @@ function mapCredentialRows(rows: unknown[]): CredentialRow[] {
 export default async function AdminExperiencePage() {
   const [config, items, certifications] = await Promise.all([
     contentRepository.getExperiencePageConfig(),
-    contentRepository.listExperience(),
-    contentRepository.listAllCertifications(),
+    contentRepository.listExperience({ useFallback: false }),
+    contentRepository.listAllCertifications({ useFallback: false }),
   ]);
 
   const credentialRows: CredentialRow[] = mapCredentialRows(Array.isArray(certifications) ? certifications : []);

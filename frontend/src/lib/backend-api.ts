@@ -157,6 +157,8 @@ export async function backendApiRequestOrThrow<T>(path: string, init?: RequestIn
   const endpoint = joinBackendApiUrl(config, path);
 
   const method = String(init?.method ?? "GET").toUpperCase();
+  const requestCache = init?.cache ?? (method === "GET" ? "force-cache" : "no-store");
+  const requestNext = init?.next ?? (requestCache === "no-store" ? { revalidate: 0 } : method === "GET" ? { revalidate: 120 } : { revalidate: 0 });
 
   for (let attempt = 1; attempt <= API_RETRY_ATTEMPTS; attempt += 1) {
     const controller = new AbortController();
@@ -170,8 +172,8 @@ export async function backendApiRequestOrThrow<T>(path: string, init?: RequestIn
           "Content-Type": "application/json",
           ...(init?.headers ?? {}),
         },
-        next: method !== "GET" ? { revalidate: 0 } : { revalidate: 120 },
-        cache: method !== "GET" ? "no-store" : "force-cache",
+        next: requestNext,
+        cache: requestCache,
       });
 
       if (!response.ok) {
