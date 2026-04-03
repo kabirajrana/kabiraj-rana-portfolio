@@ -32,6 +32,24 @@ body {
 	background-attachment: fixed;
 }
 
+@keyframes page-enter {
+	0% {
+		opacity: 0;
+		transform: translateY(14px) scale(0.996);
+		filter: blur(6px);
+	}
+	100% {
+		opacity: 1;
+		transform: translateY(0) scale(1);
+		filter: blur(0);
+	}
+}
+
+.page-enter {
+	animation: page-enter 760ms cubic-bezier(0.16, 1, 0.3, 1) both;
+	will-change: opacity, transform, filter;
+}
+
 .bg-grid {
 	background-image:
 		linear-gradient(hsl(var(--border) / 0.35) 1px, transparent 1px),
@@ -64,7 +82,7 @@ body {
 	text-decoration: none;
 	box-shadow: 0 10px 22px -18px hsl(var(--accent) / 0.35);
 	overflow: hidden;
-	transition: transform 260ms ease, border-color 260ms ease, box-shadow 260ms ease, color 260ms ease;
+	transition: transform 360ms cubic-bezier(0.16, 1, 0.3, 1), border-color 360ms ease, box-shadow 360ms cubic-bezier(0.16, 1, 0.3, 1), color 320ms ease;
 }
 
 .story-link::before {
@@ -73,7 +91,7 @@ body {
 	inset: 0;
 	background: linear-gradient(120deg, transparent 20%, hsl(var(--accent) / 0.12) 50%, transparent 80%);
 	transform: translateX(-130%);
-	transition: transform 540ms ease;
+	transition: transform 680ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .story-link::after {
@@ -88,7 +106,7 @@ body {
 	transform-origin: left;
 	transform: scaleX(0.18);
 	filter: drop-shadow(0 0 2px hsl(var(--accent) / 0.2));
-	transition: transform 320ms cubic-bezier(0.22, 1, 0.36, 1), opacity 280ms ease;
+	transition: transform 420ms cubic-bezier(0.16, 1, 0.3, 1), opacity 360ms ease;
 	opacity: 0.62;
 }
 

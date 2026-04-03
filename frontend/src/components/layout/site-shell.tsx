@@ -18,7 +18,7 @@ export function SiteShell({ children }: { children: ReactNode }) {
   return (
     <div className="min-h-screen">
       <Navbar />
-      <main className="pt-24 md:pt-28">{children}</main>
+      <main key={pathname} className="page-enter pt-24 md:pt-28">{children}</main>
       <ScrollToTopButton />
       <Footer />
     </div>

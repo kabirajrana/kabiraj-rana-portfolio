@@ -1,5 +1,7 @@
 const API_TIMEOUT_MS = 20000;
 const API_RETRY_ATTEMPTS = 2;
+const API_NO_STORE_GET_TIMEOUT_MS = 7000;
+const API_NO_STORE_GET_RETRY_ATTEMPTS = 1;
 
 type BackendApiEnvSource = "BACKEND_API_URL" | "API_URL" | "NEXT_PUBLIC_API_URL";
 
@@ -159,10 +161,13 @@ export async function backendApiRequestOrThrow<T>(path: string, init?: RequestIn
   const method = String(init?.method ?? "GET").toUpperCase();
   const requestCache = init?.cache ?? (method === "GET" ? "force-cache" : "no-store");
   const requestNext = init?.next ?? (requestCache === "no-store" ? { revalidate: 0 } : method === "GET" ? { revalidate: 120 } : { revalidate: 0 });
+  const isFastFailRead = method === "GET" && requestCache === "no-store";
+  const timeoutMs = isFastFailRead ? API_NO_STORE_GET_TIMEOUT_MS : API_TIMEOUT_MS;
+  const retryAttempts = isFastFailRead ? API_NO_STORE_GET_RETRY_ATTEMPTS : API_RETRY_ATTEMPTS;
 
-  for (let attempt = 1; attempt <= API_RETRY_ATTEMPTS; attempt += 1) {
+  for (let attempt = 1; attempt <= retryAttempts; attempt += 1) {
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), API_TIMEOUT_MS);
+    const timeout = setTimeout(() => controller.abort(), timeoutMs);
 
     try {
       const response = await fetch(endpoint, {
@@ -201,7 +206,7 @@ export async function backendApiRequestOrThrow<T>(path: string, init?: RequestIn
 
       const isAbort = error instanceof Error && error.name === "AbortError";
       const failureCode: BackendApiFailureCode = isAbort ? "timeout" : "network";
-      const canRetry = attempt < API_RETRY_ATTEMPTS;
+      const canRetry = attempt < retryAttempts;
 
       if (!canRetry) {
         throw new BackendApiError(

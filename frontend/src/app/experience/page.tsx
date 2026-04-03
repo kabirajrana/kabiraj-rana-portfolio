@@ -1,7 +1,6 @@
 import { Container } from "@/components/layout/container";
 import { FadeIn } from "@/components/motion/fade-in";
 import { ExperienceSection } from "@/components/sections/experience";
-import { experiences as fallbackExperiences } from "@/content/site/experience";
 import { contentRepository } from "@/lib/db/repositories";
 import { buildMetadata } from "@/lib/seo";
 
@@ -18,15 +17,21 @@ export const metadata = buildMetadata({
 	path: "/experience",
 });
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 export default async function ExperiencePage() {
 	const [config, experienceRows, credentials] = await Promise.all([
 		contentRepository.getExperiencePageConfig(),
-		contentRepository.listExperience(),
-		contentRepository.listCertifications(),
+		contentRepository.listExperience({ useFallback: false }),
+		contentRepository.listCertifications({ useFallback: false }),
 	]);
 
-	const mappedExperience = (experienceRows as ExperienceRow[])
-		.filter((item: ExperienceRow) => item.status === "PUBLISHED")
+	const rows = experienceRows as ExperienceRow[];
+	const publishedExperience = rows.filter((item: ExperienceRow) => item.status === "PUBLISHED");
+	const visibleExperienceRows = publishedExperience.length > 0 ? publishedExperience : rows.filter((item: ExperienceRow) => item.status !== "ARCHIVED");
+
+	const mappedExperience = visibleExperienceRows
 		.map((item: ExperienceRow) => ({
 			title: item.role,
 			period: item.timeframe || `${item.startDate.getFullYear()} – ${item.currentRole ? "Present" : item.endDate ? item.endDate.getFullYear() : "Present"}`,
@@ -53,7 +58,7 @@ export default async function ExperiencePage() {
 		href: item.credentialUrl,
 	}));
 
-	const timelineItems = mappedExperience.length > 0 ? mappedExperience : fallbackExperiences;
+	const timelineItems = mappedExperience;
 	const certificateItems = mappedCertificates;
 	const certificationItems = mappedCerts;
 

@@ -8,9 +8,9 @@ import { cn } from "@/lib/utils";
 export function FadeIn({
 	children,
 	delay = 0,
-	y = 24,
-	durationMs = 1160,
-	easing = "cubic-bezier(0.22,1,0.36,1)",
+	y = 28,
+	durationMs = 1400,
+	easing = "cubic-bezier(0.16,1,0.3,1)",
 	className,
 }: {
 	children: ReactNode;
@@ -66,7 +66,7 @@ export function FadeIn({
 				opacity: isVisible ? 1 : 0,
 				transform: isVisible ? "translateY(0px)" : `translateY(${y}px)`,
 				transitionDelay: `${Math.max(0, delay) * 1000}ms`,
-				transitionDuration: `${Math.max(420, durationMs)}ms`,
+				transitionDuration: `${Math.max(560, durationMs)}ms`,
 				transitionTimingFunction: easing,
 			}}
 		>
