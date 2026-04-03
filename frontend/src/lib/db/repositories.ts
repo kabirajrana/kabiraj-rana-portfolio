@@ -410,7 +410,7 @@ export const contentRepository = {
   },
 
   async listExperience(options?: { useFallback?: boolean }) {
-    const rows = await getListFromApi<Record<string, any>>("/v1/content/experience", { cache: "no-store" });
+    const rows = await getListFromApi<Record<string, any>>("/v1/content/experience");
     if (rows.length > 0) {
       return rows;
     }
@@ -430,7 +430,7 @@ export const contentRepository = {
   },
 
   async getExperiencePageConfig() {
-    return await apiGet<Record<string, any>>("/v1/content/experience/page-config", { cache: "no-store" });
+    return await apiGet<Record<string, any>>("/v1/content/experience/page-config");
   },
 
   async upsertExperiencePageConfig(input: ExperiencePageConfigCreateInput) {
@@ -442,7 +442,7 @@ export const contentRepository = {
     if (input?.visible ?? true) params.set("visible", "1");
     if (input?.type) params.set("type", input.type);
     const query = params.toString();
-    const rows = await getListFromApi<Record<string, any>>(`/v1/content/certifications${query ? `?${query}` : ""}`, { cache: "no-store" });
+    const rows = await getListFromApi<Record<string, any>>(`/v1/content/certifications${query ? `?${query}` : ""}`);
     if (rows.length > 0) {
       return rows;
     }
@@ -455,7 +455,7 @@ export const contentRepository = {
     const params = new URLSearchParams();
     if (input?.type) params.set("type", input.type);
     const query = params.toString();
-    const rows = await getListFromApi<Record<string, any>>(`/v1/content/certifications${query ? `?${query}` : ""}`, { cache: "no-store" });
+    const rows = await getListFromApi<Record<string, any>>(`/v1/content/certifications${query ? `?${query}` : ""}`);
     if (rows.length > 0) {
       return rows;
     }
