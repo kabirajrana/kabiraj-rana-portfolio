@@ -17,9 +17,11 @@ const items: { key: keyof ResearchStatsProps; label: string }[] = [
 ];
 
 export function ResearchStats(props: ResearchStatsProps) {
+  const visibleItems = items.filter((item) => props[item.key] > 0);
+
   return (
     <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-      {items.map((item) => (
+      {visibleItems.map((item) => (
         <article key={item.key} className="rounded-xl border border-border/60 bg-surface/35 p-4">
           <p className="text-xs uppercase tracking-[0.16em] text-muted">{item.label}</p>
           <p className="mt-2 text-3xl font-semibold tracking-tight">{props[item.key]}</p>

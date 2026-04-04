@@ -1,5 +1,5 @@
-import { redirect } from "next/navigation";
+import { LabAdminClient } from "@/app/(admin)/admin/lab-admin-client";
 
 export default function AdminIndexPage() {
-  redirect("/admin/dashboard");
+  return <LabAdminClient />;
 }

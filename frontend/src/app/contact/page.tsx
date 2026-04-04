@@ -13,7 +13,7 @@ export const metadata = buildMetadata({
 });
 
 const CONTACT_EMAIL = "kabirajrana76@gmail.com";
-const CONTACT_GITHUB = "https://github.com/kabirajrana";
+const CONTACT_GITHUB = "/github-activity";
 const CONTACT_LINKEDIN = "https://www.linkedin.com/in/kabirajrana/";
 
 export default async function ContactPage() {
@@ -70,8 +70,6 @@ export default async function ContactPage() {
 									{githubLink ? (
 										<a
 											href={githubLink}
-											target="_blank"
-											rel="noreferrer"
 											className="flex items-center justify-between rounded-2xl border border-border/70 bg-background/35 px-4 py-2.5 text-base text-text transition-[border-color,box-shadow] duration-300 hover:border-accent/40 hover:shadow-[0_8px_18px_-14px_hsl(var(--accent)/0.5)]"
 										>
 											<span className="inline-flex items-center gap-2.5">

@@ -2,10 +2,10 @@ import { Badge } from "@/components/ui/badge";
 
 export function ResearchHero() {
   return (
-    <header className="space-y-6 border-b border-border/60 pb-10">
-      <p className="text-xs uppercase tracking-[0.26em] text-accent">Research Program</p>
+    <header className="space-y-6 border-b border-cyan-300/20 pb-10">
+      <p className="text-xs uppercase tracking-[0.26em] text-cyan-300">Research Program</p>
       <div className="space-y-3">
-        <h1 className="max-w-4xl text-4xl font-semibold tracking-tight md:text-5xl">AI Research Lab</h1>
+        <h1 className="max-w-4xl text-4xl font-semibold tracking-tight text-cyan-50 md:text-5xl">AI Research Lab</h1>
         <p className="text-sm uppercase tracking-[0.18em] text-muted">Machine Learning Systems • Applied AI • Intelligent Infrastructure</p>
       </div>
       <p className="max-w-4xl text-base leading-relaxed text-muted md:text-lg">

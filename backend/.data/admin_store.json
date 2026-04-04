@@ -31,6 +31,229 @@
       },
       "createdAt": "2026-03-07T10:24:06.122244+00:00",
       "updatedAt": "2026-03-07T10:24:06.122244+00:00"
+    },
+    {
+      "id": "d2533e28-c30b-4d7e-ada4-43ec2b4b629b",
+      "sender": "Test User",
+      "email": "test@example.com",
+      "subject": "Connectivity Test",
+      "body": "This is a backend connectivity test message.",
+      "status": "UNREAD",
+      "ipAddress": "local",
+      "userAgent": "manual-test",
+      "metadata": {
+        "source": "manual-test",
+        "submittedAt": "2026-03-19T20:18:22.8349337+05:45"
+      },
+      "createdAt": "2026-03-19T14:33:25.200855+00:00",
+      "updatedAt": "2026-03-19T14:33:25.200855+00:00"
+    },
+    {
+      "id": "7a339ace-3e91-4369-89b3-f2b6dfe745b6",
+      "sender": "Kabiraj Rana",
+      "email": "kabirajrana07@gmail.com",
+      "subject": "General Inquiry",
+      "body": "ihohoihih ;ljh jh; u;",
+      "status": "UNREAD",
+      "ipAddress": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36",
+      "metadata": {
+        "source": "public-contact",
+        "submittedAt": "2026-03-19T14:34:25.372Z"
+      },
+      "createdAt": "2026-03-19T14:34:25.412180+00:00",
+      "updatedAt": "2026-03-19T14:34:25.412180+00:00"
+    },
+    {
+      "id": "7e1e74dd-0814-4959-9d67-ece22926796a",
+      "sender": "Kabiraj Rana",
+      "email": "kabirajrana07@gmail.com",
+      "subject": "General Inquiry",
+      "body": "iijijklj;j kjkj; k;n ;ihj;j; okjkjm  ;kjkj kj;j",
+      "status": "UNREAD",
+      "ipAddress": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36",
+      "metadata": {
+        "source": "public-contact",
+        "submittedAt": "2026-03-20T02:20:12.689Z"
+      },
+      "createdAt": "2026-03-20T02:20:12.953607+00:00",
+      "updatedAt": "2026-03-20T02:20:12.953607+00:00"
+    },
+    {
+      "id": "f7709074-d2cb-4253-a44f-6b16fd5b9af5",
+      "sender": "Kabiraj Rana",
+      "email": "kabirajrana07@gmail.com",
+      "subject": "General Inquiry",
+      "body": "ujhjhjhjh yyg yy gy guygy ghbg 7ougyug yhg",
+      "status": "UNREAD",
+      "ipAddress": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36",
+      "metadata": {
+        "source": "public-contact",
+        "submittedAt": "2026-03-20T02:27:32.030Z"
+      },
+      "createdAt": "2026-03-20T02:27:32.062521+00:00",
+      "updatedAt": "2026-03-20T02:27:32.062521+00:00"
+    },
+    {
+      "id": "87193bd2-8ce0-4eb7-b337-9bdc2c6aedbb",
+      "sender": "Opendra Jaishi",
+      "email": "opendrajaishi@gmail.com",
+      "subject": "for collaboration",
+      "body": "Hey bro, I know you very well. I just want to work with you cause you're the actually genious bro. I know your work and effeort. You're the keep of the python programming language and I really proud of that",
+      "status": "UNREAD",
+      "ipAddress": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36",
+      "metadata": {
+        "source": "public-contact",
+        "submittedAt": "2026-03-20T02:30:26.051Z"
+      },
+      "createdAt": "2026-03-20T02:30:26.167552+00:00",
+      "updatedAt": "2026-03-20T02:30:26.167552+00:00"
+    },
+    {
+      "id": "5ff38753-4bc5-4416-9eba-4d898da38b2a",
+      "sender": "\u0918\u0928 \u092c\u0939\u093e\u0926\u0941\u0930 \u0930\u093e\u0928\u093e",
+      "email": "kabirajrana07@gmail.com",
+      "subject": "General Inquiry",
+      "body": "jhihujhiuhiuhui uih u",
+      "status": "UNREAD",
+      "ipAddress": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36",
+      "metadata": {
+        "source": "public-contact",
+        "submittedAt": "2026-03-20T02:31:05.016Z"
+      },
+      "createdAt": "2026-03-20T02:31:05.112308+00:00",
+      "updatedAt": "2026-03-20T02:31:05.112308+00:00"
+    },
+    {
+      "id": "05c2048a-99d1-476e-9207-448b3b177f5d",
+      "sender": "kabiraj",
+      "email": "kabirajrana07@gmail.com",
+      "subject": "General Inquiry",
+      "body": "jhjhuhuhiuh jhijhj jn",
+      "status": "UNREAD",
+      "ipAddress": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36",
+      "metadata": {
+        "source": "public-contact",
+        "submittedAt": "2026-03-20T02:33:26.632Z"
+      },
+      "createdAt": "2026-03-20T02:33:26.701839+00:00",
+      "updatedAt": "2026-03-20T02:33:26.701839+00:00"
+    },
+    {
+      "id": "1d0d7786-281f-422c-8580-c54d422bb1c8",
+      "sender": "Kabiraj Rana",
+      "email": "kabirajrana07@gmail.com",
+      "subject": "General Inquiry",
+      "body": "iugugug uytfi7f tf iyv gfy yguyuhy",
+      "status": "UNREAD",
+      "ipAddress": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36",
+      "metadata": {
+        "source": "public-contact",
+        "submittedAt": "2026-03-20T02:37:02.462Z"
+      },
+      "createdAt": "2026-03-20T02:37:02.491082+00:00",
+      "updatedAt": "2026-03-20T02:37:02.491082+00:00"
+    },
+    {
+      "id": "e3ee0ce0-3039-4a08-af19-1c6cffdd7859",
+      "sender": "Test User",
+      "email": "test@example.com",
+      "subject": "Hello",
+      "body": "Test message",
+      "status": "UNREAD",
+      "ipAddress": "local",
+      "userAgent": "diagnostic",
+      "metadata": {
+        "source": "diagnostic"
+      },
+      "createdAt": "2026-04-01T04:18:08.765060+00:00",
+      "updatedAt": "2026-04-01T04:18:08.765060+00:00"
+    },
+    {
+      "id": "9741042e-72ab-48a2-97ae-ce09a2e8c413",
+      "sender": "Kabiraj Rana",
+      "email": "kabirajrana07@gmail.com",
+      "subject": "General Inquiry",
+      "body": "yhjhnkjhkjkk;k ijhijh jjh; j",
+      "status": "UNREAD",
+      "ipAddress": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36",
+      "metadata": {
+        "source": "public-contact",
+        "submittedAt": "2026-04-01T04:22:37.109Z"
+      },
+      "createdAt": "2026-04-01T04:22:37.361017+00:00",
+      "updatedAt": "2026-04-01T04:22:37.361017+00:00"
+    },
+    {
+      "id": "ec451c66-9e1a-40fd-b18d-38fdc6a9b05b",
+      "sender": "Dipak bam",
+      "email": "kabirajrana07@gmail.com",
+      "subject": "General Inquiry",
+      "body": "I would like to work with you bro",
+      "status": "UNREAD",
+      "ipAddress": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36",
+      "metadata": {
+        "source": "public-contact",
+        "submittedAt": "2026-04-01T04:23:15.963Z"
+      },
+      "createdAt": "2026-04-01T04:23:16.158847+00:00",
+      "updatedAt": "2026-04-01T04:23:16.158847+00:00"
+    },
+    {
+      "id": "ea7a1561-b8b8-4225-8ee3-9141356fe758",
+      "sender": "kabiraj",
+      "email": "kabirajrana@gmail.com",
+      "subject": "General Inquiry",
+      "body": "kohkhkokn; ;hj; jho;j kjo ;",
+      "status": "UNREAD",
+      "ipAddress": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Code/1.113.0 Chrome/142.0.7444.265 Electron/39.8.3 Safari/537.36",
+      "metadata": {
+        "source": "public-contact",
+        "submittedAt": "2026-04-01T08:50:28.082Z"
+      },
+      "createdAt": "2026-04-01T08:50:28.121993+00:00",
+      "updatedAt": "2026-04-01T08:50:28.121993+00:00"
+    },
+    {
+      "id": "0a77531b-1859-4ac3-8b8d-34d9204e817a",
+      "sender": "Kabiraj Rana",
+      "email": "kabirajrana07@gmail.com",
+      "subject": "General Inquiry",
+      "body": "hello world myu name is abira re;kekhekkj kj",
+      "status": "UNREAD",
+      "ipAddress": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36",
+      "metadata": {
+        "source": "public-contact",
+        "submittedAt": "2026-04-01T08:57:57.825Z"
+      },
+      "createdAt": "2026-04-01T08:57:57.859789+00:00",
+      "updatedAt": "2026-04-01T08:57:57.859789+00:00"
+    },
+    {
+      "id": "394a23ca-30cb-4e88-958c-a38c3ad221c6",
+      "sender": "Kabiraj Rana",
+      "email": "kabirajrana07@gmail.com",
+      "subject": "General Inquiry",
+      "body": "uiughghb oyg o8lyg8olyg olygyl",
+      "status": "UNREAD",
+      "ipAddress": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36",
+      "metadata": {
+        "source": "public-contact",
+        "submittedAt": "2026-04-01T09:19:14.174Z"
+      },
+      "createdAt": "2026-04-01T09:19:14.203919+00:00",
+      "updatedAt": "2026-04-01T09:19:14.203919+00:00"
     }
   ],
   "contact_config": {
@@ -943,6 +1166,44 @@
       "userAgent": null,
       "createdAt": "2026-03-11T05:27:53.999942+00:00",
       "updatedAt": "2026-03-11T05:27:53.999942+00:00"
+    },
+    {
+      "id": "18ceeea5-b1a1-4aa8-941a-0bcd331ca18a",
+      "actorId": "admin-1",
+      "actor": {
+        "name": null,
+        "email": null
+      },
+      "action": "LOGIN",
+      "resource": "AdminUser",
+      "resourceId": "admin-1",
+      "entityType": "AdminUser",
+      "entityId": "admin-1",
+      "summary": null,
+      "metadata": null,
+      "ip": null,
+      "userAgent": null,
+      "createdAt": "2026-04-01T05:59:29.232962+00:00",
+      "updatedAt": "2026-04-01T05:59:29.232962+00:00"
+    },
+    {
+      "id": "fe105673-2147-4688-ad5c-26a073282eee",
+      "actorId": "admin-1",
+      "actor": {
+        "name": null,
+        "email": null
+      },
+      "action": "LOGIN",
+      "resource": "AdminUser",
+      "resourceId": "admin-1",
+      "entityType": "AdminUser",
+      "entityId": "admin-1",
+      "summary": null,
+      "metadata": null,
+      "ip": null,
+      "userAgent": null,
+      "createdAt": "2026-04-01T09:20:01.993868+00:00",
+      "updatedAt": "2026-04-01T09:20:01.993868+00:00"
     }
   ],
   "revisions": [
@@ -1341,6 +1602,17 @@
       "id": "f9e11948-0a63-4fd0-9262-3f8d7cffb990",
       "createdAt": "2026-03-11T05:27:53.916604+00:00",
       "updatedAt": "2026-03-11T05:27:53.916604+00:00"
+    },
+    {
+      "type": "certificate",
+      "sortOrder": 0,
+      "credentialUrl": "https://example.com",
+      "isVisible": true,
+      "codeLabel": "C1",
+      "title": "Test Cert",
+      "id": "590d94d7-bd54-414f-aac6-f793bcccf2b6",
+      "createdAt": "2026-04-01T10:28:43.419411+00:00",
+      "updatedAt": "2026-04-01T10:28:43.419411+00:00"
     }
   ],
   "experience_page_config": {
@@ -1377,10 +1649,10 @@
       "email": "kabirajrana76@gmail.com",
       "name": "Admin",
       "role": "ADMIN",
-      "passwordHash": "$2b$10$GL99C9IyYX/d7tXHxfmVkuT2Gc.FXO0F3kd7T59fnfDaz1xCJDQ46",
-      "lastLoginAt": "2026-03-08T05:05:09.136490+00:00",
+      "passwordHash": "$2b$12$GGQBnhjL2YlXQoYXEt2xzuxi8qwwEQQICfU3RpkRDkw3DHJ4RlXsa",
+      "lastLoginAt": "2026-04-01T09:20:01.903852+00:00",
       "createdAt": "2026-03-07T11:19:56.292629+00:00",
-      "updatedAt": "2026-03-08T05:05:09.136490+00:00"
+      "updatedAt": "2026-04-01T09:20:01.903852+00:00"
     }
   ]
 }
