@@ -34,6 +34,10 @@ function toSingleSentence(text: string, fallback: string) {
   return sentence.endsWith(".") || sentence.endsWith("!") || sentence.endsWith("?") ? sentence : `${sentence}.`;
 }
 
+function hasMethodologyField(content: PublicResearchEntry["content"]): content is PublicResearchEntry["content"] & { methodology: string } {
+  return "methodology" in content && typeof content.methodology === "string";
+}
+
 const journey = [
   {
     title: "Coursework Foundation",
@@ -125,7 +129,14 @@ export function ResearchClientPage({ entries }: { entries: PublicResearchEntry[]
             <div className="mt-5 grid gap-4 md:grid-cols-2">
               <div className="rounded-xl border border-cyan-300/20 bg-cyan-400/5 p-4">
                 <p className="text-xs uppercase tracking-[0.16em] text-cyan-300">Methodology</p>
-                <p className="mt-2 text-sm text-cyan-100/85">{toSingleSentence(pinnedThesis.content.methodology, "Methodology details will be published soon.")}</p>
+                <p className="mt-2 text-sm text-cyan-100/85">
+                  {toSingleSentence(
+                    hasMethodologyField(pinnedThesis.content)
+                      ? pinnedThesis.content.methodology
+                      : "",
+                    "Methodology details will be published soon.",
+                  )}
+                </p>
               </div>
               <div className="rounded-xl border border-cyan-300/20 bg-cyan-400/5 p-4">
                 <p className="text-xs uppercase tracking-[0.16em] text-cyan-300">Expected Completion</p>
