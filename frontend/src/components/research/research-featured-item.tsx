@@ -21,17 +21,34 @@ function toSingleSentence(text: string, fallback: string) {
 }
 
 function getMetricResult(entry: PublicResearchEntry) {
+  const content = entry.content;
+
   switch (entry.type) {
     case "EXPERIMENT":
-      return toSingleSentence(entry.content.results, "Controlled experiment outcomes are being finalized.");
+      return toSingleSentence(
+        "results" in content && typeof content.results === "string" ? content.results : "",
+        "Controlled experiment outcomes are being finalized.",
+      );
     case "PAPER":
-      return toSingleSentence(entry.content.results, "Primary publication outcomes are being summarized.");
+      return toSingleSentence(
+        "results" in content && typeof content.results === "string" ? content.results : "",
+        "Primary publication outcomes are being summarized.",
+      );
     case "SYSTEM":
-      return toSingleSentence(entry.content.evaluation, "System evaluation highlights are pending update.");
+      return toSingleSentence(
+        "evaluation" in content && typeof content.evaluation === "string" ? content.evaluation : "",
+        "System evaluation highlights are pending update.",
+      );
     case "THESIS":
-      return toSingleSentence(entry.content.findings, "Current thesis findings are under review.");
+      return toSingleSentence(
+        "findings" in content && typeof content.findings === "string" ? content.findings : "",
+        "Current thesis findings are under review.",
+      );
     case "NOTE":
-      return toSingleSentence(entry.content.implications, "Key implications are being refined.");
+      return toSingleSentence(
+        "implications" in content && typeof content.implications === "string" ? content.implications : "",
+        "Key implications are being refined.",
+      );
     default:
       return "Key results are being updated.";
   }
