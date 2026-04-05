@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 
+import { FadeIn } from "@/components/motion/fade-in";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 
@@ -77,6 +78,64 @@ const notebooks: NotebookCard[] = [
   },
 ];
 
+function toFallbackExperimentRows() {
+  return experimentRows;
+}
+
+function toFallbackNotebookCards() {
+  return notebooks;
+}
+
+type LabInitialData = {
+  experiments?: Array<Record<string, unknown>>;
+  notebooks?: Array<Record<string, unknown>>;
+};
+
+function toExperimentsFromBackend(source?: Array<Record<string, unknown>>): ExperimentRow[] {
+  if (!Array.isArray(source)) {
+    return [];
+  }
+
+  return source
+    .map((item) => {
+      const statusValue = String(item.status ?? "");
+      const status: ExperimentStatus =
+        statusValue === "Completed" || statusValue === "In Progress" || statusValue === "Planned"
+          ? statusValue
+          : "Planned";
+
+      return {
+        model: String(item.modelName ?? item.model ?? ""),
+        dataset: String(item.dataset ?? ""),
+        accuracy: String(item.accuracy ?? ""),
+        f1: String(item.f1Score ?? item.f1 ?? ""),
+        date: String(item.date ?? ""),
+        notes: String(item.notes ?? ""),
+        status,
+      };
+    })
+    .filter((row) => row.model.trim().length > 0 && row.dataset.trim().length > 0);
+}
+
+function toNotebooksFromBackend(source?: Array<Record<string, unknown>>): NotebookCard[] {
+  if (!Array.isArray(source)) {
+    return [];
+  }
+
+  return source
+    .map((item) => ({
+      title: String(item.title ?? ""),
+      description: String(item.description ?? ""),
+      stack: Array.isArray(item.tags)
+        ? item.tags.map((tag) => String(tag))
+        : Array.isArray(item.stack)
+          ? item.stack.map((tag) => String(tag))
+          : [],
+      colabUrl: String(item.colabUrl ?? "https://colab.research.google.com/"),
+    }))
+    .filter((row) => row.title.trim().length > 0);
+}
+
 function statusClasses(status: ExperimentStatus) {
   if (status === "Completed") {
     return "border-emerald-300/40 bg-emerald-400/15 text-emerald-100";
@@ -87,12 +146,21 @@ function statusClasses(status: ExperimentStatus) {
   return "border-slate-300/35 bg-slate-300/10 text-slate-200";
 }
 
-export function LabPageClient() {
+export function LabPageClient({ initialData }: { initialData?: LabInitialData }) {
+  const [labExperiments] = useState<ExperimentRow[]>(() => {
+    const backendRows = toExperimentsFromBackend(initialData?.experiments);
+    return backendRows.length > 0 ? backendRows : toFallbackExperimentRows();
+  });
+  const [labNotebooks] = useState<NotebookCard[]>(() => {
+    const backendRows = toNotebooksFromBackend(initialData?.notebooks);
+    return backendRows.length > 0 ? backendRows : toFallbackNotebookCards();
+  });
   const [statusFilter, setStatusFilter] = useState<"All" | ExperimentStatus>("All");
   const [tableQuery, setTableQuery] = useState("");
+
   const filteredExperiments = useMemo(() => {
     const needle = tableQuery.trim().toLowerCase();
-    return experimentRows.filter((row) => {
+    return labExperiments.filter((row) => {
       const statusPass = statusFilter === "All" ? true : row.status === statusFilter;
       const queryPass =
         !needle ||
@@ -101,10 +169,10 @@ export function LabPageClient() {
         row.notes.toLowerCase().includes(needle);
       return statusPass && queryPass;
     });
-  }, [statusFilter, tableQuery]);
+  }, [labExperiments, statusFilter, tableQuery]);
 
   const avgAccuracy = useMemo(() => {
-    const values = experimentRows
+    const values = labExperiments
       .map((row) => Number.parseFloat(row.accuracy.replace("%", "")))
       .filter((value) => Number.isFinite(value));
 
@@ -114,28 +182,26 @@ export function LabPageClient() {
 
     const average = values.reduce((sum, value) => sum + value, 0) / values.length;
     return average.toFixed(1);
-  }, []);
+  }, [labExperiments]);
 
   const statusCounts = useMemo(() => {
-    return experimentRows.reduce(
+    return labExperiments.reduce(
       (acc, row) => {
         acc[row.status] += 1;
         return acc;
       },
       { Completed: 0, "In Progress": 0, Planned: 0 } as Record<ExperimentStatus, number>,
     );
-  }, []);
+  }, [labExperiments]);
 
-  const featuredNotebook = notebooks[0];
-  const secondaryNotebooks = notebooks.slice(1);
+  const featuredNotebook = labNotebooks[0] ?? toFallbackNotebookCards()[0];
+  const secondaryNotebooks = labNotebooks.slice(1);
 
   return (
     <div className="relative overflow-hidden rounded-3xl border border-border/65 bg-[linear-gradient(132deg,hsl(var(--background)/0.98)_0%,hsl(var(--surface)/0.94)_56%,hsl(var(--surface-2)/0.9)_100%)] p-5 pb-[120px] sm:p-6 md:space-y-10 md:p-8 md:pb-[120px]">
-      <div className="pointer-events-none absolute -left-10 -top-10 h-56 w-56 rounded-full bg-accent/10 blur-3xl" aria-hidden="true" />
-      <div className="pointer-events-none absolute -bottom-24 right-0 h-64 w-64 rounded-full bg-[hsl(var(--accent-2)/0.12)] blur-3xl" aria-hidden="true" />
-
       <div className="relative space-y-8 md:space-y-10">
-      <header className="lab-reveal lab-reveal-1 space-y-6 border-b border-cyan-300/20 pb-8">
+      <FadeIn delay={0.04} durationMs={980} y={18}>
+      <header className="space-y-6 border-b border-cyan-300/20 pb-8">
         <div className="lab-eyebrow-wrap">
           <p className="lab-eyebrow text-xs uppercase tracking-[0.24em]">Interactive AI/ML Playground</p>
         </div>
@@ -144,13 +210,16 @@ export function LabPageClient() {
           A live experimentation zone for testing models, visualizing behavior, and tracking hands-on AI research output.
         </p>
       </header>
+      </FadeIn>
 
-      <section className="lab-reveal lab-reveal-2 mt-[80px] space-y-4">
+      <FadeIn delay={0.1} durationMs={980} y={18}>
+      <section className="mt-[80px] space-y-4">
         <div className="border-l-[3px] border-[#00d4ff] pl-4">
           <p className="text-xs uppercase tracking-[0.2em] text-cyan-200/45">01</p>
           <h2 className="text-[1.5rem] font-semibold tracking-tight text-cyan-50">Live Demos</h2>
         </div>
         <div className="grid gap-4">
+          <FadeIn delay={0.16} durationMs={920} y={14}>
           <article
             className="lab-box lab-float lab-demo-card relative rounded-2xl border border-cyan-300/25 bg-[#0d1b2a] p-4 md:p-5"
             style={{ "--box-index": 1 } as React.CSSProperties}
@@ -166,20 +235,20 @@ export function LabPageClient() {
               Upload any image - the model will classify it into 1000 categories with confidence scores. Built on EfficientNet fine-tuned on CIFAR-10.
             </p>
             <div className="mt-4 flex h-[200px] items-center justify-center rounded-xl border border-cyan-300/25 bg-[#0b1624] p-3">
-              <svg viewBox="0 0 360 180" className="h-full w-full" role="img" aria-label="Animated neural network preview">
-                <g fill="#d4f6ff" opacity="0.95">
+              <svg viewBox="0 0 360 180" className="nn-graph h-full w-full" role="img" aria-label="Animated neural network preview">
+                <g className="nn-input-nodes" fill="#d4f6ff" opacity="0.95">
                   <circle cx="35" cy="20" r="6" />
                   <circle cx="35" cy="55" r="6" />
                   <circle cx="35" cy="90" r="6" />
                   <circle cx="35" cy="125" r="6" />
                   <circle cx="35" cy="160" r="6" />
                 </g>
-                <g fill="#77e9ff" opacity="0.95">
+                <g className="nn-hidden-nodes" fill="#77e9ff" opacity="0.95">
                   <circle cx="170" cy="45" r="8" />
                   <circle cx="170" cy="90" r="8" />
                   <circle cx="170" cy="135" r="8" />
                 </g>
-                <g fill="#00d4ff">
+                <g className="nn-output-node" fill="#00d4ff">
                   <circle cx="320" cy="90" r="10" />
                 </g>
 
@@ -211,34 +280,38 @@ export function LabPageClient() {
               </svg>
             </div>
 
-            <div className="mt-4 flex items-center justify-between gap-3">
+            <div className="mt-4 flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between">
               <p className="text-sm text-cyan-100/80">
                 <span className="text-cyan-300">Expected launch:</span> Q3 2026
               </p>
               <Button
                 asChild
                 variant="outline"
-                className="group relative overflow-hidden border-cyan-300/40 hover:border-cyan-300/55 hover:shadow-[0_0_14px_rgba(56,189,248,0.25)] focus-visible:shadow-[0_0_0_1px_rgba(56,189,248,0.45),0_0_18px_rgba(56,189,248,0.35)] active:shadow-[0_0_0_1px_rgba(56,189,248,0.5),0_0_22px_rgba(56,189,248,0.45)]"
+                className="group relative shrink-0 overflow-hidden whitespace-nowrap border-cyan-300/40 transition-colors duration-300 hover:border-cyan-300/55"
               >
-                <Link href="https://github.com/kabirajrana" target="_blank" rel="noopener noreferrer">
-                  <span className="relative inline-block before:absolute before:-bottom-[3px] before:left-0 before:h-[3px] before:w-4 before:bg-accent/22 before:blur-[2px] before:content-[''] after:absolute after:-bottom-[1px] after:left-0 after:h-[1px] after:w-3 after:bg-accent after:content-[''] after:transition-[width] after:duration-500 after:ease-out before:transition-[width] before:duration-500 before:ease-out group-hover:after:w-full group-hover:before:w-full group-focus-visible:after:w-full group-focus-visible:before:w-full group-active:after:w-full group-active:before:w-full">
+                <Link href="https://github.com/kabirajrana" target="_blank" rel="noopener noreferrer" className="whitespace-nowrap">
+                  <span className="relative inline-block after:absolute after:-bottom-[1px] after:left-0 after:h-[1px] after:w-3 after:bg-accent after:content-[''] after:transition-[width] after:duration-300 after:ease-out group-hover:after:w-full group-focus-visible:after:w-full group-active:after:w-full">
                     Watch on GitHub
                   </span>
                 </Link>
               </Button>
             </div>
           </article>
+          </FadeIn>
 
         </div>
       </section>
+      </FadeIn>
 
-      <section className="lab-reveal lab-reveal-3 mt-[80px] space-y-4">
+      <FadeIn delay={0.16} durationMs={980} y={18}>
+      <section className="mt-[80px] space-y-4">
         <div className="border-l-[3px] border-[#00d4ff] pl-4">
           <p className="text-xs uppercase tracking-[0.2em] text-cyan-200/45">02</p>
           <h2 className="text-[1.5rem] font-semibold tracking-tight text-cyan-50">Experiments Log</h2>
         </div>
         <div className="lab-box rounded-2xl border border-cyan-300/25 bg-surface/45 p-4 md:p-5" style={{ "--box-index": 5 } as React.CSSProperties}>
           <div className="mb-4 flex flex-col gap-4 md:flex-row">
+            <FadeIn delay={0.18} durationMs={880} y={12} className="flex-1">
             <article className="lab-box lab-float flex-1 rounded-[8px] border-[0.5px] border-cyan-300/25 bg-[#0d1b2a] px-4 py-3" style={{ "--box-index": 2 } as React.CSSProperties}>
               <p className="flex items-center gap-2 text-[11px] uppercase tracking-[0.14em] text-cyan-200/55">
                 <span aria-hidden="true" className="inline-flex">
@@ -254,7 +327,9 @@ export function LabPageClient() {
                 <span className="text-[#00d4ff]">{experimentRows.length}</span> Total Experiments
               </p>
             </article>
+            </FadeIn>
 
+            <FadeIn delay={0.24} durationMs={880} y={12} className="flex-1">
             <article className="lab-box lab-float flex-1 rounded-[8px] border-[0.5px] border-cyan-300/25 bg-[#0d1b2a] px-4 py-3" style={{ "--box-index": 3 } as React.CSSProperties}>
               <p className="flex items-center gap-2 text-[11px] uppercase tracking-[0.14em] text-cyan-200/55">
                 <span aria-hidden="true" className="inline-flex">
@@ -269,7 +344,9 @@ export function LabPageClient() {
                 Avg Accuracy: <span className="text-[#00d4ff]">{avgAccuracy}%</span>
               </p>
             </article>
+            </FadeIn>
 
+            <FadeIn delay={0.3} durationMs={880} y={12} className="flex-1">
             <article className="lab-box lab-float flex-1 rounded-[8px] border-[0.5px] border-cyan-300/25 bg-[#0d1b2a] px-4 py-3" style={{ "--box-index": 4 } as React.CSSProperties}>
               <p className="flex items-center gap-2 text-[11px] uppercase tracking-[0.14em] text-cyan-200/55">
                 <span aria-hidden="true" className="inline-flex h-2 w-2 rounded-full bg-cyan-300" />
@@ -279,6 +356,7 @@ export function LabPageClient() {
                 <span className="text-[#00d4ff]">{statusCounts["Completed"]}</span> Completed · <span className="text-[#00d4ff]">{statusCounts["In Progress"]}</span> In Progress · <span className="text-[#00d4ff]">{statusCounts["Planned"]}</span> Planned
               </p>
             </article>
+            </FadeIn>
           </div>
 
           <div className="mb-4 grid gap-3 md:grid-cols-[1fr_auto]">
@@ -339,13 +417,16 @@ export function LabPageClient() {
           </div>
         </div>
       </section>
+      </FadeIn>
 
-      <section className="lab-reveal lab-reveal-4 mt-[80px] space-y-4">
+      <FadeIn delay={0.22} durationMs={980} y={18}>
+      <section className="mt-[80px] space-y-4">
         <div className="border-l-[3px] border-[#00d4ff] pl-4">
           <p className="text-xs uppercase tracking-[0.2em] text-cyan-200/45">03</p>
           <h2 className="text-[1.5rem] font-semibold tracking-tight text-cyan-50">Notebooks</h2>
         </div>
         <div className="space-y-4">
+          <FadeIn delay={0.26} durationMs={900} y={14}>
           <article
             className="lab-box lab-float rounded-2xl border border-[rgba(0,212,255,0.3)] bg-[linear-gradient(135deg,#0d1b2a_0%,#0a1628_100%)] p-6 md:p-7"
             style={{ "--box-index": 6 } as React.CSSProperties}
@@ -364,7 +445,7 @@ export function LabPageClient() {
               <Button
                 asChild
                 variant="outline"
-                className="group relative overflow-hidden border-cyan-300/40 hover:border-cyan-300/55 hover:shadow-[0_0_14px_rgba(56,189,248,0.25)] focus-visible:shadow-[0_0_0_1px_rgba(56,189,248,0.45),0_0_18px_rgba(56,189,248,0.35)] active:shadow-[0_0_0_1px_rgba(56,189,248,0.5),0_0_22px_rgba(56,189,248,0.45)]"
+                className="group relative overflow-hidden border-cyan-300/40 transition-colors duration-300 hover:border-cyan-300/55"
               >
                 <Link href={featuredNotebook.colabUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2">
                   <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -373,16 +454,18 @@ export function LabPageClient() {
                     <path d="M14 20h6" />
                     <path d="m18 4 2 2" />
                   </svg>
-                  <span className="relative inline-block before:absolute before:-bottom-[3px] before:left-0 before:h-[3px] before:w-4 before:bg-accent/22 before:blur-[2px] before:content-[''] after:absolute after:-bottom-[1px] after:left-0 after:h-[1px] after:w-3 after:bg-accent after:content-[''] after:transition-[width] after:duration-500 after:ease-out before:transition-[width] before:duration-500 before:ease-out group-hover:after:w-full group-hover:before:w-full group-focus-visible:after:w-full group-focus-visible:before:w-full group-active:after:w-full group-active:before:w-full">
+                  <span className="relative inline-block after:absolute after:-bottom-[1px] after:left-0 after:h-[1px] after:w-3 after:bg-accent after:content-[''] after:transition-[width] after:duration-300 after:ease-out group-hover:after:w-full group-focus-visible:after:w-full group-active:after:w-full">
                     Open in Colab
                   </span>
                 </Link>
               </Button>
             </div>
           </article>
+          </FadeIn>
 
           <div className="grid gap-4 md:grid-cols-2">
             {secondaryNotebooks.map((notebook, index) => (
+              <FadeIn key={`${notebook.title}-fade`} delay={0.3 + index * 0.06} durationMs={860} y={12}>
               <article
                 key={notebook.title}
                 className="lab-box lab-float rounded-2xl border border-cyan-300/25 bg-surface/45 p-4 md:p-5"
@@ -401,20 +484,22 @@ export function LabPageClient() {
                   <Button
                     asChild
                     variant="outline"
-                    className="group relative overflow-hidden border-cyan-300/40 hover:border-cyan-300/55 hover:shadow-[0_0_14px_rgba(56,189,248,0.25)] focus-visible:shadow-[0_0_0_1px_rgba(56,189,248,0.45),0_0_18px_rgba(56,189,248,0.35)] active:shadow-[0_0_0_1px_rgba(56,189,248,0.5),0_0_22px_rgba(56,189,248,0.45)]"
+                    className="group relative overflow-hidden border-cyan-300/40 transition-colors duration-300 hover:border-cyan-300/55"
                   >
                     <Link href={notebook.colabUrl} target="_blank" rel="noopener noreferrer">
-                      <span className="relative inline-block before:absolute before:-bottom-[3px] before:left-0 before:h-[3px] before:w-4 before:bg-accent/22 before:blur-[2px] before:content-[''] after:absolute after:-bottom-[1px] after:left-0 after:h-[1px] after:w-3 after:bg-accent after:content-[''] after:transition-[width] after:duration-500 after:ease-out before:transition-[width] before:duration-500 before:ease-out group-hover:after:w-full group-hover:before:w-full group-focus-visible:after:w-full group-focus-visible:before:w-full group-active:after:w-full group-active:before:w-full">
+                      <span className="relative inline-block after:absolute after:-bottom-[1px] after:left-0 after:h-[1px] after:w-3 after:bg-accent after:content-[''] after:transition-[width] after:duration-300 after:ease-out group-hover:after:w-full group-focus-visible:after:w-full group-active:after:w-full">
                         Open in Colab
                       </span>
                     </Link>
                   </Button>
                 </div>
               </article>
+              </FadeIn>
             ))}
           </div>
         </div>
       </section>
+      </FadeIn>
 
       <style jsx>{`
         .lab-eyebrow-wrap {
@@ -432,14 +517,15 @@ export function LabPageClient() {
           inset: -40%;
           background: radial-gradient(circle, rgba(0, 212, 255, 0.2) 0%, rgba(0, 212, 255, 0.06) 35%, transparent 70%);
           filter: blur(18px);
-          animation: eyebrowGlow 4s ease-in-out infinite;
+          animation: none;
+          opacity: 0;
           pointer-events: none;
         }
 
         .lab-eyebrow {
           position: relative;
           color: #00d4ff;
-          text-shadow: 0 0 8px rgba(0, 212, 255, 0.25);
+          text-shadow: none;
         }
 
         .lab-demo-card {
@@ -461,9 +547,19 @@ export function LabPageClient() {
         .lab-reveal-4 {
           opacity: 1;
           transform: none;
-          animation: none;
-          transition: none;
+          transition: border-color 280ms ease, background-color 280ms ease;
           will-change: auto;
+        }
+
+        .lab-box:hover,
+        .lab-box:focus-within {
+          transform: translateY(-2px);
+          border-color: rgba(0, 212, 255, 0.42);
+          box-shadow: none;
+        }
+
+        .lab-box:active {
+          transform: translateY(0) scale(0.995);
         }
 
         .coming-ring {
@@ -471,17 +567,32 @@ export function LabPageClient() {
           inset: -1px;
           border-radius: inherit;
           padding: 1px;
-          background: conic-gradient(from 0deg, rgba(0, 212, 255, 0.02), rgba(0, 212, 255, 0.12), rgba(0, 212, 255, 0.02));
+          background: conic-gradient(from 0deg, rgba(0, 212, 255, 0.02), rgba(0, 212, 255, 0.07), rgba(0, 212, 255, 0.02));
           animation: spinRing 7s linear infinite;
           -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
           -webkit-mask-composite: xor;
           mask-composite: exclude;
+          opacity: 0;
           pointer-events: none;
         }
 
         .nn-links line {
-          stroke-dasharray: 10;
-          animation: flowDash 1.9s linear infinite;
+          stroke-linecap: round;
+          stroke-width: 2;
+          stroke-dasharray: 6 12;
+          animation: flowDash 900ms linear infinite, flowFade 2s ease-in-out infinite;
+        }
+
+        .nn-links line:nth-child(3n + 1) {
+          animation-delay: 0ms, 0ms;
+        }
+
+        .nn-links line:nth-child(3n + 2) {
+          animation-delay: -240ms, -420ms;
+        }
+
+        .nn-links line:nth-child(3n) {
+          animation-delay: -480ms, -820ms;
         }
 
         @keyframes eyebrowGlow {
@@ -510,7 +621,39 @@ export function LabPageClient() {
             stroke-dashoffset: 0;
           }
           100% {
-            stroke-dashoffset: -20;
+            stroke-dashoffset: -40;
+          }
+        }
+
+        @keyframes flowFade {
+          0%,
+          100% {
+            opacity: 0.42;
+          }
+          50% {
+            opacity: 1;
+          }
+        }
+
+        @keyframes mobileSectionReveal {
+          0% {
+            opacity: 0;
+            transform: translateY(18px);
+          }
+          100% {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+
+        @keyframes mobileCardReveal {
+          0% {
+            opacity: 0;
+            transform: translateY(14px) scale(0.985);
+          }
+          100% {
+            opacity: 1;
+            transform: translateY(0) scale(1);
           }
         }
 
@@ -534,6 +677,36 @@ export function LabPageClient() {
           width: var(--accuracy);
           background: rgba(0, 212, 255, 0.18);
           z-index: -1;
+        }
+
+        @media (max-width: 767px) {
+          .lab-box:active {
+            transform: scale(0.992);
+          }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+          .lab-box,
+          .lab-reveal,
+          .lab-reveal-1,
+          .lab-reveal-2,
+          .lab-reveal-3,
+          .lab-reveal-4 {
+            animation: none !important;
+            transition: none !important;
+            opacity: 1 !important;
+            transform: none !important;
+          }
+
+          .coming-ring,
+          .lab-eyebrow-wrap::before {
+            animation: none !important;
+          }
+
+          .nn-links line {
+            /* Keep a subtle line-flow so the neural preview still appears animated */
+            animation: flowDash 1.6s linear infinite, flowFade 2.8s ease-in-out infinite !important;
+          }
         }
       `}</style>
       </div>

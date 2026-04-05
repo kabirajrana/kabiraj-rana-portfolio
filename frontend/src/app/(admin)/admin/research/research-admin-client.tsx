@@ -155,35 +155,86 @@ function slugify(value: string) {
     .replace(/-+/g, "-");
 }
 
+function toCsv(value: unknown): string {
+  return Array.isArray(value)
+    ? value
+        .map((item) => String(item ?? "").trim())
+        .filter(Boolean)
+        .join(", ")
+    : "";
+}
+
+function asString(value: unknown): string {
+  return typeof value === "string" ? value : "";
+}
+
+function asResearchType(value: unknown): ResearchType {
+  return TYPES.includes(value as ResearchType) ? (value as ResearchType) : "EXPERIMENT";
+}
+
+function asStatus(value: unknown): EditorState["status"] {
+  return value === "PUBLISHED" || value === "ARCHIVED" || value === "DRAFT" ? value : "DRAFT";
+}
+
+function asContent(type: ResearchType, value: unknown): Record<string, string> {
+  const base = emptyContent(type);
+  if (!value || typeof value !== "object") {
+    return base;
+  }
+
+  const source = value as Record<string, unknown>;
+  for (const key of Object.keys(base)) {
+    base[key] = typeof source[key] === "string" ? (source[key] as string) : "";
+  }
+
+  return base;
+}
+
+function parseReferencesJson(value: string): unknown[] {
+  const candidate = value.trim();
+  if (!candidate) {
+    return [];
+  }
+
+  try {
+    const parsed = JSON.parse(candidate) as unknown;
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
 function toEditorState(entry: PublicResearchEntry): EditorState {
+  const type = asResearchType(entry.type);
+
   return {
-    id: entry.id,
-    title: entry.title,
-    slug: entry.slug,
-    summary: entry.summary,
-    type: entry.type,
-    category: entry.category ?? "",
-    tags: entry.tags.join(", "),
+    id: asString(entry.id) || undefined,
+    title: asString(entry.title),
+    slug: asString(entry.slug),
+    summary: asString(entry.summary),
+    type,
+    category: asString(entry.category),
+    tags: toCsv(entry.tags),
     year: String(entry.year),
-    status: entry.status,
-    featured: entry.featured,
-    authors: entry.authors.join(", "),
-    affiliation: entry.affiliation ?? "",
-    researchArea: entry.researchArea ?? "",
-    dataset: entry.dataset ?? "",
-    duration: entry.duration ?? "",
-    coverImage: entry.coverImage ?? "",
-    codeUrl: entry.codeUrl ?? "",
-    pdfUrl: entry.pdfUrl ?? "",
-    demoUrl: entry.demoUrl ?? "",
-    notesUrl: entry.notesUrl ?? "",
-    citation: entry.citation ?? "",
+    status: asStatus(entry.status),
+    featured: Boolean(entry.featured),
+    authors: toCsv(entry.authors),
+    affiliation: asString(entry.affiliation),
+    researchArea: asString(entry.researchArea),
+    dataset: asString(entry.dataset),
+    duration: asString(entry.duration),
+    coverImage: asString(entry.coverImage),
+    codeUrl: asString(entry.codeUrl),
+    pdfUrl: asString(entry.pdfUrl),
+    demoUrl: asString(entry.demoUrl),
+    notesUrl: asString(entry.notesUrl),
+    citation: asString(entry.citation),
     referencesJson: JSON.stringify(Array.isArray(entry.references) ? entry.references : [], null, 2),
-    relatedSlugs: entry.relatedSlugs.join(", "),
-    seoTitle: entry.seoTitle ?? "",
-    seoDescription: entry.seoDescription ?? "",
-    publishedAt: entry.publishedAt ? entry.publishedAt.slice(0, 16) : "",
-    content: entry.content as Record<string, string>,
+    relatedSlugs: toCsv(entry.relatedSlugs),
+    seoTitle: asString(entry.seoTitle),
+    seoDescription: asString(entry.seoDescription),
+    publishedAt: typeof entry.publishedAt === "string" ? entry.publishedAt.slice(0, 16) : "",
+    content: asContent(type, entry.content),
   };
 }
 
@@ -211,7 +262,7 @@ function toPreviewEntry(state: EditorState): PublicResearchEntry {
     notesUrl: state.notesUrl,
     coverImage: state.coverImage,
     citation: state.citation,
-    references: JSON.parse(state.referencesJson || "[]"),
+    references: parseReferencesJson(state.referencesJson),
     relatedSlugs: state.relatedSlugs.split(",").map((part) => part.trim()).filter(Boolean),
     seoTitle: state.seoTitle,
     seoDescription: state.seoDescription,
@@ -227,6 +278,30 @@ export function ResearchAdminClient({ entries }: { entries: PublicResearchEntry[
   const [pending, startTransition] = useTransition();
 
   const preview = useMemo(() => toPreviewEntry(state), [state]);
+  const stats = useMemo(
+    () => ({
+      total: entries.length,
+      publications: entries.filter((entry) => entry.type === "PAPER").length,
+      experiments: entries.filter((entry) => entry.type === "EXPERIMENT").length,
+      systems: entries.filter((entry) => entry.type === "SYSTEM").length,
+      notes: entries.filter((entry) => entry.type === "NOTE").length,
+      thesis: entries.filter((entry) => entry.type === "THESIS").length,
+    }),
+    [entries],
+  );
+
+  const statItems: Array<{ key: keyof typeof stats; label: string }> = [
+    { key: "total", label: "Total Publications" },
+    { key: "experiments", label: "Total Experiments" },
+    { key: "systems", label: "Total Systems" },
+    { key: "notes", label: "Total Notes" },
+    { key: "thesis", label: "Total Thesis Works" },
+    { key: "publications", label: "Peer-style Publications" },
+  ];
+
+  const visibleStatItems = statItems.filter((item) => stats[item.key] > 0);
+  const featuredEntries = useMemo(() => entries.filter((entry) => entry.featured), [entries]);
+  const archiveEntries = useMemo(() => entries.filter((entry) => entry.status === "ARCHIVED"), [entries]);
 
   const allSlugs = entries.map((item) => item.slug).filter((slug) => slug !== state.slug);
 
@@ -273,13 +348,66 @@ export function ResearchAdminClient({ entries }: { entries: PublicResearchEntry[
         await upsertResearchAction(data);
         toast.success("Research entry saved");
       } catch {
-        toast.error("Failed to save research entry. Check required fields and JSON format.");
+        toast.error("Failed to save research entry. Check required fields.");
       }
     });
   }
 
   return (
     <section className="space-y-4 pb-8">
+      <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        {visibleStatItems.map((item) => (
+          <article key={`admin-research-stat-${item.key}`} className="rounded-xl border border-border/60 bg-surface/35 p-4">
+            <p className="text-xs uppercase tracking-[0.16em] text-muted">{item.label}</p>
+            <p className="mt-2 text-3xl font-semibold tracking-tight">{stats[item.key]}</p>
+          </article>
+        ))}
+      </section>
+
+      <div className="grid gap-4 lg:grid-cols-2">
+        <Card>
+          <CardHeader>
+            <CardTitle>Featured Research ({featuredEntries.length})</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            {featuredEntries.length ? (
+              featuredEntries.map((entry) => (
+                <div key={`featured-${entry.id}`} className="flex items-center justify-between gap-3 rounded-xl border border-border/70 bg-surface/40 p-3">
+                  <div>
+                    <p className="font-medium">{entry.title}</p>
+                    <p className="text-xs text-muted">{entry.type} · {entry.year} · {entry.status}</p>
+                  </div>
+                  <Button size="sm" variant="outline" onClick={() => setState(toEditorState(entry))}>Edit</Button>
+                </div>
+              ))
+            ) : (
+              <p className="text-sm text-muted">No featured research entries yet.</p>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Research Archive ({archiveEntries.length})</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            {archiveEntries.length ? (
+              archiveEntries.map((entry) => (
+                <div key={`archive-${entry.id}`} className="flex items-center justify-between gap-3 rounded-xl border border-border/70 bg-surface/40 p-3">
+                  <div>
+                    <p className="font-medium">{entry.title}</p>
+                    <p className="text-xs text-muted">{entry.type} · {entry.year} · {entry.slug}</p>
+                  </div>
+                  <Button size="sm" variant="outline" onClick={() => setState(toEditorState(entry))}>Edit</Button>
+                </div>
+              ))
+            ) : (
+              <p className="text-sm text-muted">No archived research entries.</p>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+
       <Card>
         <CardHeader>
           <CardTitle>Research Archive Table</CardTitle>
@@ -361,7 +489,6 @@ export function ResearchAdminClient({ entries }: { entries: PublicResearchEntry[
                 <Input placeholder="Demo URL" value={state.demoUrl} onChange={(event) => setField("demoUrl", event.target.value)} />
                 <Input placeholder="Notes URL" value={state.notesUrl} onChange={(event) => setField("notesUrl", event.target.value)} />
                 <Textarea placeholder="Citation" value={state.citation} onChange={(event) => setField("citation", event.target.value)} className="md:col-span-4" />
-                <Textarea placeholder="References JSON" value={state.referencesJson} onChange={(event) => setField("referencesJson", event.target.value)} className="md:col-span-4 min-h-[120px]" />
                 <div className="md:col-span-4">
                   <p className="mb-2 text-xs uppercase tracking-[0.14em] text-muted">Related Research</p>
                   <div className="flex flex-wrap gap-2">

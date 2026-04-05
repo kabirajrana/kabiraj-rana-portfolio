@@ -12,6 +12,9 @@ export function ResearchHero() {
         Research exploring scalable machine learning systems, model architectures, intelligent data pipelines, and applied AI systems for real-world impact.
         This archive documents publications, experiments, technical notes, thesis work, and system design research.
       </p>
+      <p className="max-w-4xl text-sm leading-relaxed text-cyan-100/85 md:text-base">
+        Active thesis: Explainability and Robustness in Deployed ML Systems - BSc Dissertation 2026.
+      </p>
       <div className="flex flex-wrap gap-2">
         <Badge>ML Systems</Badge>
         <Badge>Model Architecture</Badge>
@@ -19,6 +22,25 @@ export function ResearchHero() {
         <Badge>Applied AI</Badge>
         <Badge>Intelligent Automation</Badge>
       </div>
+
+      <section className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+        <article className="rounded-[10px] border border-[rgba(0,212,255,0.12)] bg-[rgba(255,255,255,0.04)] px-4 py-[10px]">
+          <p className="text-[22px] font-semibold leading-none text-[#00d4ff]">4</p>
+          <p className="mt-1 text-[10px] text-muted">Experiments</p>
+        </article>
+        <article className="rounded-[10px] border border-[rgba(0,212,255,0.12)] bg-[rgba(255,255,255,0.04)] px-4 py-[10px]">
+          <p className="text-[22px] font-semibold leading-none text-[#00d4ff]">3</p>
+          <p className="mt-1 text-[10px] text-muted">Technical Notes</p>
+        </article>
+        <article className="rounded-[10px] border border-[rgba(0,212,255,0.12)] bg-[rgba(255,255,255,0.04)] px-4 py-[10px]">
+          <p className="text-[22px] font-semibold leading-none text-[#00d4ff]">1</p>
+          <p className="mt-1 text-[10px] text-muted">Thesis Work</p>
+        </article>
+        <article className="rounded-[10px] border border-[rgba(0,212,255,0.12)] bg-[rgba(255,255,255,0.04)] px-4 py-[10px]">
+          <p className="text-[22px] font-semibold leading-none text-[#00d4ff]">2026</p>
+          <p className="mt-1 text-[10px] text-muted">Active Year</p>
+        </article>
+      </section>
     </header>
   );
 }

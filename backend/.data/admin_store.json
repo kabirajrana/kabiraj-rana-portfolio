@@ -405,38 +405,195 @@
   ],
   "research": [
     {
-      "title": "R",
+      "id": "research-exp-rf-xgb-svm-2026",
+      "slug": "random-forest-vs-xgboost-performance-study",
+      "title": "Random Forest vs XGBoost Performance Study",
+      "summary": "Benchmarking tree-based ensembles for imbalanced multi-class classification under strict generalization constraints.",
+      "type": "EXPERIMENT",
+      "category": "Model Benchmarking",
       "tags": [
-        "ml"
+        "ensemble",
+        "boosting",
+        "imbalanced-data",
+        "classification"
       ],
       "year": 2026,
-      "type": "NOTE",
-      "status": "DRAFT",
-      "summary": "s",
-      "slug": "r-test",
+      "status": "PUBLISHED",
+      "featured": false,
+      "authors": [
+        "Kabiraj Rana"
+      ],
+      "affiliation": "Coventry University UK",
+      "researchArea": "Applied Machine Learning",
+      "dataset": "Imbalanced Multi-class Benchmark",
+      "duration": "6 weeks",
+      "pdfUrl": null,
+      "codeUrl": "https://github.com/kabirajrana/research-placeholder",
+      "demoUrl": null,
+      "notesUrl": null,
+      "coverImage": null,
+      "citation": null,
+      "references": [],
+      "relatedSlugs": [],
+      "seoTitle": "Random Forest vs XGBoost Performance Study",
+      "seoDescription": "Benchmarking tree-based ensembles for imbalanced multi-class classification.",
+      "publishedAt": "2026-04-05T08:00:00+00:00",
       "content": {
-        "sections": []
+        "objective": "Compare tree-ensemble robustness in imbalanced multi-class settings.",
+        "dataset": "Imbalanced synthetic plus tabular validation suites.",
+        "method": "Cross-validated comparison using calibrated probabilities and class-weighted tuning.",
+        "metrics": "87.6% F1 Score",
+        "results": "87.6% F1 Score",
+        "keyInsight": "XGBoost improved minority-class recall with tuned boosting depth.",
+        "limitations": "Performance varied under extreme class skew and noisy labels.",
+        "nextSteps": "Evaluate focal-loss variants and cost-sensitive ensemble strategies."
       },
-      "id": "5a9b669c-b3d9-4f25-8ca6-edd1cf3ba535",
-      "createdAt": "2026-03-07T10:59:14.452469+00:00",
-      "updatedAt": "2026-03-07T10:59:14.452469+00:00"
+      "createdAt": "2026-04-05T08:00:00+00:00",
+      "updatedAt": "2026-04-05T08:00:00+00:00"
     },
     {
-      "title": "Research T",
-      "slug": "research-t",
-      "summary": "sum",
-      "type": "NOTE",
-      "status": "DRAFT",
-      "year": 2026,
+      "id": "research-exp-cnn-transfer-2026",
+      "slug": "cnn-vs-transfer-learning-for-image-recognition",
+      "title": "CNN vs Transfer Learning for Image Recognition",
+      "summary": "Evaluating custom CNN from scratch against EfficientNet transfer learning baselines under limited labeled image budgets.",
+      "type": "EXPERIMENT",
+      "category": "Computer Vision",
       "tags": [
-        "ml"
+        "computer-vision",
+        "CNN",
+        "transfer-learning",
+        "CIFAR-10"
       ],
+      "year": 2026,
+      "status": "PUBLISHED",
+      "featured": true,
+      "authors": [
+        "Kabiraj Rana"
+      ],
+      "affiliation": "Coventry University UK",
+      "researchArea": "Computer Vision",
+      "dataset": "CIFAR-10",
+      "duration": "8 weeks",
+      "pdfUrl": null,
+      "codeUrl": "https://github.com/kabirajrana/research-placeholder",
+      "demoUrl": null,
+      "notesUrl": null,
+      "coverImage": null,
+      "citation": null,
+      "references": [],
+      "relatedSlugs": [],
+      "seoTitle": "CNN vs Transfer Learning for Image Recognition",
+      "seoDescription": "Comparing custom CNN and transfer learning under low-label settings.",
+      "publishedAt": "2026-04-05T08:05:00+00:00",
       "content": {
-        "sections": []
+        "objective": "Measure image classification performance under limited annotation budgets.",
+        "dataset": "CIFAR-10 with constrained labeled subsets.",
+        "method": "Baseline custom CNN versus EfficientNet transfer learning with consistent augmentation.",
+        "metrics": "91.4% Accuracy",
+        "results": "91.4% Accuracy",
+        "keyInsight": "Transfer learning converged faster and generalized better with fewer labels.",
+        "limitations": "Custom CNN remained sensitive to augmentation and optimizer schedules.",
+        "nextSteps": "Test semi-supervised pseudo-labeling with confidence filtering."
       },
-      "id": "19cd8aa6-41ae-4028-be03-96567a746f9c",
-      "createdAt": "2026-03-07T11:02:33.930478+00:00",
-      "updatedAt": "2026-03-07T11:02:33.930478+00:00"
+      "createdAt": "2026-04-05T08:05:00+00:00",
+      "updatedAt": "2026-04-05T08:05:00+00:00"
+    },
+    {
+      "id": "research-exp-logreg-svm-2026",
+      "slug": "logistic-regression-vs-svm-on-classification-tasks",
+      "title": "Logistic Regression vs SVM on Classification Tasks",
+      "summary": "Comparing linear and kernel-based decision boundaries for medium-dimensional sparse text and tabular data.",
+      "type": "EXPERIMENT",
+      "category": "Classification",
+      "tags": [
+        "classification",
+        "SVM",
+        "logistic-regression",
+        "tabular"
+      ],
+      "year": 2026,
+      "status": "PUBLISHED",
+      "featured": false,
+      "authors": [
+        "Kabiraj Rana"
+      ],
+      "affiliation": "Coventry University UK",
+      "researchArea": "Classification Systems",
+      "dataset": "Sparse text and tabular mixed benchmarks",
+      "duration": "5 weeks",
+      "pdfUrl": null,
+      "codeUrl": null,
+      "demoUrl": null,
+      "notesUrl": null,
+      "coverImage": null,
+      "citation": null,
+      "references": [],
+      "relatedSlugs": [],
+      "seoTitle": "Logistic Regression vs SVM on Classification Tasks",
+      "seoDescription": "Comparing linear and kernel decision boundaries on sparse and tabular datasets.",
+      "publishedAt": "2026-04-05T08:10:00+00:00",
+      "content": {
+        "objective": "Evaluate trade-offs between linear and kernel-based classifiers.",
+        "dataset": "Medium-dimensional sparse text and tabular datasets.",
+        "method": "Hyperparameter search over C, regularization, and kernel choices.",
+        "metrics": "82.1% F1 Score",
+        "results": "82.1% F1 Score",
+        "keyInsight": "Kernel SVM improved boundary fit but incurred higher compute costs.",
+        "limitations": "Kernel methods scaled poorly with larger sample counts.",
+        "nextSteps": "Explore linear approximations and calibrated margin thresholds."
+      },
+      "createdAt": "2026-04-05T08:10:00+00:00",
+      "updatedAt": "2026-04-05T08:10:00+00:00"
+    },
+    {
+      "id": "research-thesis-bsc-2026",
+      "slug": "explainability-and-robustness-in-deployed-ml-systems-bsc-dissertation-2026",
+      "title": "Explainability and Robustness in Deployed ML Systems - BSc Dissertation 2026",
+      "summary": "How can explainable AI techniques (SHAP, LIME) improve trust and transparency in machine learning models deployed in high-stakes domains?",
+      "type": "THESIS",
+      "category": "Thesis",
+      "tags": [
+        "thesis",
+        "deep-learning",
+        "applied-AI"
+      ],
+      "year": 2026,
+      "status": "PUBLISHED",
+      "featured": true,
+      "authors": [
+        "Kabiraj Rana"
+      ],
+      "affiliation": "Coventry University UK",
+      "researchArea": "Applied AI",
+      "dataset": null,
+      "duration": "In Progress",
+      "pdfUrl": null,
+      "codeUrl": null,
+      "demoUrl": null,
+      "notesUrl": null,
+      "coverImage": null,
+      "citation": null,
+      "references": [],
+      "relatedSlugs": [],
+      "seoTitle": "Explainability and Robustness in Deployed ML Systems - BSc Dissertation 2026",
+      "seoDescription": "Thesis research in applied AI and deep learning.",
+      "publishedAt": "2026-04-05T08:15:00+00:00",
+      "content": {
+        "abstract": "Thesis abstract will be finalized with full scope and outcomes.",
+        "context": "BSc AI dissertation under Coventry University UK.",
+        "researchQuestion": "How can explainable AI techniques (SHAP, LIME) improve trust and transparency in machine learning models deployed in high-stakes domains?",
+        "literatureReview": "Ongoing review of applied AI and deep-learning literature.",
+        "methodology": "Methodology draft in progress.",
+        "implementation": "Implementation pipeline under active development.",
+        "findings": "In Progress - 35% completion",
+        "discussion": "Interim observations will be documented after milestone validation.",
+        "conclusion": "Pending final experiment outcomes.",
+        "limitations": "To be updated as experiments expand.",
+        "futureWork": "Planned extension to broader evaluation datasets.",
+        "appendix": "Draft appendix placeholders."
+      },
+      "createdAt": "2026-04-05T08:15:00+00:00",
+      "updatedAt": "2026-04-05T08:15:00+00:00"
     }
   ],
   "media": [
@@ -517,8 +674,108 @@
     "lastSyncAt": null,
     "lastError": null,
     "rateLimitRemaining": null,
-    "updatedAt": "2026-03-07T11:02:34.006721+00:00",
-    "createdAt": "2026-03-07T10:59:14.824615+00:00"
+    "updatedAt": "2026-04-05T06:33:58.589624+00:00",
+    "createdAt": "2026-03-07T10:59:14.824Z",
+    "labContent": {
+      "demos": [
+        {
+          "id": "ca249d6c-df12-4386-bc76-0343bd96a8b4",
+          "title": "CNN Image Classifier",
+          "description": "Coming soon showcase for image classification with EfficientNet.",
+          "type": "Coming Soon",
+          "status": "Coming Soon",
+          "embedUrl": "",
+          "expectedDate": "2026-09-01T00:00:00.000Z",
+          "githubUrl": "https://github.com/kabirajrana",
+          "visible": true
+        },
+        {
+          "id": "4616cdd5-0a28-400c-9bd0-ba05d3869a13",
+          "title": "ML Algorithm Comparator",
+          "description": "Decision boundary visualizer for Random Forest, XGBoost, and SVM.",
+          "type": "Visualization",
+          "status": "Live",
+          "embedUrl": "",
+          "expectedDate": "",
+          "githubUrl": "",
+          "visible": true
+        }
+      ],
+      "experiments": [
+        {
+          "id": "7a5e951a-a467-440f-b653-7dc946472e4b",
+          "modelName": "CNN Image Classifier",
+          "dataset": "CIFAR-10 Subset",
+          "accuracy": "91.4",
+          "f1Score": "0.90",
+          "date": "2026-03-28",
+          "notes": "Transfer learning with EfficientNet baseline and custom augmentation.",
+          "status": "Completed"
+        },
+        {
+          "id": "52133679-0151-474f-9bc8-4edf537c1a2f",
+          "modelName": "Random Forest Comparator",
+          "dataset": "Synthetic Decision Boundary Set",
+          "accuracy": "87.6",
+          "f1Score": "0.86",
+          "date": "2026-04-01",
+          "notes": "Tuning tree depth and estimator count against non-linear boundaries.",
+          "status": "In Progress"
+        },
+        {
+          "id": "bebcb69d-568c-49be-be2d-c730d3927d4b",
+          "modelName": "Logistic Regression Baseline",
+          "dataset": "Tabular Binary Benchmark",
+          "accuracy": "82.1",
+          "f1Score": "0.80",
+          "date": "2026-04-10",
+          "notes": "Planned baseline for calibration and feature-scaling experiments.",
+          "status": "Planned"
+        }
+      ],
+      "notebooks": [
+        {
+          "id": "fbd44525-4411-4a5e-aebc-72bd606021ac",
+          "title": "CNN Transfer Learning Playbook",
+          "description": "End-to-end notebook for image preprocessing, transfer-learning strategy, and confidence calibration.",
+          "tags": [
+            "Python",
+            "PyTorch",
+            "OpenCV",
+            "Grad-CAM"
+          ],
+          "colabUrl": "https://colab.research.google.com/",
+          "lastUpdated": "2026-03-01"
+        },
+        {
+          "id": "e5cb1c10-f571-4191-823d-907799609039",
+          "title": "Model Comparator: RF vs XGBoost vs SVM",
+          "description": "Interactive notebook comparing model behavior across synthetic and tabular datasets.",
+          "tags": [
+            "Python",
+            "scikit-learn",
+            "XGBoost",
+            "Matplotlib"
+          ],
+          "colabUrl": "https://colab.research.google.com/",
+          "lastUpdated": "2026-02-14"
+        },
+        {
+          "id": "091fa6ba-1849-450e-b576-11cc0c45e4d1",
+          "title": "Experiment Tracking and Metrics Log",
+          "description": "Reusable evaluation template for accuracy, F1, confidence intervals, and error slices.",
+          "tags": [
+            "Python",
+            "Pandas",
+            "Seaborn",
+            "MLflow"
+          ],
+          "colabUrl": "https://colab.research.google.com/",
+          "lastUpdated": "2026-01-20"
+        }
+      ],
+      "updatedAt": "2026-04-05T06:33:58.539Z"
+    }
   },
   "audit_logs": [
     {

@@ -658,12 +658,17 @@ export async function upsertResearchAction(formData: FormData) {
   const validatedType = researchTypeSchema.parse(type);
 
   let parsedContent: unknown;
-  let parsedReferences: unknown;
+  let parsedReferences: unknown = [];
   try {
     parsedContent = JSON.parse(contentRaw || "{}");
+  } catch {
+    throw new Error("Invalid research content payload.");
+  }
+
+  try {
     parsedReferences = JSON.parse(referencesRaw || "[]");
   } catch {
-    throw new Error("Invalid JSON payload for content/references.");
+    parsedReferences = [];
   }
 
   const contentValidation = safeValidateResearchContentByType(validatedType, parsedContent);

@@ -54,27 +54,62 @@ function getMetricResult(entry: PublicResearchEntry) {
   }
 }
 
+function getDisplayStatus(entry: PublicResearchEntry): { label: string; className: string } {
+  if (entry.type === "THESIS") {
+    return {
+      label: "IN PROGRESS",
+      className: "border-amber-300/45 bg-amber-400/15 text-amber-100",
+    };
+  }
+
+  if (entry.type === "EXPERIMENT" && entry.status === "PUBLISHED") {
+    return {
+      label: "TECHNICAL NOTE",
+      className: "border-slate-300/35 bg-slate-300/10 text-slate-200",
+    };
+  }
+
+  return {
+    label: entry.status,
+    className: "",
+  };
+}
+
+function getTypeBadgeClass(type: PublicResearchEntry["type"]) {
+  if (type === "EXPERIMENT") return "border-cyan-300/45 bg-cyan-400/15 text-cyan-100";
+  if (type === "THESIS") return "border-amber-300/45 bg-amber-400/15 text-amber-100";
+  if (type === "PAPER") return "border-violet-300/45 bg-violet-400/15 text-violet-100";
+  if (type === "NOTE") return "border-slate-300/35 bg-slate-300/10 text-slate-200";
+  return "border-cyan-300/35 bg-cyan-400/12 text-cyan-100";
+}
+
 export function ResearchFeaturedItem({ entry }: { entry: PublicResearchEntry }) {
   const summary = toSingleSentence(entry.summary, "Research summary will be published shortly.");
   const metric = getMetricResult(entry);
+  const displayStatus = getDisplayStatus(entry);
+  const tags = entry.slug === "random-forest-vs-xgboost-performance-study" ? entry.tags.slice(0, 3) : entry.tags;
 
   return (
     <article className="rounded-2xl border border-border/60 bg-surface/40 p-6 md:p-8">
       <div className="flex flex-wrap items-center gap-2">
-        <Badge variant="accent">Featured</Badge>
-        <Badge>{getTypeLabel(entry.type)}</Badge>
+        <Badge className={displayStatus.className}>{displayStatus.label}</Badge>
+        <Badge className={getTypeBadgeClass(entry.type)}>{getTypeLabel(entry.type).toUpperCase()}</Badge>
         <Badge>{entry.year}</Badge>
-        <Badge>{entry.status}</Badge>
       </div>
       <h3 className="mt-4 text-2xl font-semibold tracking-tight">{entry.title}</h3>
       <p className="mt-3 max-w-3xl text-sm leading-relaxed text-muted md:text-base">{summary}</p>
       <p className="mt-3 rounded-lg border border-cyan-300/20 bg-cyan-400/5 px-3 py-2 text-sm text-cyan-100/90">
         <span className="font-medium text-cyan-200">Key metric/result:</span> {metric}
       </p>
+      <div className="mt-3 flex flex-wrap gap-2">
+        {tags.map((tag) => (
+          <Badge key={`${entry.id}-${tag}`} className="border border-border/65 bg-transparent text-muted">
+            {tag}
+          </Badge>
+        ))}
+      </div>
       <div className="mt-4 flex flex-wrap gap-2 text-xs text-muted">
         <span>{entry.authors.join(", ") || "Independent Research"}</span>
-        {entry.affiliation ? <span>• {entry.affiliation}</span> : null}
-        {entry.researchArea ? <span>• {entry.researchArea}</span> : null}
       </div>
       <div className="mt-6 flex flex-wrap gap-2">
         {entry.pdfUrl ? (

@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import { useCallback } from "react";
 import { useEffect, useMemo, useState } from "react";
 
 type DemoType = "Live Model" | "Visualization" | "Tool" | "Coming Soon";
@@ -39,12 +39,6 @@ type NotebookItem = {
   colabUrl: string;
   lastUpdated: string;
 };
-
-const ADMIN_PASSWORD = "lab-admin-2026";
-const SESSION_KEY = "lab_admin_unlocked";
-const DEMO_KEY = "lab_admin_demos";
-const EXP_KEY = "lab_admin_experiments";
-const NOTEBOOK_KEY = "lab_admin_notebooks";
 
 const defaultDemos: DemoItem[] = [
   {
@@ -132,21 +126,6 @@ const defaultNotebooks: NotebookItem[] = [
   },
 ];
 
-function safeLoad<T>(key: string, fallback: T): T {
-  if (typeof window === "undefined") {
-    return fallback;
-  }
-  const raw = window.localStorage.getItem(key);
-  if (!raw) {
-    return fallback;
-  }
-  try {
-    return JSON.parse(raw) as T;
-  } catch {
-    return fallback;
-  }
-}
-
 function toTags(input: string): string[] {
   return input
     .split(",")
@@ -156,9 +135,7 @@ function toTags(input: string): string[] {
 
 export function LabAdminClient() {
   const [ready, setReady] = useState(false);
-  const [unlocked, setUnlocked] = useState(false);
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   const [demos, setDemos] = useState<DemoItem[]>(defaultDemos);
   const [experiments, setExperiments] = useState<ExperimentItem[]>(defaultExperiments);
@@ -196,35 +173,99 @@ export function LabAdminClient() {
   const [editingNotebookId, setEditingNotebookId] = useState<string | null>(null);
   const [dragIndex, setDragIndex] = useState<number | null>(null);
 
-  useEffect(() => {
-    const isUnlocked = window.sessionStorage.getItem(SESSION_KEY) === "1";
-    setUnlocked(isUnlocked);
-    setDemos(safeLoad(DEMO_KEY, defaultDemos));
-    setExperiments(safeLoad(EXP_KEY, defaultExperiments));
-    setNotebooks(safeLoad(NOTEBOOK_KEY, defaultNotebooks));
-    setReady(true);
+  const hydrateFromBackend = useCallback(async () => {
+    try {
+      const response = await fetch("/api/admin/lab-content", { cache: "no-store" });
+      if (!response.ok) {
+        setReady(true);
+        return;
+      }
+
+      const payload = (await response.json()) as {
+        demos?: Array<Record<string, unknown>>;
+        experiments?: Array<Record<string, unknown>>;
+        notebooks?: Array<Record<string, unknown>>;
+      };
+
+      if (Array.isArray(payload.demos) && payload.demos.length > 0) {
+        const mappedDemos: DemoItem[] = payload.demos.map((item, index) => ({
+          id: String(item.id ?? `demo-${index + 1}`),
+          title: String(item.title ?? ""),
+          description: String(item.description ?? ""),
+          type: (String(item.type ?? "Coming Soon") as DemoType),
+          status: (String(item.status ?? "Coming Soon") as DemoStatus),
+          embedUrl: String(item.embedUrl ?? ""),
+          expectedDate: String(item.expectedDate ?? ""),
+          githubUrl: String(item.githubUrl ?? ""),
+          visible: Boolean(item.visible ?? true),
+        }));
+        setDemos(mappedDemos);
+      }
+
+      if (Array.isArray(payload.experiments) && payload.experiments.length > 0) {
+        const mappedExperiments: ExperimentItem[] = payload.experiments.map((item, index) => ({
+          id: String(item.id ?? `exp-${index + 1}`),
+          modelName: String(item.modelName ?? item.model ?? ""),
+          dataset: String(item.dataset ?? ""),
+          accuracy: String(item.accuracy ?? ""),
+          f1Score: String(item.f1Score ?? item.f1 ?? ""),
+          date: String(item.date ?? ""),
+          notes: String(item.notes ?? ""),
+          status: (String(item.status ?? "Planned") as ExperimentStatus),
+        }));
+        setExperiments(mappedExperiments);
+      }
+
+      if (Array.isArray(payload.notebooks) && payload.notebooks.length > 0) {
+        const mappedNotebooks: NotebookItem[] = payload.notebooks.map((item, index) => ({
+          id: String(item.id ?? `notebook-${index + 1}`),
+          title: String(item.title ?? ""),
+          description: String(item.description ?? ""),
+          tags: Array.isArray(item.tags)
+            ? item.tags.map((tag) => String(tag))
+            : Array.isArray(item.stack)
+              ? item.stack.map((tag) => String(tag))
+              : [],
+          colabUrl: String(item.colabUrl ?? "https://colab.research.google.com/"),
+          lastUpdated: String(item.lastUpdated ?? ""),
+        }));
+        setNotebooks(mappedNotebooks);
+      }
+    } catch {
+      // Keep defaults if backend hydrate fails.
+    } finally {
+      setReady(true);
+    }
   }, []);
 
   useEffect(() => {
-    if (!ready) {
-      return;
-    }
-    window.localStorage.setItem(DEMO_KEY, JSON.stringify(demos));
-  }, [demos, ready]);
+    hydrateFromBackend();
+  }, [hydrateFromBackend]);
 
   useEffect(() => {
     if (!ready) {
       return;
     }
-    window.localStorage.setItem(EXP_KEY, JSON.stringify(experiments));
-  }, [experiments, ready]);
 
-  useEffect(() => {
-    if (!ready) {
-      return;
-    }
-    window.localStorage.setItem(NOTEBOOK_KEY, JSON.stringify(notebooks));
-  }, [notebooks, ready]);
+    const timer = window.setTimeout(async () => {
+      try {
+        setSaveError(null);
+        const response = await fetch("/api/admin/lab-content", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ demos, experiments, notebooks }),
+        });
+
+        if (!response.ok) {
+          setSaveError("Unable to sync Lab changes to backend.");
+        }
+      } catch {
+        setSaveError("Unable to sync Lab changes to backend.");
+      }
+    }, 320);
+
+    return () => window.clearTimeout(timer);
+  }, [demos, experiments, notebooks, ready]);
 
   const statusBreakdown = useMemo(() => {
     return experiments.reduce(
@@ -235,18 +276,6 @@ export function LabAdminClient() {
       { Completed: 0, "In Progress": 0, Planned: 0 } as Record<ExperimentStatus, number>,
     );
   }, [experiments]);
-
-  function unlockPanel(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    if (password !== ADMIN_PASSWORD) {
-      setError("Invalid password");
-      return;
-    }
-    window.sessionStorage.setItem(SESSION_KEY, "1");
-    setUnlocked(true);
-    setPassword("");
-    setError("");
-  }
 
   function resetDemoForm() {
     setDemoForm({
@@ -374,44 +403,12 @@ export function LabAdminClient() {
     return <p className="py-10 text-sm text-cyan-100/70">Loading admin tools...</p>;
   }
 
-  if (!unlocked) {
-    return (
-      <section className="mx-auto max-w-xl py-12">
-        <Link href="/github" className="text-sm text-cyan-300 hover:text-cyan-200">
-          ← Back to Lab
-        </Link>
-        <div className="mt-4 rounded-xl border border-cyan-300/25 bg-[#0a0f1e] p-6">
-          <h1 className="text-xl font-semibold text-cyan-50">Lab Admin Access</h1>
-          <p className="mt-2 text-sm text-cyan-100/80">Enter the temporary admin password to manage Lab content.</p>
-          <form className="mt-4 space-y-3" onSubmit={unlockPanel}>
-            <input
-              type="password"
-              value={password}
-              onChange={(event) => setPassword(event.target.value)}
-              placeholder="Admin password"
-              className="w-full rounded-lg border border-cyan-300/25 bg-[#0d1628] px-3 py-2 text-cyan-100"
-            />
-            {error ? <p className="text-sm text-rose-300">{error}</p> : null}
-            <button
-              type="submit"
-              className="rounded-lg bg-[#00d4ff] px-4 py-2 text-sm font-semibold text-[#041124] hover:bg-[#00d4ff]/90"
-            >
-              Unlock
-            </button>
-          </form>
-        </div>
-      </section>
-    );
-  }
-
   return (
     <section className="space-y-8 pb-10">
       <header className="space-y-3">
-        <Link href="/github" className="text-sm text-cyan-300 hover:text-cyan-200">
-          ← Back to Lab
-        </Link>
         <h1 className="text-3xl font-semibold text-cyan-50">Lab Content Admin</h1>
         <p className="text-sm text-cyan-100/75">Manage demos, experiments, and notebooks for your Lab page.</p>
+        {saveError ? <p className="text-sm text-rose-300">{saveError}</p> : <p className="text-xs text-cyan-200/60">Changes auto-sync to backend.</p>}
       </header>
 
       <article className="space-y-5 rounded-xl border border-cyan-300/20 bg-[#0a0f1e] p-5">

@@ -490,7 +490,11 @@ export const contentRepository = {
   async listResearch(where?: ResearchWhereInput) {
     const query = where ? `?where=${encodeURIComponent(JSON.stringify(where))}` : "";
     const rows = await getListFromApi<Record<string, any>>(`/v1/content/research${query}`);
-    return rows.length ? rows : toFallbackResearchRows();
+    if (rows.length > 0) {
+      return rows;
+    }
+
+    return shouldUseStaticFallbackData() ? toFallbackResearchRows() : rows;
   },
 
   async listResearchPaged(input: {
@@ -516,8 +520,12 @@ export const contentRepository = {
       return [response.items, response.total ?? response.items.length] as const;
     }
 
-    const fallback = toFallbackResearchRows();
-    return [fallback.slice(0, input.pageSize), fallback.length] as const;
+    if (shouldUseStaticFallbackData()) {
+      const fallback = toFallbackResearchRows();
+      return [fallback.slice(0, input.pageSize), fallback.length] as const;
+    }
+
+    return [[], 0] as const;
   },
 
   async getResearchBySlug(slug: string) {
@@ -526,8 +534,12 @@ export const contentRepository = {
       return row;
     }
 
-    const fallback = toFallbackResearchRows();
-    return fallback.find((item) => item.slug === slug) ?? null;
+    if (shouldUseStaticFallbackData()) {
+      const fallback = toFallbackResearchRows();
+      return fallback.find((item) => item.slug === slug) ?? null;
+    }
+
+    return null;
   },
 
   async getResearchById(id: string) {
@@ -536,8 +548,12 @@ export const contentRepository = {
       return row;
     }
 
-    const fallback = toFallbackResearchRows();
-    return fallback.find((item) => item.id === id) ?? null;
+    if (shouldUseStaticFallbackData()) {
+      const fallback = toFallbackResearchRows();
+      return fallback.find((item) => item.id === id) ?? null;
+    }
+
+    return null;
   },
 
   async getAdjacentResearch(input: { publishedAt?: Date | null; year: number; id: string; status?: "DRAFT" | "PUBLISHED" | "ARCHIVED" }) {
@@ -564,8 +580,12 @@ export const contentRepository = {
       return response;
     }
 
-    const fallback = toFallbackResearchRows();
-    return fallback.filter((item) => slugs.includes(String(item.slug)) && item.id !== excludeId);
+    if (shouldUseStaticFallbackData()) {
+      const fallback = toFallbackResearchRows();
+      return fallback.filter((item) => slugs.includes(String(item.slug)) && item.id !== excludeId);
+    }
+
+    return [];
   },
 
   async upsertResearch(input: ResearchCreateInput & { id?: string }) {
