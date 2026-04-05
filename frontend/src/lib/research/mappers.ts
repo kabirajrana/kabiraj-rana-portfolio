@@ -16,6 +16,7 @@ type RawResearch = {
   authors: string[];
   affiliation: string | null;
   researchArea: string | null;
+  progressPercent: number | null;
   dataset: string | null;
   duration: string | null;
   pdfUrl: string | null;
@@ -49,6 +50,7 @@ export function mapResearchEntry(row: RawResearch): PublicResearchEntry {
     authors: row.authors,
     affiliation: row.affiliation,
     researchArea: row.researchArea,
+    progressPercent: row.progressPercent,
     dataset: row.dataset,
     duration: row.duration,
     pdfUrl: row.pdfUrl,

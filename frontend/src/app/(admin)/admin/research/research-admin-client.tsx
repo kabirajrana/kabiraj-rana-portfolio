@@ -33,6 +33,7 @@ type EditorState = {
   authors: string;
   affiliation: string;
   researchArea: string;
+  progressPercent: string;
   dataset: string;
   duration: string;
   coverImage: string;
@@ -129,6 +130,7 @@ function createDefaultState(): EditorState {
     authors: "Kabiraj Rana",
     affiliation: "Independent AI Research Lab",
     researchArea: "",
+    progressPercent: "",
     dataset: "",
     duration: "",
     coverImage: "",
@@ -221,6 +223,7 @@ function toEditorState(entry: PublicResearchEntry): EditorState {
     authors: toCsv(entry.authors),
     affiliation: asString(entry.affiliation),
     researchArea: asString(entry.researchArea),
+    progressPercent: typeof entry.progressPercent === "number" ? String(entry.progressPercent) : "",
     dataset: asString(entry.dataset),
     duration: asString(entry.duration),
     coverImage: asString(entry.coverImage),
@@ -254,6 +257,7 @@ function toPreviewEntry(state: EditorState): PublicResearchEntry {
     authors: state.authors.split(",").map((part) => part.trim()).filter(Boolean),
     affiliation: state.affiliation,
     researchArea: state.researchArea,
+    progressPercent: state.progressPercent ? Number(state.progressPercent) : null,
     dataset: state.dataset,
     duration: state.duration,
     pdfUrl: state.pdfUrl,
@@ -328,6 +332,7 @@ export function ResearchAdminClient({ entries }: { entries: PublicResearchEntry[
     data.set("authors", state.authors);
     data.set("affiliation", state.affiliation);
     data.set("researchArea", state.researchArea);
+    data.set("progressPercent", state.progressPercent);
     data.set("dataset", state.dataset);
     data.set("duration", state.duration);
     data.set("coverImage", state.coverImage);
@@ -481,6 +486,14 @@ export function ResearchAdminClient({ entries }: { entries: PublicResearchEntry[
                 <Input placeholder="Tags (comma separated)" value={state.tags} onChange={(event) => setField("tags", event.target.value)} className="md:col-span-3" />
                 <Input placeholder="Authors (comma separated)" value={state.authors} onChange={(event) => setField("authors", event.target.value)} className="md:col-span-2" />
                 <Input placeholder="Affiliation" value={state.affiliation} onChange={(event) => setField("affiliation", event.target.value)} className="md:col-span-2" />
+                <Input
+                  type="number"
+                  min={0}
+                  max={100}
+                  placeholder="Completion % (0-100)"
+                  value={state.progressPercent}
+                  onChange={(event) => setField("progressPercent", event.target.value)}
+                />
                 <Input placeholder="Dataset" value={state.dataset} onChange={(event) => setField("dataset", event.target.value)} />
                 <Input placeholder="Duration" value={state.duration} onChange={(event) => setField("duration", event.target.value)} />
                 <Input placeholder="Cover Image URL" value={state.coverImage} onChange={(event) => setField("coverImage", event.target.value)} className="md:col-span-2" />

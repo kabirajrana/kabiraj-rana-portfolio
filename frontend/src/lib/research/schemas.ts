@@ -93,6 +93,16 @@ export const researchBaseSchema = z.object({
   authors: z.array(z.string().trim().min(1)).min(1),
   affiliation: z.string().trim().optional().or(z.literal("")),
   researchArea: z.string().trim().optional().or(z.literal("")),
+  progressPercent: z
+    .preprocess(
+      (value) => {
+        if (value === undefined || value === null) return undefined;
+        if (typeof value === "string" && value.trim() === "") return undefined;
+        return value;
+      },
+      z.coerce.number().int().min(0).max(100),
+    )
+    .optional(),
   dataset: z.string().trim().optional().or(z.literal("")),
   duration: z.string().trim().optional().or(z.literal("")),
   pdfUrl: optionalUrlSchema,

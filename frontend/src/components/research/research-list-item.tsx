@@ -78,6 +78,10 @@ function getThesisProgress(entry: PublicResearchEntry): number | null {
     return null;
   }
 
+  if (typeof entry.progressPercent === "number" && Number.isFinite(entry.progressPercent)) {
+    return Math.max(0, Math.min(100, Math.round(entry.progressPercent)));
+  }
+
   const findings = "findings" in entry.content && typeof entry.content.findings === "string" ? entry.content.findings : "";
   const matched = findings.match(/(\d{1,3})\s*%/);
   if (!matched) {

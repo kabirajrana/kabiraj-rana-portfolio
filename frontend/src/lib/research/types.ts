@@ -89,6 +89,7 @@ export type ResearchRecord = {
   authors: string[];
   affiliation?: string | null;
   researchArea?: string | null;
+  progressPercent?: number | null;
   dataset?: string | null;
   duration?: string | null;
   pdfUrl?: string | null;
