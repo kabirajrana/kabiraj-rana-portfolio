@@ -20,8 +20,8 @@ export const metadata = buildMetadata({
 export default async function ExperiencePage() {
 	const [config, experienceRows, credentials] = await Promise.all([
 		contentRepository.getExperiencePageConfig(),
-		contentRepository.listExperience({ useFallback: false }),
-		contentRepository.listCertifications({ useFallback: false }),
+		contentRepository.listExperience({ useFallback: true }),
+		contentRepository.listCertifications({ useFallback: true }),
 	]);
 
 	const rows = experienceRows as ExperienceRow[];
@@ -59,6 +59,15 @@ export default async function ExperiencePage() {
 	const certificateItems = mappedCertificates;
 	const certificationItems = mappedCerts;
 
+	const hasTimelineItems = timelineItems.length > 0;
+	const hasCredentialItems = certificateItems.length > 0 || certificationItems.length > 0;
+	const configuredShowTimeline = config?.showTimeline ?? true;
+	const configuredShowCertifications = config?.showCertifications ?? true;
+
+	// Guard against an empty Experience page when admin toggles are both off or when data is missing.
+	const showTimeline = hasTimelineItems && (configuredShowTimeline || !configuredShowCertifications);
+	const showCertifications = hasCredentialItems && (configuredShowCertifications || !configuredShowTimeline);
+
 	return (
 		<>
 			<Container className="pt-16 md:pt-24">
@@ -77,8 +86,8 @@ export default async function ExperiencePage() {
 				experiences={timelineItems}
 				certificates={certificateItems}
 				certifications={certificationItems}
-				showTimeline={config?.showTimeline ?? true}
-				showCertifications={config?.showCertifications ?? true}
+				showTimeline={showTimeline}
+				showCertifications={showCertifications}
 				certTitle={config?.certTitle ?? "Formal Intelligence Expansion"}
 				certSubtitle={config?.certSubtitle ?? "Each certification reflects practical upskilling across AI, cloud, and modern software systems."}
 			/>
