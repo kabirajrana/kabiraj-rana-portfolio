@@ -594,7 +594,7 @@ export async function upsertCertificationAction(formData: FormData) {
     await createAuditLog({ actorId: session.userId, action: "UPSERT", resource: "Certification", resourceId: item.id });
     revalidatePath("/admin/experience");
     revalidatePath("/experience");
-    return { success: true, message: "Credential saved." };
+    return { success: true, message: "Credential saved.", item };
   } catch (error) {
     const backendError = error instanceof BackendApiError ? error : null;
     const backendHealth = await probeBackendApiHealth();
@@ -642,6 +642,7 @@ export async function deleteCertificationAction(id: string) {
   }
   revalidatePath("/admin/experience");
   revalidatePath("/experience");
+  return { success: result.count > 0, count: Number(result.count ?? 0) };
 }
 
 export async function upsertResearchAction(formData: FormData) {

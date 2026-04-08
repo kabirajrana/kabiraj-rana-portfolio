@@ -1,7 +1,6 @@
 "use client";
 
-import { useMemo, useState, useTransition } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useMemo, useState, useTransition } from "react";
 
 import { deleteCertificationAction, upsertCertificationAction } from "@/app/(admin)/admin/actions";
 import { ConfirmDialog } from "@/components/admin/ConfirmDialog";
@@ -30,9 +29,9 @@ function normalizeType(value: string | undefined): CredentialType {
 }
 
 export function CredentialsManager({ rows }: { rows: CredentialRow[] }) {
-  const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [formError, setFormError] = useState<string | null>(null);
+  const [localRows, setLocalRows] = useState<CredentialRow[]>(rows);
   const [activeType, setActiveType] = useState<CredentialType>("certificate");
   const [editingId, setEditingId] = useState<string | null>(null);
   const [codeLabel, setCodeLabel] = useState("");
@@ -41,8 +40,12 @@ export function CredentialsManager({ rows }: { rows: CredentialRow[] }) {
   const [sortOrder, setSortOrder] = useState("0");
   const [isVisible, setIsVisible] = useState(true);
 
+  useEffect(() => {
+    setLocalRows(rows);
+  }, [rows]);
+
   const filteredRows = useMemo(() => {
-    return rows
+    return localRows
       .filter((row) => normalizeType(row.type) === activeType)
       .sort((a, b) => {
         const byOrder = Number(a.sortOrder ?? 0) - Number(b.sortOrder ?? 0);
@@ -51,7 +54,7 @@ export function CredentialsManager({ rows }: { rows: CredentialRow[] }) {
         const bCreated = String(b.createdAt ?? "");
         return aCreated.localeCompare(bCreated);
       });
-  }, [activeType, rows]);
+  }, [activeType, localRows]);
 
   const resetForm = () => {
     setEditingId(null);
@@ -116,8 +119,20 @@ export function CredentialsManager({ rows }: { rows: CredentialRow[] }) {
               }
 
               try {
+                const nextRow = result.item as CredentialRow | undefined;
+                if (nextRow) {
+                  setLocalRows((previous) => {
+                    const index = previous.findIndex((row) => row.id === nextRow.id);
+                    if (index >= 0) {
+                      const updated = [...previous];
+                      updated[index] = nextRow;
+                      return updated;
+                    }
+
+                    return [...previous, nextRow];
+                  });
+                }
                 resetForm();
-                router.refresh();
               } catch (error) {
                 setFormError(error instanceof Error ? error.message : "Failed to save credential.");
               }
@@ -230,11 +245,13 @@ export function CredentialsManager({ rows }: { rows: CredentialRow[] }) {
                     onConfirm={async () => {
                       setFormError(null);
                       try {
-                        await deleteCertificationAction(row.id);
+                        const result = await deleteCertificationAction(row.id);
+                        if (result?.success) {
+                          setLocalRows((previous) => previous.filter((item) => item.id !== row.id));
+                        }
                         if (editingId === row.id) {
                           resetForm();
                         }
-                        router.refresh();
                       } catch (error) {
                         setFormError(error instanceof Error ? error.message : "Failed to delete credential.");
                       }
