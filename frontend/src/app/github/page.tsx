@@ -9,8 +9,6 @@ export const metadata = buildMetadata({
 	path: "/github",
 });
 
-export const dynamic = "force-dynamic";
-
 export default async function GitHubPage() {
 	const settings = (await contentRepository.getGithubSettings()) ?? {};
 	const labContent =
