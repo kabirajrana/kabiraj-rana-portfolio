@@ -20,8 +20,8 @@ export const metadata = buildMetadata({
 export default async function ExperiencePage() {
 	const [config, experienceRows, credentials] = await Promise.all([
 		contentRepository.getExperiencePageConfig(),
-		contentRepository.listExperience({ useFallback: true }),
-		contentRepository.listCertifications({ useFallback: true }),
+		contentRepository.listExperience({ useFallback: false }),
+		contentRepository.listCertifications({ useFallback: false }),
 	]);
 
 	const rows = experienceRows as ExperienceRow[];
