@@ -625,7 +625,7 @@ export async function upsertCertificationAction(formData: FormData) {
       if (backendError.status && backendError.status >= 500) {
         return {
           success: false,
-          message: "Backend credential service failed with a server error. Check Railway logs and backend health endpoint.",
+          message: "Backend credential service failed with a server error. Check Render logs and backend health endpoint.",
         };
       }
     }

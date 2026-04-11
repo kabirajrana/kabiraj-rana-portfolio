@@ -32,6 +32,7 @@ export function CredentialsManager({ rows }: { rows: CredentialRow[] }) {
   const [pending, startTransition] = useTransition();
   const [formError, setFormError] = useState<string | null>(null);
   const [localRows, setLocalRows] = useState<CredentialRow[]>(rows);
+  const [rowActionId, setRowActionId] = useState<string | null>(null);
   const [activeType, setActiveType] = useState<CredentialType>("certificate");
   const [editingId, setEditingId] = useState<string | null>(null);
   const [codeLabel, setCodeLabel] = useState("");
@@ -225,6 +226,7 @@ export function CredentialsManager({ rows }: { rows: CredentialRow[] }) {
                     type="button"
                     size="sm"
                     variant="outline"
+                    disabled={pending || rowActionId === row.id}
                     onClick={() => {
                       setActiveType(normalizeType(row.type));
                       setEditingId(row.id);
@@ -236,6 +238,53 @@ export function CredentialsManager({ rows }: { rows: CredentialRow[] }) {
                     }}
                   >
                     Edit
+                  </Button>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    disabled={pending || rowActionId === row.id}
+                    onClick={() => {
+                      setFormError(null);
+                      setRowActionId(row.id);
+                      startTransition(async () => {
+                        try {
+                          const formData = new FormData();
+                          formData.set("id", row.id);
+                          formData.set("type", normalizeType(row.type));
+                          formData.set("codeLabel", row.codeLabel || "");
+                          formData.set("title", row.title || "");
+                          formData.set("credentialUrl", row.credentialUrl || "");
+                          formData.set("sortOrder", String(row.sortOrder ?? 0));
+                          if (!row.isVisible) {
+                            formData.set("isVisible", "on");
+                          }
+                          const result = await upsertCertificationAction(formData);
+                          if (!result?.success) {
+                            setFormError(result?.message ?? "Failed to update visibility.");
+                            return;
+                          }
+                          const nextRow = result.item as CredentialRow | undefined;
+                          if (nextRow) {
+                            setLocalRows((previous) => {
+                              const index = previous.findIndex((item) => item.id === nextRow.id);
+                              if (index >= 0) {
+                                const updated = [...previous];
+                                updated[index] = nextRow;
+                                return updated;
+                              }
+                              return [...previous, nextRow];
+                            });
+                          }
+                        } catch (error) {
+                          setFormError(error instanceof Error ? error.message : "Failed to update visibility.");
+                        } finally {
+                          setRowActionId(null);
+                        }
+                      });
+                    }}
+                  >
+                    {rowActionId === row.id ? "Saving..." : row.isVisible ? "Hide" : "Show"}
                   </Button>
                   <ConfirmDialog
                     triggerLabel="Delete"
@@ -254,6 +303,8 @@ export function CredentialsManager({ rows }: { rows: CredentialRow[] }) {
                         }
                       } catch (error) {
                         setFormError(error instanceof Error ? error.message : "Failed to delete credential.");
+                      } finally {
+                        setRowActionId(null);
                       }
                     }}
                   />

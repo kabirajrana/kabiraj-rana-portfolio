@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-import { certificates, certifications, experiences } from "@/content/site/experience";
+import { experiences } from "@/content/site/experience";
 import { projects as fallbackProjects } from "@/content/projects";
 import { researchEntries } from "@/data/research";
 import { backendApiRequest, backendApiRequestOrThrow, hasBackendApiBaseUrl } from "@/lib/backend-api";
@@ -198,27 +198,6 @@ function toFallbackExperienceRows() {
     createdAt: new Date(),
     updatedAt: new Date(),
     publishedAt: new Date(),
-  }));
-}
-
-function toFallbackCertificationRows() {
-  const fallbackItems = [
-    ...certificates.map((item) => ({ ...item, type: "certificate" as const })),
-    ...certifications.map((item) => ({ ...item, type: "certification" as const })),
-  ];
-
-  return fallbackItems.map((item, index) => ({
-    id: item.id,
-    title: item.title,
-    type: item.type,
-    codeLabel: `CERT-${index + 1}`,
-    issuer: "Certification Provider",
-    issuedDate: null,
-    credentialUrl: item.href,
-    isVisible: true,
-    sortOrder: index,
-    createdAt: new Date(),
-    updatedAt: new Date(),
   }));
 }
 
@@ -437,38 +416,27 @@ export const contentRepository = {
     return (await apiSend<Record<string, any>>("/v1/admin/content/experience/page-config", "PUT", input)) ?? input;
   },
 
-  async listCertifications(input?: { type?: "certificate" | "certification"; visible?: boolean; useFallback?: boolean }) {
+  async listCertifications(input?: { type?: "certificate" | "certification"; visible?: boolean }) {
     const params = new URLSearchParams();
     if (input?.visible ?? true) params.set("visible", "1");
     if (input?.type) params.set("type", input.type);
     const query = params.toString();
-    const rows = await getListFromApi<Record<string, any>>(`/v1/content/certifications${query ? `?${query}` : ""}`);
-    if (rows.length > 0) {
-      return rows;
-    }
-
-    const useFallback = input?.useFallback ?? true;
-    return useFallback && shouldUseStaticFallbackData() ? toFallbackCertificationRows() : rows;
+    return await getListFromApi<Record<string, any>>(`/v1/credentials${query ? `?${query}` : ""}`);
   },
 
-  async listAllCertifications(input?: { type?: "certificate" | "certification"; useFallback?: boolean }) {
+  async listAllCertifications(input?: { type?: "certificate" | "certification" }) {
     const params = new URLSearchParams();
     if (input?.type) params.set("type", input.type);
     const query = params.toString();
-    const rows = await getListFromApi<Record<string, any>>(`/v1/content/certifications${query ? `?${query}` : ""}`, {
+    const rows = await getListFromApi<Record<string, any>>(`/v1/credentials${query ? `?${query}` : ""}`, {
       cache: "no-store",
     });
-    if (rows.length > 0) {
-      return rows;
-    }
-
-    const useFallback = input?.useFallback ?? true;
-    return useFallback && shouldUseStaticFallbackData() ? toFallbackCertificationRows() : rows;
+    return rows;
   },
 
   async upsertCertification(input: CertificationCreateInput & { id?: string }) {
     const method = input.id ? "PUT" : "POST";
-    const path = input.id ? `/v1/admin/content/certifications/${input.id}` : "/v1/admin/content/certifications";
+    const path = input.id ? `/v1/credentials/${input.id}` : "/v1/credentials";
     return reviveDates(
       await backendApiRequestOrThrow<Record<string, any>>(path, {
         method,
@@ -479,7 +447,7 @@ export const contentRepository = {
 
   async deleteCertification(id: string) {
     return reviveDates(
-      await backendApiRequestOrThrow<Record<string, any>>(`/v1/admin/content/certifications/${id}`, {
+      await backendApiRequestOrThrow<Record<string, any>>(`/v1/credentials/${id}`, {
         method: "DELETE",
       })
     );

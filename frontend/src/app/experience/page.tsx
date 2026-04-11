@@ -21,7 +21,7 @@ export default async function ExperiencePage() {
 	const [config, experienceRows, credentials] = await Promise.all([
 		contentRepository.getExperiencePageConfig(),
 		contentRepository.listExperience({ useFallback: false }),
-		contentRepository.listCertifications({ useFallback: false }),
+		contentRepository.listCertifications({ visible: true }),
 	]);
 
 	const rows = experienceRows as ExperienceRow[];
@@ -43,16 +43,16 @@ export default async function ExperiencePage() {
 
 	const mappedCerts = typedCredentials.filter((item: CertificationRow) => normalizeCredentialType((item as { type?: unknown }).type) === "certification").map((item: CertificationRow) => ({
 		id: item.id,
-		codeLabel: item.codeLabel,
+		codeLabel: item.code ?? item.codeLabel,
 		title: item.title,
-		href: item.credentialUrl,
+		href: item.url ?? item.credentialUrl,
 	}));
 
 	const mappedCertificates = typedCredentials.filter((item: CertificationRow) => normalizeCredentialType((item as { type?: unknown }).type) === "certificate").map((item: CertificationRow) => ({
 		id: item.id,
-		codeLabel: item.codeLabel,
+		codeLabel: item.code ?? item.codeLabel,
 		title: item.title,
-		href: item.credentialUrl,
+		href: item.url ?? item.credentialUrl,
 	}));
 
 	const timelineItems = mappedExperience;

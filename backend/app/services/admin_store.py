@@ -270,40 +270,6 @@ class JsonAdminStore:
             },
         ]
 
-    def _default_certification_rows(self) -> list[dict[str, Any]]:
-        now = _utc_now_iso()
-        items = [
-            ("certificate", "CT1", "Data Analysis with Python", "https://coursera.org/share/d10000f3f38062a33e79d7e3f942ef32"),
-            ("certificate", "CT2", "Prompt Engineering for Generative AI", "https://coursera.org/share/fdbaa5d73fe1e2d3576c74bfc07fe33e"),
-            ("certificate", "CT3", "Python for Data Science Foundations", "https://broadwayinfosys.com/certificate-verification-code/eyJpdiI6Ii9tRnNnMktZRml0aTZnZHVDRE1rL0E9PSIsInZhbHVlIjoiVDhtZEsvanluQVJzUk0yQjhicjVJZz09IiwibWFjIjoiMmYyNzAyMzhjOTQ0NzA0YzZmYzMzMWJkMDc2MDg1OWJjM2EwMjU1NWJiMTNmMjVkYmJhNTdmOWY3NmNlMjZmYSIsInRhZyI6IiJ9"),
-            ("certification", "C1", "IMB Data science Certificate", "https://coursera.org/share/d10000f3f38062a33e79d7e3f942ef32"),
-            ("certification", "C2", "AI for everyone - Deep Learning.AI", "https://coursera.org/share/bcb1acdf1fe4c763862449ab3095094b"),
-            (
-                "certification",
-                "C3",
-                "Data Science with Python",
-                "https://broadwayinfosys.com/certificate-verification-code/eyJpdiI6Ii9tRnNnMktZRml0aTZnZHVDRE1rL0E9PSIsInZhbHVlIjoiVDhtZEsvanluQVJzUk0yQjhicjVJZz09IiwibWFjIjoiMmYyNzAyMzhjOTQ0NzA0YzZmYzMzMWJkMDc2MDg1OWJjM2EwMjU1NWJiMTNmMjVkYmJhNTdmOWY3NmNlMjZmYSIsInRhZyI6IiJ9",
-            ),
-            ("certification", "C4", "Generative AI with Large Language Models", "https://coursera.org/share/fdbaa5d73fe1e2d3576c74bfc07fe33e"),
-            ("certification", "C5", "Machine Learning-Udemy", "https://coursera.org/share/fdbaa5d73fe1e2d3576c74bfc07fe33e"),
-        ]
-        rows: list[dict[str, Any]] = []
-        for idx, (credential_type, code, title, url) in enumerate(items):
-            rows.append(
-                {
-                    "id": code,
-                    "type": credential_type,
-                    "codeLabel": code,
-                    "title": title,
-                    "credentialUrl": url,
-                    "sortOrder": idx,
-                    "isVisible": True,
-                    "createdAt": now,
-                    "updatedAt": now,
-                }
-            )
-        return rows
-
     def _merge_missing(self, current: dict[str, Any], defaults: dict[str, Any]) -> tuple[dict[str, Any], bool]:
         changed = False
         for key, default_value in defaults.items():

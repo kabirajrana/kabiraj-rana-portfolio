@@ -49,14 +49,14 @@ function mapCredentialRows(rows: unknown[]): CredentialRow[] {
       id: String(source.id ?? `credential-${index}`),
       title: String(source.title ?? ""),
       type: String(source.type ?? "").toLowerCase() === "certificate" ? "certificate" : "certification",
-      codeLabel: String(source.codeLabel ?? source.code ?? `CERT-${index + 1}`),
+      codeLabel: String(source.code ?? source.codeLabel ?? `CERT-${index + 1}`),
       issuer: source.issuer == null || String(source.issuer).trim() === "" ? null : String(source.issuer),
       issuedDate: toSafeNullableDate(source.issuedDate),
-      credentialUrl: String(source.credentialUrl ?? ""),
-      isVisible: Boolean(source.isVisible ?? source.visible ?? true),
-      sortOrder: Number(source.sortOrder ?? source.displayOrder ?? 0),
-      createdAt: toSafeDate(source.createdAt),
-      updatedAt: toSafeDate(source.updatedAt),
+      credentialUrl: String(source.url ?? source.credentialUrl ?? ""),
+      isVisible: Boolean(source.visible ?? source.isVisible ?? true),
+      sortOrder: Number(source.sort_order ?? source.sortOrder ?? source.displayOrder ?? 0),
+      createdAt: toSafeDate(source.created_at ?? source.createdAt),
+      updatedAt: toSafeDate(source.updated_at ?? source.updatedAt),
     };
   });
 }
@@ -65,7 +65,7 @@ export default async function AdminExperiencePage() {
   const [config, items, certifications] = await Promise.all([
     contentRepository.getExperiencePageConfig(),
     contentRepository.listExperience({ useFallback: false }),
-    contentRepository.listAllCertifications({ useFallback: false }),
+    contentRepository.listAllCertifications(),
   ]);
 
   const credentialRows: CredentialRow[] = mapCredentialRows(Array.isArray(certifications) ? certifications : []);

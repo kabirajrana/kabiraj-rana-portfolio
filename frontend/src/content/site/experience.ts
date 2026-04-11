@@ -1,4 +1,4 @@
-import { CertificationItem, ExperienceItem } from "@/types/site";
+import { ExperienceItem } from "@/types/site";
 
 export const experiences: ExperienceItem[] = [
 	{
@@ -42,48 +42,3 @@ export const experiences: ExperienceItem[] = [
 	},
 ];
 
-export const certifications: CertificationItem[] = [
-	{
-		id: "C1",
-		title: "IMB Data science Certificate",
-		href: "https://coursera.org/share/d10000f3f38062a33e79d7e3f942ef32",
-	},
-	{
-		id: "C2",
-		title: "AI for everyone - Deep Learning.AI",
-		href: "https://coursera.org/share/bcb1acdf1fe4c763862449ab3095094b",
-	},
-	{
-		id: "C3",
-		title: "Data Science with Python",
-		href: "https://broadwayinfosys.com/certificate-verification-code/eyJpdiI6Ii9tRnNnMktZRml0aTZnZHVDRE1rL0E9PSIsInZhbHVlIjoiVDhtZEsvanluQVJzUk0yQjhicjVJZz09IiwibWFjIjoiMmYyNzAyMzhjOTQ0NzA0YzZmYzMzMWJkMDc2MDg1OWJjM2EwMjU1NWJiMTNmMjVkYmJhNTdmOWY3NmNlMjZmYSIsInRhZyI6IiJ9",
-	},
-	{
-		id: "C4",
-		title: "Generative AI with Large Language Models",
-		href: "https://coursera.org/share/fdbaa5d73fe1e2d3576c74bfc07fe33e",
-	},
-	{
-		id: "C5",
-		title: "Machine Learning-Udemy",
-		href: "https://coursera.org/share/fdbaa5d73fe1e2d3576c74bfc07fe33e",
-	},
-];
-
-export const certificates: CertificationItem[] = [
-	{
-		id: "CT1",
-		title: "Data Analysis with Python",
-		href: "https://coursera.org/share/d10000f3f38062a33e79d7e3f942ef32",
-	},
-	{
-		id: "CT2",
-		title: "Prompt Engineering for Generative AI",
-		href: "https://coursera.org/share/fdbaa5d73fe1e2d3576c74bfc07fe33e",
-	},
-	{
-		id: "CT3",
-		title: "Python for Data Science Foundations",
-		href: "https://broadwayinfosys.com/certificate-verification-code/eyJpdiI6Ii9tRnNnMktZRml0aTZnZHVDRE1rL0E9PSIsInZhbHVlIjoiVDhtZEsvanluQVJzUk0yQjhicjVJZz09IiwibWFjIjoiMmYyNzAyMzhjOTQ0NzA0YzZmYzMzMWJkMDc2MDg1OWJjM2EwMjU1NWJiMTNmMjVkYmJhNTdmOWY3NmNlMjZmYSIsInRhZyI6IiJ9",
-	},
-];

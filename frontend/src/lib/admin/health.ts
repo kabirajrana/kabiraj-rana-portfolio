@@ -21,7 +21,7 @@ export type HealthCheckItem = {
 
 type HealthProject = { id: string; title: string; githubUrl: string | null; liveUrl: string | null; featured: boolean; coverImage: string | null; status: string };
 type HealthResearch = { id: string; title: string; codeUrl: string | null; featured: boolean; coverImage: string | null; status: string };
-type HealthCertification = { id: string; title: string; credentialUrl: string };
+type HealthCertification = { id: string; title: string; credentialUrl?: string; url?: string };
 type HealthSeo = { pageKey: string; metaTitle: string; metaDescription: string };
 type HealthMedia = { id: string; key: string; usedBy: unknown };
 
@@ -45,7 +45,7 @@ export async function runHealthCheckReport() {
     ...typedProjects.filter((item: HealthProject) => item.githubUrl && !isUrlValid(item.githubUrl)),
     ...typedProjects.filter((item: HealthProject) => item.liveUrl && !isUrlValid(item.liveUrl)),
     ...typedResearch.filter((item: HealthResearch) => item.codeUrl && !isUrlValid(item.codeUrl)),
-    ...typedCertifications.filter((item: HealthCertification) => !isUrlValid(item.credentialUrl)),
+    ...typedCertifications.filter((item: HealthCertification) => !isUrlValid(item.url ?? item.credentialUrl)),
   ];
 
   const requiredPages = ["home", "about", "projects", "experience", "research", "contact"];

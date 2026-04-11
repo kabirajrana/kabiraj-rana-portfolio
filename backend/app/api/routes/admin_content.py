@@ -12,8 +12,13 @@ from pydantic import BaseModel
 from pydantic import ConfigDict
 from pydantic import EmailStr
 from pydantic import Field
+from pydantic import model_validator
 
 from app.services.admin_store import get_admin_store
+from app.services.credential_store import CredentialPayload
+from app.services.credential_store import get_credential_store
+from app.services.credential_store import serialize_credential
+from app.services.credential_store import serialize_credential_legacy
 
 router = APIRouter(prefix="/v1", tags=["admin-content"])
 
@@ -76,6 +81,57 @@ class ListResponse(BaseModel):
     total: int
 
 
+class CredentialUpsertRequest(BaseModel):
+    model_config = ConfigDict(populate_by_name=True, extra="ignore")
+
+    type: str = "certification"
+    code: str | None = None
+    codeLabel: str | None = None
+    title: str
+    url: str | None = None
+    credentialUrl: str | None = None
+    sort_order: int = 0
+    sortOrder: int | None = None
+    visible: bool = True
+    isVisible: bool | None = None
+
+    @model_validator(mode="after")
+    def normalize(self) -> "CredentialUpsertRequest":
+        if not self.code and self.codeLabel:
+            self.code = self.codeLabel
+        if not self.url and self.credentialUrl:
+            self.url = self.credentialUrl
+        if self.sortOrder is not None:
+            self.sort_order = int(self.sortOrder)
+        if self.isVisible is not None:
+            self.visible = bool(self.isVisible)
+
+        normalized_type = str(self.type or "").strip().lower()
+        self.type = "certificate" if normalized_type == "certificate" else "certification"
+        self.sort_order = max(0, int(self.sort_order))
+        self.code = str(self.code or "").strip()
+        self.title = str(self.title or "").strip()
+        self.url = str(self.url or "").strip()
+
+        if not self.code:
+            raise ValueError("code is required")
+        if not self.title:
+            raise ValueError("title is required")
+        if not self.url:
+            raise ValueError("url is required")
+        return self
+
+    def to_payload(self) -> CredentialPayload:
+        return CredentialPayload(
+            type=self.type,
+            code=self.code or "",
+            title=self.title,
+            url=self.url or "",
+            sort_order=self.sort_order,
+            visible=self.visible,
+        )
+
+
 def _parse_json_query(value: str | None) -> dict[str, Any] | None:
     if not value:
         return None
@@ -93,6 +149,13 @@ def _parse_datetime(value: str | None) -> datetime | None:
         return datetime.fromisoformat(value.replace("Z", "+00:00"))
     except ValueError:
         return None
+
+
+def _credential_store_or_503():
+    try:
+        return get_credential_store()
+    except RuntimeError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
 
 
 @router.get("/admin/messages")
@@ -345,29 +408,65 @@ async def upsert_experience_page_config(payload: dict[str, Any]) -> dict[str, An
     return store.upsert_experience_page_config(payload)
 
 
+@router.get("/credentials")
+async def list_credentials(visible: int | None = Query(default=None), credential_type: str | None = Query(default=None, alias="type")) -> ListResponse:
+    store = _credential_store_or_503()
+    rows = store.list_credentials(visible_only=bool(visible), credential_type=credential_type)
+    items = [serialize_credential(row) for row in rows]
+    return ListResponse(items=items, total=len(items))
+
+
+@router.post("/credentials")
+async def create_credential(payload: CredentialUpsertRequest) -> dict[str, Any]:
+    store = _credential_store_or_503()
+    row = store.create_credential(payload.to_payload())
+    return serialize_credential(row)
+
+
+@router.put("/credentials/{credential_id}")
+async def update_credential(credential_id: str, payload: CredentialUpsertRequest) -> dict[str, Any]:
+    store = _credential_store_or_503()
+    row = store.update_credential(credential_id, payload.to_payload())
+    if row is None:
+        raise HTTPException(status_code=404, detail="Credential not found")
+    return serialize_credential(row)
+
+
+@router.delete("/credentials/{credential_id}")
+async def delete_credential(credential_id: str) -> dict[str, Any]:
+    store = _credential_store_or_503()
+    deleted = store.delete_credential(credential_id)
+    return {"count": 1 if deleted else 0}
+
+
 @router.get("/content/certifications")
 async def list_certifications(visible: int | None = Query(default=None), credential_type: str | None = Query(default=None, alias="type")) -> ListResponse:
-    store = get_admin_store()
-    rows = store.list_certifications(visible_only=bool(visible), credential_type=credential_type)
-    return ListResponse(items=rows, total=len(rows))
+    store = _credential_store_or_503()
+    rows = store.list_credentials(visible_only=bool(visible), credential_type=credential_type)
+    items = [serialize_credential_legacy(row) for row in rows]
+    return ListResponse(items=items, total=len(items))
 
 
 @router.post("/admin/content/certifications")
-async def create_certification(payload: dict[str, Any]) -> dict[str, Any]:
-    store = get_admin_store()
-    return store.upsert_certification(payload)
+async def create_certification(payload: CredentialUpsertRequest) -> dict[str, Any]:
+    store = _credential_store_or_503()
+    row = store.create_credential(payload.to_payload())
+    return serialize_credential_legacy(row)
 
 
 @router.put("/admin/content/certifications/{certification_id}")
-async def update_certification(certification_id: str, payload: dict[str, Any]) -> dict[str, Any]:
-    store = get_admin_store()
-    return store.upsert_certification(payload, certification_id)
+async def update_certification(certification_id: str, payload: CredentialUpsertRequest) -> dict[str, Any]:
+    store = _credential_store_or_503()
+    row = store.update_credential(certification_id, payload.to_payload())
+    if row is None:
+        raise HTTPException(status_code=404, detail="Credential not found")
+    return serialize_credential_legacy(row)
 
 
 @router.delete("/admin/content/certifications/{certification_id}")
 async def delete_certification(certification_id: str) -> dict[str, Any]:
-    store = get_admin_store()
-    deleted = store.delete_certification(certification_id)
+    store = _credential_store_or_503()
+    deleted = store.delete_credential(certification_id)
     return {"count": 1 if deleted else 0}
 
 
