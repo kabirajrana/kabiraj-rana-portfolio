@@ -51,7 +51,8 @@ type TopbarNotifications = {
 };
 
 function shouldUseStaticFallbackData(): boolean {
-  return process.env.NODE_ENV !== "production" && !hasBackendApiBaseUrl();
+  const allowOfflineFallback = process.env.ADMIN_ALLOW_OFFLINE_DATA === "true";
+  return process.env.NODE_ENV !== "production" && (!hasBackendApiBaseUrl() || allowOfflineFallback);
 }
 
 const dateFieldPattern = /(At|Date)$/;
