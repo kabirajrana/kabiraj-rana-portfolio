@@ -1,6 +1,6 @@
 import type { ExperimentContent } from "@/lib/research/types";
 
-import { ResearchSections, type Section } from "@/components/research/layouts/shared";
+import { ResearchSections, type Section } from "@/components/layout/research/layouts/shared";
 
 export function ExperimentLayout({ content }: { content: ExperimentContent }) {
   const sections: Section[] = [

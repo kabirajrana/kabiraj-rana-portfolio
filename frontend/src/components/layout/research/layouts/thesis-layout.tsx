@@ -1,6 +1,6 @@
 import type { ThesisContent } from "@/lib/research/types";
 
-import { ResearchSections, type Section } from "@/components/research/layouts/shared";
+import { ResearchSections, type Section } from "@/components/layout/research/layouts/shared";
 
 export function ThesisLayout({ content }: { content: ThesisContent }) {
   const sections: Section[] = [

@@ -1,11 +1,11 @@
 import type { ExperimentContent, NoteContent, PaperContent, ResearchContent, ResearchType, SystemContent, ThesisContent } from "@/lib/research/types";
 
-import { ExperimentLayout } from "@/components/research/layouts/experiment-layout";
-import { NoteLayout } from "@/components/research/layouts/note-layout";
-import { PaperLayout } from "@/components/research/layouts/paper-layout";
-import { SystemLayout } from "@/components/research/layouts/system-layout";
-import { ThesisLayout } from "@/components/research/layouts/thesis-layout";
-import type { TocItem } from "@/components/research/research-toc";
+import { ExperimentLayout } from "@/components/layout/research/layouts/experiment-layout";
+import { NoteLayout } from "@/components/layout/research/layouts/note-layout";
+import { PaperLayout } from "@/components/layout/research/layouts/paper-layout";
+import { SystemLayout } from "@/components/layout/research/layouts/system-layout";
+import { ThesisLayout } from "@/components/layout/research/layouts/thesis-layout";
+import type { TocItem } from "@/components/layout/research/research-toc";
 
 const TOC_BY_TYPE: Record<ResearchType, TocItem[]> = {
   EXPERIMENT: [

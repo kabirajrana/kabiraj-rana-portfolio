@@ -1,6 +1,6 @@
 import type { PaperContent } from "@/lib/research/types";
 
-import { ResearchSections, type Section } from "@/components/research/layouts/shared";
+import { ResearchSections, type Section } from "@/components/layout/research/layouts/shared";
 
 export function PaperLayout({ content }: { content: PaperContent }) {
   const sections: Section[] = [

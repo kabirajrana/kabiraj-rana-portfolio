@@ -1,16 +1,23 @@
-export function ResearchMetadataRail({ item }: { item?: any }) {
+export function ResearchMetadataRail({
+  item,
+  entry,
+}: {
+  item?: any;
+  entry?: any;
+}) {
+  const data = entry ?? item;
   return (
     <aside className="space-y-4 text-sm text-muted-foreground">
-      {item?.date && (
+      {data?.date && (
         <div>
           <p className="font-medium text-foreground">Published</p>
-          <p>{item.date}</p>
+          <p>{data.date}</p>
         </div>
       )}
-      {item?.track && (
+      {data?.track && (
         <div>
           <p className="font-medium text-foreground">Track</p>
-          <p>{item.track}</p>
+          <p>{data.track}</p>
         </div>
       )}
     </aside>
