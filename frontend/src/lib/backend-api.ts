@@ -1,7 +1,9 @@
-const API_TIMEOUT_MS = 20000;
-const API_RETRY_ATTEMPTS = 2;
-const API_NO_STORE_GET_TIMEOUT_MS = 7000;
+const IS_PROD = process.env.NODE_ENV === "production";
+const API_TIMEOUT_MS = IS_PROD ? 20000 : 6000;
+const API_RETRY_ATTEMPTS = IS_PROD ? 2 : 1;
+const API_NO_STORE_GET_TIMEOUT_MS = IS_PROD ? 7000 : 2500;
 const API_NO_STORE_GET_RETRY_ATTEMPTS = 1;
+const API_HEALTH_TIMEOUT_MS = IS_PROD ? 4000 : 1500;
 
 type BackendApiEnvSource = "BACKEND_API_URL" | "API_URL" | "NEXT_PUBLIC_API_URL";
 
@@ -253,10 +255,18 @@ export async function probeBackendApiHealth(): Promise<{ ok: boolean; endpoint: 
   let endpoint: string | null = null;
   try {
     endpoint = resolveBackendApiEndpoint("/health");
-    const response = await fetch(endpoint, {
-      method: "GET",
-      cache: "no-store",
-    });
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), API_HEALTH_TIMEOUT_MS);
+    let response: Response;
+    try {
+      response = await fetch(endpoint, {
+        method: "GET",
+        cache: "no-store",
+        signal: controller.signal,
+      });
+    } finally {
+      clearTimeout(timeout);
+    }
     return {
       ok: response.ok,
       endpoint,
