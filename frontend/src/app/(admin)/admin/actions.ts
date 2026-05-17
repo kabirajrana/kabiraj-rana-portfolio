@@ -169,9 +169,21 @@ export async function adminLoginAction(formData: FormData) {
   const seedPassword = serverEnv.ADMIN_SEED_PASSWORD ?? "";
   const validSeedCredential = Boolean(seedEmail && seedPassword && normalizedEmail === seedEmail && parsed.data.password === seedPassword);
   let user: AdminAuthUser | null = null;
-  try {
-    user = toAdminAuthUser(await contentRepository.getAdminUserByEmail(normalizedEmail));
-  } catch (error) {
+
+  const allowSeedLogin = process.env.NODE_ENV !== "production" && serverEnv.ADMIN_ALLOW_SEED_LOGIN === true;
+
+  if (allowSeedLogin && validSeedCredential) {
+    user = {
+      id: "seed-admin",
+      email: seedEmail ?? normalizedEmail,
+      role: "ADMIN",
+      name: "Admin",
+      passwordHash: "",
+    };
+  } else {
+    try {
+      user = toAdminAuthUser(await contentRepository.getAdminUserByEmail(normalizedEmail));
+    } catch (error) {
     const backendHealth = await probeBackendApiHealth();
     const endpoint = (() => {
       try {
@@ -193,24 +205,8 @@ export async function adminLoginAction(formData: FormData) {
       healthProbe: backendHealth,
     });
 
-    if (validSeedCredential) {
-      console.warn("[admin-auth] Backend lookup failed, allowing seed credential fallback login", {
-        email: normalizedEmail,
-        code: backendError?.code ?? "unknown",
-        status: backendError?.status ?? null,
-      });
-
-      user = {
-        id: "seed-admin-fallback",
-        email: seedEmail ?? normalizedEmail,
-        role: "ADMIN",
-        name: "Admin",
-        passwordHash: "",
-      };
-    }
-
     if (user) {
-      // Continue with authenticated seed fallback user.
+      // Continue with authenticated fallback user.
     } else {
       if (backendError?.code === "missing-env" || backendError?.code === "invalid-env") {
         return { success: false, message: "Authentication service misconfigured. Set backend URL env variables." };
