@@ -9,8 +9,8 @@ export function FadeIn({
 	children,
 	delay = 0,
 	y = 28,
-	durationMs = 1400,
-	easing = "cubic-bezier(0.16,1,0.3,1)",
+	durationMs = 1100,
+	easing = "cubic-bezier(0.22, 1, 0.36, 1)",
 	className,
 }: {
 	children: ReactNode;
@@ -35,7 +35,7 @@ export function FadeIn({
 		}
 
 		const rect = element.getBoundingClientRect();
-		const appearsOnInitialViewport = rect.top <= window.innerHeight * 1.05;
+		const appearsOnInitialViewport = rect.top <= window.innerHeight * 1.15;
 		if (appearsOnInitialViewport) {
 			const id = window.requestAnimationFrame(() => setIsVisible(true));
 			return () => window.cancelAnimationFrame(id);

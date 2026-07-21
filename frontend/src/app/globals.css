@@ -17,6 +17,12 @@
 	@apply border-border;
 }
 
+html {
+	scroll-behavior: smooth;
+	-webkit-overflow-scrolling: touch;
+	scroll-padding-top: 5rem;
+}
+
 html,
 body {
 	@apply bg-background text-text antialiased;
@@ -24,6 +30,8 @@ body {
 }
 
 body {
+	overscroll-behavior-y: contain;
+	touch-action: manipulation;
 	min-height: 100vh;
 	background-image:
 		radial-gradient(circle at 10% 20%, hsl(var(--accent) / 0.08), transparent 28%),

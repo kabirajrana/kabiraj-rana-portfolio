@@ -27,7 +27,7 @@ export function ExperienceSection({
 	const [activeCredentialTab, setActiveCredentialTab] = useState<"certificate" | "certification">("certificate");
 
 	const activeCredentials = useMemo(
-		() => (activeCredentialTab === "certificate" ? certificates : certifications),
+		() => (activeCredentialTab === "certificate" ? certificates ?? [] : certifications ?? []),
 		[activeCredentialTab, certificates, certifications]
 	);
 
@@ -48,7 +48,7 @@ export function ExperienceSection({
 												const isRight = item.sidePlacement === "RIGHT" ? true : item.sidePlacement === "LEFT" ? false : idx % 2 === 1;
 
 												return (
-														<FadeIn key={`${item.title}-${item.period}`} delay={idx * 0.08}>
+														<FadeIn key={`${item.title}-${item.period}`} delay={idx * 0.1} y={32} durationMs={900}>
 																<div className="grid grid-cols-1 items-start gap-4 md:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] md:gap-6">
 																		<div className={isRight ? "hidden md:block" : "hidden md:block md:pr-1"}>
 																			   {!isRight ? (
