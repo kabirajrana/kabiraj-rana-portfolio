@@ -54,12 +54,13 @@ export default async function ExperiencePage() {
 								</FadeIn>
 						</Container>
 						<ExperienceSection
-								experiences={mappedExperience}
-								certifications={mappedCerts}
-								showTimeline={config?.showTimeline ?? true}
-								showCertifications={config?.showCertifications ?? true}
-								certTitle={config?.certTitle ?? "Formal Intelligence Expansion"}
-								certSubtitle={config?.certSubtitle ?? "Each certification reflects practical upskilling across AI, cloud, and modern software systems."}
+							experiences={mappedExperience}
+							certificates={[]}
+							certifications={mappedCerts}
+							showTimeline={config?.showTimeline ?? true}
+							showCertifications={config?.showCertifications ?? true}
+							certTitle={config?.certTitle ?? "Formal Intelligence Expansion"}
+							certSubtitle={config?.certSubtitle ?? "Each certification reflects practical upskilling across AI, cloud, and modern software systems."}
 						/>
 				</>
 		);
