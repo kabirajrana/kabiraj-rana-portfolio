@@ -16,12 +16,13 @@ export const metadata = buildMetadata({
 	description: "Experience timeline, education, and certifications of Kabiraj Rana.",
 	path: "/experience",
 });
-
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 export default async function ExperiencePage() {
 	const [config, experienceRows, credentials] = await Promise.all([
 		contentRepository.getExperiencePageConfig(),
 		contentRepository.listExperience({ useFallback: false }),
-		contentRepository.listCertifications({ visible: true }),
+		contentRepository.listCertifications({ useFallback: false }),
 	]);
 
 	const rows = experienceRows as ExperienceRow[];
@@ -43,30 +44,21 @@ export default async function ExperiencePage() {
 
 	const mappedCerts = typedCredentials.filter((item: CertificationRow) => normalizeCredentialType((item as { type?: unknown }).type) === "certification").map((item: CertificationRow) => ({
 		id: item.id,
-		codeLabel: item.code ?? item.codeLabel,
+		codeLabel: item.codeLabel,
 		title: item.title,
-		href: item.url ?? item.credentialUrl,
+		href: item.credentialUrl,
 	}));
 
 	const mappedCertificates = typedCredentials.filter((item: CertificationRow) => normalizeCredentialType((item as { type?: unknown }).type) === "certificate").map((item: CertificationRow) => ({
 		id: item.id,
-		codeLabel: item.code ?? item.codeLabel,
+		codeLabel: item.codeLabel,
 		title: item.title,
-		href: item.url ?? item.credentialUrl,
+		href: item.credentialUrl,
 	}));
 
 	const timelineItems = mappedExperience;
 	const certificateItems = mappedCertificates;
 	const certificationItems = mappedCerts;
-
-	const hasTimelineItems = timelineItems.length > 0;
-	const hasCredentialItems = certificateItems.length > 0 || certificationItems.length > 0;
-	const configuredShowTimeline = config?.showTimeline ?? true;
-	const configuredShowCertifications = config?.showCertifications ?? true;
-
-	// Guard against an empty Experience page when admin toggles are both off or when data is missing.
-	const showTimeline = hasTimelineItems && (configuredShowTimeline || !configuredShowCertifications);
-	const showCertifications = hasCredentialItems && (configuredShowCertifications || !configuredShowTimeline);
 
 	return (
 		<>
