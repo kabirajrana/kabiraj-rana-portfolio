@@ -274,7 +274,8 @@ export const dashboardRepository = {
   },
 
   async getRecentActivity() {
-    return await getListFromApi<Record<string, any>>("/v1/admin/dashboard/recent-activity");
+    const rows = await getListFromApi<Record<string, any>>("/v1/admin/dashboard/recent-activity");
+    return rows.filter((row) => row && typeof row === "object");
   },
 
   async getTopbarNotifications(): Promise<TopbarNotifications> {

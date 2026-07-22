@@ -16,11 +16,24 @@ function safeDate(value: unknown): Date | null {
 }
 
 export default async function AdminDashboardPage() {
-  const [kpis, recentActivity, pageViews] = await Promise.all([
+  const results = await Promise.allSettled([
     dashboardRepository.getKpis(),
     dashboardRepository.getRecentActivity(),
     getAnalyticsOverview(30),
   ]);
+
+  const fallbackKpis = {
+    projects: 0,
+    research: 0,
+    experience: 0,
+    unreadMessages: 0,
+    cvDownloads: 0,
+    visitors7d: 0,
+    visitors30d: 0,
+  };
+  const kpis = results[0].status === "fulfilled" && results[0].value ? results[0].value : fallbackKpis;
+  const recentActivity = results[1].status === "fulfilled" && Array.isArray(results[1].value) ? results[1].value : [];
+  const pageViews = results[2].status === "fulfilled" && Array.isArray(results[2].value) ? results[2].value : [];
 
   const dailyMap = new Map<string, number>();
   for (const event of (pageViews as AnalyticsEvent[]).filter((event) => event.eventType === "PAGE_VIEW")) {
