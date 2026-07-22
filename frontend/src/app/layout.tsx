@@ -24,13 +24,14 @@ export const metadata: Metadata = {
 	},
 	icons: {
 		icon: [
-			{ url: "/Favicon/favicon.ico" },
+			{ url: "/favicon.ico" },
 			{ url: "/Favicon/favicon-16x16.png", sizes: "16x16", type: "image/png" },
 			{ url: "/Favicon/favicon-32x32.png", sizes: "32x32", type: "image/png" },
 		],
+		shortcut: [{ url: "/favicon.ico" }],
 		apple: [{ url: "/Favicon/apple-touch-icon.png", sizes: "180x180", type: "image/png" }],
 	},
-	manifest: "/Favicon/site.webmanifest",
+	manifest: "/site.webmanifest",
 };
 
 export default function RootLayout({ children }: Readonly<{ children: ReactNode }>) {
