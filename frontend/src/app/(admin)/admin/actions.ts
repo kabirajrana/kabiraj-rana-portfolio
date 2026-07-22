@@ -194,6 +194,9 @@ export async function adminLoginAction(formData: FormData) {
       })();
 
       const backendError = error instanceof BackendApiError ? error : null;
+      const healthStatus = backendHealth.ok ? "ok" : `failed (${backendHealth.error ?? "unknown"}${backendHealth.status ? `, status ${backendHealth.status}` : ""})`;
+      const endpointText = endpoint ? ` Backend endpoint: ${endpoint}.` : "";
+      const healthText = backendHealth.ok ? "" : ` Health probe: ${healthStatus}.`;
 
       console.error("[admin-auth] Failed to fetch admin user from backend API", {
         email: normalizedEmail,
@@ -209,14 +212,23 @@ export async function adminLoginAction(formData: FormData) {
         // Continue with authenticated fallback user.
       } else {
         if (backendError?.code === "missing-env" || backendError?.code === "invalid-env") {
-          return { success: false, message: "Authentication service misconfigured. Set backend URL env variables." };
+          return {
+            success: false,
+            message: "Authentication service misconfigured. Set backend URL env variables.",
+          };
         }
 
         if (backendError?.code === "network" || backendError?.code === "timeout") {
-          return { success: false, message: "Authentication service is unreachable right now. Please try again." };
+          return {
+            success: false,
+            message: `Authentication service is unreachable right now. Please try again.${endpointText}${healthText}`,
+          };
         }
 
-        return { success: false, message: "Authentication service unavailable. Check backend URL/env configuration." };
+        return {
+          success: false,
+          message: `Authentication service unavailable. Check backend URL/env configuration.${endpointText}${healthText}`,
+        };
       }
     }
   }
