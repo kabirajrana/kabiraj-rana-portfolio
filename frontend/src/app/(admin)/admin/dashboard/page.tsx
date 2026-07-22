@@ -10,6 +10,11 @@ import { dashboardRepository } from "@/lib/db/repositories";
 type ActivityItem = Awaited<ReturnType<typeof dashboardRepository.getRecentActivity>>[number];
 type AnalyticsEvent = { eventType: string; path: string; createdAt: Date };
 
+function safeDate(value: unknown): Date | null {
+  const date = value instanceof Date ? value : new Date(String(value ?? ""));
+  return Number.isNaN(date.getTime()) ? null : date;
+}
+
 export default async function AdminDashboardPage() {
   const [kpis, recentActivity, pageViews] = await Promise.all([
     dashboardRepository.getKpis(),
@@ -19,7 +24,12 @@ export default async function AdminDashboardPage() {
 
   const dailyMap = new Map<string, number>();
   for (const event of (pageViews as AnalyticsEvent[]).filter((event) => event.eventType === "PAGE_VIEW")) {
-    const key = format(event.createdAt, "MMM dd");
+    const createdAt = safeDate(event.createdAt);
+    if (!createdAt) {
+      continue;
+    }
+
+    const key = format(createdAt, "MMM dd");
     dailyMap.set(key, (dailyMap.get(key) ?? 0) + 1);
   }
 
@@ -59,7 +69,9 @@ export default async function AdminDashboardPage() {
                 <p>
                   <span className="font-medium">{item.actor?.name ?? item.actor?.email ?? "System"}</span> {item.action} {item.resource}
                 </p>
-                <p className="text-xs text-muted">{format(item.createdAt, "MMM d, HH:mm")}</p>
+                <p className="text-xs text-muted">
+                  {safeDate(item.createdAt) ? format(safeDate(item.createdAt) as Date, "MMM d, HH:mm") : "—"}
+                </p>
               </div>
             ))
           ) : (

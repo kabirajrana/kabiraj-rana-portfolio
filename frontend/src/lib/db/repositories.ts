@@ -255,7 +255,7 @@ async function getListFromApi<T>(path: string, init?: RequestInit): Promise<T[]>
     return response;
   }
 
-  return response.items ?? [];
+  return Array.isArray(response.items) ? response.items : [];
 }
 
 export const dashboardRepository = {
