@@ -33,9 +33,17 @@ export async function getAnalyticsOverview(days = 30) {
     return [];
   }
 
-  return response.map((event, index) => ({
-    ...event,
-    id: event.id ?? `event-${index}`,
-    createdAt: event.createdAt instanceof Date ? event.createdAt : new Date(event.createdAt),
-  }));
+  return response.flatMap((event, index) => {
+    const createdAt = event.createdAt instanceof Date ? event.createdAt : new Date(event.createdAt);
+
+    if (Number.isNaN(createdAt.getTime())) {
+      return [];
+    }
+
+    return [{
+      ...event,
+      id: event.id ?? `event-${index}`,
+      createdAt,
+    }];
+  });
 }

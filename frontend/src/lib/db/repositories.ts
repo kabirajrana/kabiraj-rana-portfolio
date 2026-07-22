@@ -395,8 +395,11 @@ export const contentRepository = {
       return rows;
     }
 
+    // Keep the public experience page useful while the remote content store is
+    // empty or temporarily unavailable. The admin page explicitly opts into
+    // this too, so both environments show the same baseline content.
     const useFallback = options?.useFallback ?? true;
-    return useFallback && shouldUseStaticFallbackData() ? toFallbackExperienceRows() : rows;
+    return useFallback ? toFallbackExperienceRows() : rows;
   },
 
   async upsertExperience(input: ExperienceCreateInput & { id?: string }) {

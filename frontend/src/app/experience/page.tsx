@@ -21,7 +21,7 @@ export default async function ExperiencePage() {
 		]);
 
 		const mappedExperience = (experienceRows as ExperienceRow[])
-				.filter((item: ExperienceRow) => item.status === "PUBLISHED")
+					.filter((item: ExperienceRow) => String(item.status).toUpperCase() === "PUBLISHED")
 				.map((item: ExperienceRow) => ({
 						title: item.role,
 						period: item.timeframe || `${item.startDate.getFullYear()} – ${item.currentRole ? "Present" : item.endDate ? item.endDate.getFullYear() : "Present"}`,
