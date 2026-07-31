@@ -121,7 +121,7 @@ export function ExperienceSection({
 										<div className="mt-6 grid gap-3 transition-opacity duration-300 sm:grid-cols-2 lg:grid-cols-3">
 												{activeCredentials.map((item, idx) => (
 														<FadeIn key={item.id} delay={0.08 + idx * 0.08}>
-																<div className="group rounded-xl border border-border/70 bg-background/60 p-4 transition-all duration-300 hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-[0_12px_34px_-24px_hsl(var(--primary))]">
+										<div className="rounded-xl border border-border/70 bg-background/60 p-4">
 																		<p className="inline-flex rounded-full border border-primary/30 bg-primary/10 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-primary shadow-[0_0_0_1px_hsl(var(--primary)/0.1),0_10px_24px_-16px_hsl(var(--primary)/0.8)]">
 																			   {item.codeLabel ?? item.id}
 																		</p>
@@ -133,7 +133,7 @@ export function ExperienceSection({
 															   href={item.href}
 															   target="_blank"
 															   rel="noreferrer noopener"
-															   className="mt-3 inline-block text-xs text-muted transition-colors hover:text-primary group-hover:text-primary"
+															   className="mt-3 inline-flex items-center text-xs text-muted transition-[color,transform] duration-300 hover:translate-x-1 hover:text-primary"
 															>
 															   View Credential ↗
 															</a>
