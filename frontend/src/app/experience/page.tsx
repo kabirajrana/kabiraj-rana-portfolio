@@ -14,10 +14,11 @@ export const metadata = buildMetadata({
 });
 
 export default async function ExperiencePage() {
-		const [config, experienceRows, certifications] = await Promise.all([
+		const [config, experienceRows, certificates, certifications] = await Promise.all([
 				contentRepository.getExperiencePageConfig(),
 				contentRepository.listExperience(),
-				contentRepository.listCertifications(),
+				contentRepository.listCertifications({ type: "certificate" }),
+				contentRepository.listCertifications({ type: "certification" }),
 		]);
 
 		const mappedExperience = (experienceRows as ExperienceRow[])
@@ -32,12 +33,14 @@ export default async function ExperiencePage() {
 						sidePlacement: item.sidePlacement,
 				}));
 
-		const mappedCerts = (certifications as CertificationRow[]).map((item: CertificationRow) => ({
+		const mapCredential = (item: CertificationRow) => ({
 				id: item.id,
 				codeLabel: item.codeLabel,
 				title: item.title,
 				href: item.credentialUrl,
-		}));
+		});
+		const mappedCertificates = (certificates as CertificationRow[]).map(mapCredential);
+		const mappedCertifications = (certifications as CertificationRow[]).map(mapCredential);
 
 		return (
 				<>
@@ -55,8 +58,8 @@ export default async function ExperiencePage() {
 						</Container>
 						<ExperienceSection
 							experiences={mappedExperience}
-							certificates={[]}
-							certifications={mappedCerts}
+							certificates={mappedCertificates}
+							certifications={mappedCertifications}
 							showTimeline={config?.showTimeline ?? true}
 							showCertifications={config?.showCertifications ?? true}
 							certTitle={config?.certTitle ?? "Formal Intelligence Expansion"}
