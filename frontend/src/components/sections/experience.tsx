@@ -128,14 +128,18 @@ export function ExperienceSection({
 																		<p className="mt-2 text-sm font-medium leading-relaxed text-foreground sm:text-[0.95rem]">
 																			   {item.title}
 																		</p>
-																		<a
-																			   href={item.href}
-																			   target="_blank"
-																			   rel="noreferrer noopener"
-																			   className="mt-3 inline-block text-xs text-muted transition-colors hover:text-primary group-hover:text-primary"
-																		>
-																			   View Credential ↗
-																		</a>
+														{item.href ? (
+															<a
+															   href={item.href}
+															   target="_blank"
+															   rel="noreferrer noopener"
+															   className="mt-3 inline-block text-xs text-muted transition-colors hover:text-primary group-hover:text-primary"
+															>
+															   View Credential ↗
+															</a>
+														) : (
+															<span className="mt-3 inline-block text-xs text-muted/60">Credential link unavailable</span>
+														)}
 																</div>
 														</FadeIn>
 												))}

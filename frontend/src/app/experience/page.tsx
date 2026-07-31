@@ -33,11 +33,11 @@ export default async function ExperiencePage() {
 						sidePlacement: item.sidePlacement,
 				}));
 
-		const mapCredential = (item: CertificationRow) => ({
+		const mapCredential = (item: CertificationRow, index: number) => ({
 				id: item.id,
-				codeLabel: item.codeLabel,
+				codeLabel: String(item.codeLabel ?? item.code ?? `C${index + 1}`),
 				title: item.title,
-				href: item.credentialUrl,
+				href: String(item.credentialUrl ?? item.url ?? "").trim(),
 		});
 		const mappedCertificates = (certificates as CertificationRow[]).map(mapCredential);
 		const mappedCertifications = (certifications as CertificationRow[]).map(mapCredential);
