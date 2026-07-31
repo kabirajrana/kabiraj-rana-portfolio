@@ -1,4 +1,5 @@
 const IS_PROD = process.env.NODE_ENV === "production";
+const IS_PRODUCTION_BUILD = process.env.NEXT_PHASE === "phase-production-build";
 // Render may need several seconds to wake a sleeping instance. Keep the
 // request alive long enough for the first request after an idle period.
 const API_TIMEOUT_MS = IS_PROD ? 30000 : 6000;
@@ -246,6 +247,14 @@ export async function backendApiRequest<T>(
   path: string,
   init?: RequestInit,
 ): Promise<T | null> {
+  // Public pages are statically rendered during `next build`. Do not block
+  // the deployment on a sleeping/unavailable remote backend; repository
+  // callers already provide safe fallback content for these reads.
+  const method = String(init?.method ?? "GET").toUpperCase();
+  if (IS_PRODUCTION_BUILD && method === "GET") {
+    return null;
+  }
+
   try {
     return await backendApiRequestOrThrow<T>(path, init);
   } catch {
