@@ -10,16 +10,20 @@ from __future__ import annotations
 import argparse
 from datetime import datetime, timezone
 import json
+import logging
 import os
 from pathlib import Path
 import sys
 
+from dotenv import load_dotenv
 from sqlalchemy import select
 
 from app.db.base import Base
 from app.db.models import ContentRecord, Credential
 from app.db.session import configure_database, get_engine, open_session
 from app.services.postgres_store import ensure_admin_defaults
+
+logger = logging.getLogger(__name__)
 
 
 COLLECTIONS = {
@@ -46,6 +50,13 @@ CONFIG_KEYS = {
     "contact_config",
     "system_settings",
 }
+
+
+def load_backend_environment() -> None:
+    backend_root = Path(__file__).resolve().parents[1]
+    load_dotenv(backend_root / ".env", override=False)
+    if os.getenv("DATABASE_URL", "").strip():
+        logger.info("Loaded DATABASE_URL from environment.")
 
 
 def parse_datetime(value: object) -> datetime:
@@ -132,6 +143,7 @@ def import_credential(session, payload: dict) -> bool:
 
 
 def run(source: Path) -> tuple[int, int]:
+    load_backend_environment()
     with source.open("r", encoding="utf-8-sig") as handle:
         data = json.load(handle)
     if not isinstance(data, dict):
@@ -174,6 +186,7 @@ def run(source: Path) -> tuple[int, int]:
 
 
 def main() -> int:
+    logging.basicConfig(level=logging.INFO, format="%(levelname)s %(message)s")
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--file", type=Path, default=Path(".data/admin_store.json"))
     args = parser.parse_args()
