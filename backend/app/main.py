@@ -1,5 +1,6 @@
 import os
 import time
+import logging
 
 from fastapi import FastAPI
 import uvicorn
@@ -12,6 +13,8 @@ from app.services.postgres_store import ensure_admin_defaults
 from app.db.base import Base
 from app.db.models import ContentRecord
 from app.db.session import get_engine
+
+logger = logging.getLogger(__name__)
 
 settings = get_settings()
 
@@ -32,11 +35,18 @@ app.state.started_at = time.time()
 @app.on_event("startup")
 def bootstrap_data_stores() -> None:
 	try:
-		init_credential_store(settings.database_url, seed_on_empty=settings.credentials_seed_on_empty)
+		# Read the deployment-provided process environment directly. This avoids
+		# relying on dotenv discovery or a stale Settings instance for the DB URL.
+		database_url = os.getenv("DATABASE_URL", "").strip()
+		logger.info("[startup] DATABASE_URL detected: %s", bool(database_url))
+		if not database_url:
+			raise RuntimeError("DATABASE_URL is missing from the backend process environment")
+
+		init_credential_store(database_url, seed_on_empty=settings.credentials_seed_on_empty)
 		Base.metadata.create_all(bind=get_engine())
 		ensure_admin_defaults()
-	except Exception as error:
-		print(f"[startup] PostgreSQL initialization failed: {error}")
+	except Exception:
+		logger.exception("[startup] PostgreSQL initialization failed")
 		if settings.app_env == "production":
 			raise
 

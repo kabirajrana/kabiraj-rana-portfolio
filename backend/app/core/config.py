@@ -27,7 +27,6 @@ class Settings(BaseSettings):
 
 	contact_rate_limit: int = Field(default=5, alias="CONTACT_RATE_LIMIT")
 	contact_rate_window_sec: int = Field(default=60, alias="CONTACT_RATE_WINDOW_SEC")
-	database_url: str = Field(default="", alias="DATABASE_URL")
 	credentials_seed_on_empty: bool = Field(default=False, alias="CREDENTIALS_SEED_ON_EMPTY")
 
 	@model_validator(mode="after")
