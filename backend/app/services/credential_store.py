@@ -17,6 +17,7 @@ from app.db.session import configure_database
 from app.db.session import get_engine
 from app.db.session import is_database_configured
 from app.db.session import open_session
+from app.services.admin_store import get_admin_store
 
 
 @dataclass(frozen=True)
@@ -27,6 +28,86 @@ class CredentialPayload:
     url: str
     sort_order: int = 0
     visible: bool = True
+
+
+@dataclass(frozen=True)
+class JsonCredentialRecord:
+    """Credential shape used when the optional PostgreSQL store is offline."""
+
+    id: str
+    type: str
+    code: str
+    title: str
+    url: str
+    sort_order: int
+    visible: bool
+    created_at: datetime | None
+    updated_at: datetime | None
+
+
+def _credential_datetime(value: Any) -> datetime | None:
+    if isinstance(value, datetime):
+        return value
+    if not value:
+        return None
+    try:
+        return datetime.fromisoformat(str(value).replace("Z", "+00:00"))
+    except ValueError:
+        return None
+
+
+class JsonCredentialStore:
+    """Persistent fallback backed by the admin JSON store on Render."""
+
+    def _record(self, row: dict[str, Any]) -> JsonCredentialRecord:
+        return JsonCredentialRecord(
+            id=str(row.get("id") or ""),
+            type=str(row.get("type") or "certification"),
+            code=str(row.get("code") or row.get("codeLabel") or ""),
+            title=str(row.get("title") or ""),
+            url=str(row.get("url") or row.get("credentialUrl") or ""),
+            sort_order=int(row.get("sortOrder", row.get("sort_order", 0)) or 0),
+            visible=bool(row.get("isVisible", row.get("visible", True))),
+            created_at=_credential_datetime(row.get("createdAt", row.get("created_at"))),
+            updated_at=_credential_datetime(row.get("updatedAt", row.get("updated_at"))),
+        )
+
+    def list_credentials(self, visible_only: bool = False, credential_type: str | None = None) -> list[JsonCredentialRecord]:
+        rows = get_admin_store().list_certifications(visible_only=visible_only, credential_type=credential_type)
+        return [self._record(row) for row in rows]
+
+    def create_credential(self, payload: CredentialPayload) -> JsonCredentialRecord:
+        row = get_admin_store().upsert_certification(
+            {
+                "type": payload.type,
+                "code": payload.code,
+                "title": payload.title,
+                "url": payload.url,
+                "sortOrder": payload.sort_order,
+                "isVisible": payload.visible,
+            }
+        )
+        return self._record(row)
+
+    def update_credential(self, credential_id: str, payload: CredentialPayload) -> JsonCredentialRecord | None:
+        rows = get_admin_store().list_certifications()
+        if not any(str(row.get("id")) == credential_id for row in rows):
+            return None
+        row = get_admin_store().upsert_certification(
+            {
+                "type": payload.type,
+                "code": payload.code,
+                "title": payload.title,
+                "url": payload.url,
+                "sortOrder": payload.sort_order,
+                "isVisible": payload.visible,
+            },
+            credential_id,
+        )
+        return self._record(row)
+
+    def delete_credential(self, credential_id: str) -> bool:
+        return get_admin_store().delete_certification(credential_id)
 
 
 SEED_DEFAULT_CREDENTIALS: tuple[CredentialPayload, ...] = (
