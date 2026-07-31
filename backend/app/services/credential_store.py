@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from datetime import datetime
 from datetime import timezone
 import logging
+import os
 from typing import Any
 
 from sqlalchemy import Select
@@ -175,6 +176,16 @@ def init_credential_store(database_url: str, seed_on_empty: bool = False) -> boo
 
 
 def get_credential_store() -> CredentialStore:
+    # Render can restart workers independently. Re-read the process environment
+    # here as a safe fallback if an ASGI startup hook was skipped or reloaded.
+    if _store is None or not is_database_configured():
+        database_url = os.getenv("DATABASE_URL", "").strip()
+        if database_url:
+            try:
+                init_credential_store(database_url)
+            except Exception as exc:
+                logger.exception("Failed to initialize credential database on demand")
+                raise RuntimeError("Credential database initialization failed") from exc
     if _store is None or not is_database_configured():
         raise RuntimeError("Credential database is not configured. Set DATABASE_URL on the backend.")
     return _store
