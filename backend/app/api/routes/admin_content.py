@@ -3,6 +3,7 @@ from __future__ import annotations
 from datetime import datetime
 from datetime import timezone
 import json
+import logging
 from typing import Any
 
 from fastapi import APIRouter
@@ -21,6 +22,7 @@ from app.services.credential_store import serialize_credential
 from app.services.credential_store import serialize_credential_legacy
 
 router = APIRouter(prefix="/v1", tags=["admin-content"])
+logger = logging.getLogger(__name__)
 
 MESSAGE_STATUSES = {"UNREAD", "READ", "ARCHIVED", "DELETED"}
 
@@ -419,14 +421,22 @@ async def list_credentials(visible: int | None = Query(default=None), credential
 @router.post("/credentials")
 async def create_credential(payload: CredentialUpsertRequest) -> dict[str, Any]:
     store = _credential_store_or_503()
-    row = store.create_credential(payload.to_payload())
+    try:
+        row = store.create_credential(payload.to_payload())
+    except Exception as exc:
+        logger.exception("Credential creation failed")
+        raise HTTPException(status_code=503, detail="Credential database is unavailable") from exc
     return serialize_credential(row)
 
 
 @router.put("/credentials/{credential_id}")
 async def update_credential(credential_id: str, payload: CredentialUpsertRequest) -> dict[str, Any]:
     store = _credential_store_or_503()
-    row = store.update_credential(credential_id, payload.to_payload())
+    try:
+        row = store.update_credential(credential_id, payload.to_payload())
+    except Exception as exc:
+        logger.exception("Credential update failed", extra={"credential_id": credential_id})
+        raise HTTPException(status_code=503, detail="Credential database is unavailable") from exc
     if row is None:
         raise HTTPException(status_code=404, detail="Credential not found")
     return serialize_credential(row)
@@ -435,7 +445,11 @@ async def update_credential(credential_id: str, payload: CredentialUpsertRequest
 @router.delete("/credentials/{credential_id}")
 async def delete_credential(credential_id: str) -> dict[str, Any]:
     store = _credential_store_or_503()
-    deleted = store.delete_credential(credential_id)
+    try:
+        deleted = store.delete_credential(credential_id)
+    except Exception as exc:
+        logger.exception("Credential deletion failed", extra={"credential_id": credential_id})
+        raise HTTPException(status_code=503, detail="Credential database is unavailable") from exc
     return {"count": 1 if deleted else 0}
 
 

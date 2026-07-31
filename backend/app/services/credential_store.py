@@ -3,6 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from datetime import datetime
 from datetime import timezone
+import logging
 from typing import Any
 
 from sqlalchemy import Select
@@ -17,6 +18,8 @@ from app.db.session import configure_database
 from app.db.session import get_engine
 from app.db.session import is_database_configured
 from app.db.session import open_session
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass(frozen=True)
@@ -51,18 +54,22 @@ SEED_DEFAULT_CREDENTIALS: tuple[CredentialPayload, ...] = (
 
 class CredentialStore:
     def list_credentials(self, visible_only: bool = False, credential_type: str | None = None) -> list[Credential]:
-        with open_session() as session:
-            query: Select[tuple[Credential]] = select(Credential)
+        try:
+            with open_session() as session:
+                query: Select[tuple[Credential]] = select(Credential)
 
-            normalized_type = self._normalize_type(credential_type) if credential_type else None
-            if normalized_type:
-                query = query.where(Credential.type == normalized_type)
+                normalized_type = self._normalize_type(credential_type) if credential_type else None
+                if normalized_type:
+                    query = query.where(Credential.type == normalized_type)
 
-            if visible_only:
-                query = query.where(Credential.visible.is_(True))
+                if visible_only:
+                    query = query.where(Credential.visible.is_(True))
 
-            query = query.order_by(Credential.sort_order.asc(), Credential.created_at.asc())
-            return list(session.scalars(query).all())
+                query = query.order_by(Credential.sort_order.asc(), Credential.created_at.asc())
+                return list(session.scalars(query).all())
+        except Exception:
+            logger.exception("Failed to list credentials")
+            raise
 
     def create_credential(self, payload: CredentialPayload) -> Credential:
         now = datetime.now(timezone.utc)
@@ -77,34 +84,46 @@ class CredentialStore:
             updated_at=now,
         )
 
-        with open_session() as session:
-            session.add(row)
-            session.commit()
-            session.refresh(row)
-            return row
+        try:
+            with open_session() as session:
+                session.add(row)
+                session.commit()
+                session.refresh(row)
+                return row
+        except Exception:
+            logger.exception("Failed to create credential", extra={"code": payload.code})
+            raise
 
     def update_credential(self, credential_id: str, payload: CredentialPayload) -> Credential | None:
-        with open_session() as session:
-            row = session.get(Credential, credential_id)
-            if row is None:
-                return None
+        try:
+            with open_session() as session:
+                row = session.get(Credential, credential_id)
+                if row is None:
+                    return None
 
-            row.type = self._normalize_type(payload.type)
-            row.code = payload.code
-            row.title = payload.title
-            row.url = payload.url
-            row.sort_order = int(payload.sort_order)
-            row.visible = bool(payload.visible)
-            row.updated_at = datetime.now(timezone.utc)
-            session.commit()
-            session.refresh(row)
-            return row
+                row.type = self._normalize_type(payload.type)
+                row.code = payload.code
+                row.title = payload.title
+                row.url = payload.url
+                row.sort_order = int(payload.sort_order)
+                row.visible = bool(payload.visible)
+                row.updated_at = datetime.now(timezone.utc)
+                session.commit()
+                session.refresh(row)
+                return row
+        except Exception:
+            logger.exception("Failed to update credential", extra={"credential_id": credential_id})
+            raise
 
     def delete_credential(self, credential_id: str) -> bool:
-        with open_session() as session:
-            result = session.execute(delete(Credential).where(Credential.id == credential_id))
-            session.commit()
-            return int(result.rowcount or 0) > 0
+        try:
+            with open_session() as session:
+                result = session.execute(delete(Credential).where(Credential.id == credential_id))
+                session.commit()
+                return int(result.rowcount or 0) > 0
+        except Exception:
+            logger.exception("Failed to delete credential", extra={"credential_id": credential_id})
+            raise
 
     def seed_defaults_if_empty(self) -> int:
         with open_session() as session:
