@@ -7,8 +7,8 @@ import { Button } from "@/components/ui/button";
 
 export function HeroSection() {
 	return (
-		<Container className="grid items-center gap-5 py-7 sm:py-9 md:grid-cols-2 md:gap-8 md:py-16">
-			<FadeIn className="space-y-4 text-center sm:space-y-5 md:space-y-6 md:text-left">
+		<Container className="grid min-w-0 items-center gap-5 overflow-x-clip py-7 sm:py-9 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] md:gap-8 md:py-16">
+			<FadeIn className="min-w-0 space-y-4 text-center sm:space-y-5 md:space-y-6 md:text-left">
 				<p className="text-xs uppercase tracking-[0.35em] text-muted md:text-sm">Hello, I&apos;m</p>
 				<h1 className="text-[2.15rem] font-semibold leading-[1.02] tracking-tight sm:text-5xl md:text-6xl lg:text-7xl">
 					Kabiraj Rana
@@ -48,7 +48,7 @@ export function HeroSection() {
 				</div>
 			</FadeIn>
 
-			<FadeIn delay={0.1} className="relative hidden md:block">
+			<FadeIn delay={0.1} className="relative hidden min-w-0 md:block">
 				<div className="relative h-[320px] overflow-hidden md:h-[420px] lg:h-[480px]">
 					<div className="relative flex h-full items-end justify-center">
 						<HeroSplineModel />

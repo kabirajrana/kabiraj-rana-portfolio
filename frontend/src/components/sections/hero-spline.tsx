@@ -227,7 +227,7 @@ export function HeroSplineModel() {
 	}
 
 	return (
-		<div ref={containerRef} className="block h-[300px] w-full max-w-[560px] min-h-[300px] md:h-[420px] md:min-h-[420px] lg:h-[480px] lg:min-h-[480px]" aria-hidden="true">
+		<div ref={containerRef} className="block h-[300px] w-full min-w-0 max-w-full min-h-[300px] overflow-hidden md:h-[420px] md:min-h-[420px] lg:h-[480px] lg:min-h-[480px]" aria-hidden="true">
 			{canRenderViewer && canMountViewer ? (
 				<spline-viewer
 					url={SPLINE_SCENE_URL}
