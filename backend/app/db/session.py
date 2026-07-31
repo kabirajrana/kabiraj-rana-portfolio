@@ -28,7 +28,8 @@ def configure_database(database_url: str) -> bool:
         _SessionLocal = None
         return False
 
-    _engine = create_engine(normalized_url, pool_pre_ping=True)
+    connect_args = {"connect_timeout": 5} if normalized_url.startswith("postgresql") else {}
+    _engine = create_engine(normalized_url, pool_pre_ping=True, connect_args=connect_args)
     _SessionLocal = sessionmaker(bind=_engine, autocommit=False, autoflush=False, expire_on_commit=False)
     return True
 

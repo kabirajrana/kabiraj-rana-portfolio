@@ -27,7 +27,12 @@ app.state.started_at = time.time()
 
 @app.on_event("startup")
 def bootstrap_data_stores() -> None:
-	init_credential_store(settings.database_url, seed_on_empty=settings.credentials_seed_on_empty)
+	try:
+		init_credential_store(settings.database_url, seed_on_empty=settings.credentials_seed_on_empty)
+	except Exception as error:
+		# The admin/content store is JSON-backed and can serve authentication even
+		# when the optional credentials database is unavailable during boot.
+		print(f"[startup] Credential database unavailable; continuing without it: {error}")
 
 
 if __name__ == "__main__":
