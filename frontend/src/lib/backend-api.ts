@@ -1,9 +1,11 @@
 const IS_PROD = process.env.NODE_ENV === "production";
-const API_TIMEOUT_MS = IS_PROD ? 20000 : 6000;
+// Render may need several seconds to wake a sleeping instance. Keep the
+// request alive long enough for the first request after an idle period.
+const API_TIMEOUT_MS = IS_PROD ? 30000 : 6000;
 const API_RETRY_ATTEMPTS = IS_PROD ? 2 : 1;
 const API_NO_STORE_GET_TIMEOUT_MS = IS_PROD ? 7000 : 2500;
 const API_NO_STORE_GET_RETRY_ATTEMPTS = 1;
-const API_HEALTH_TIMEOUT_MS = IS_PROD ? 4000 : 1500;
+const API_HEALTH_TIMEOUT_MS = IS_PROD ? 10000 : 1500;
 
 type BackendApiEnvSource = "BACKEND_API_URL" | "API_URL" | "NEXT_PUBLIC_API_URL";
 
@@ -255,18 +257,37 @@ export async function probeBackendApiHealth(): Promise<{ ok: boolean; endpoint: 
   let endpoint: string | null = null;
   try {
     endpoint = resolveBackendApiEndpoint("/health");
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), API_HEALTH_TIMEOUT_MS);
-    let response: Response;
-    try {
-      response = await fetch(endpoint, {
-        method: "GET",
-        cache: "no-store",
-        signal: controller.signal,
-      });
-    } finally {
-      clearTimeout(timeout);
+    let response: Response | null = null;
+    let lastError: unknown = null;
+
+    // Probe twice because the first request commonly wakes a sleeping Render
+    // service and can hit the timeout while the instance is starting.
+    for (let attempt = 1; attempt <= 2; attempt += 1) {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), API_HEALTH_TIMEOUT_MS);
+      try {
+        response = await fetch(endpoint, {
+          method: "GET",
+          cache: "no-store",
+          signal: controller.signal,
+        });
+        if (response.ok || response.status < 500 || attempt === 2) {
+          break;
+        }
+      } catch (error) {
+        lastError = error;
+        if (attempt === 2) {
+          break;
+        }
+      } finally {
+        clearTimeout(timeout);
+      }
     }
+
+    if (!response) {
+      throw lastError instanceof Error ? lastError : new Error("Backend health probe failed");
+    }
+
     return {
       ok: response.ok,
       endpoint,

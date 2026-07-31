@@ -11,6 +11,7 @@ router = APIRouter(tags=["health"])
 
 
 @router.get("/health", response_model=HealthResponse)
+@router.get("/v1/health", response_model=HealthResponse, include_in_schema=False)
 async def health_check(request: Request) -> HealthResponse:
 	started_at = getattr(request.app.state, "started_at", time.time())
 	uptime = max(0.0, time.time() - started_at)
