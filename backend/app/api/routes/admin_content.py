@@ -14,9 +14,8 @@ from pydantic import EmailStr
 from pydantic import Field
 from pydantic import model_validator
 
-from app.services.admin_store import get_admin_store
+from app.services.postgres_store import get_admin_store
 from app.services.credential_store import CredentialPayload
-from app.services.credential_store import JsonCredentialStore
 from app.services.credential_store import get_credential_store
 from app.services.credential_store import serialize_credential
 from app.services.credential_store import serialize_credential_legacy
@@ -155,10 +154,8 @@ def _parse_datetime(value: str | None) -> datetime | None:
 def _credential_store_or_503():
 	try:
 		return get_credential_store()
-	except RuntimeError:
-		# Credentials remain manageable when the optional PostgreSQL service is
-		# unavailable; the JSON admin store is already the source for other CMS data.
-		return JsonCredentialStore()
+	except RuntimeError as exc:
+		raise HTTPException(status_code=503, detail=str(exc)) from exc
 
 
 @router.get("/admin/messages")

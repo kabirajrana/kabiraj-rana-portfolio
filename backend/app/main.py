@@ -8,6 +8,10 @@ from app.api.router import api_router
 from app.core.config import get_settings
 from app.core.cors import setup_cors
 from app.services.credential_store import init_credential_store
+from app.services.postgres_store import ensure_admin_defaults
+from app.db.base import Base
+from app.db.models import ContentRecord
+from app.db.session import get_engine
 
 settings = get_settings()
 
@@ -29,10 +33,12 @@ app.state.started_at = time.time()
 def bootstrap_data_stores() -> None:
 	try:
 		init_credential_store(settings.database_url, seed_on_empty=settings.credentials_seed_on_empty)
+		Base.metadata.create_all(bind=get_engine())
+		ensure_admin_defaults()
 	except Exception as error:
-		# The admin/content store is JSON-backed and can serve authentication even
-		# when the optional credentials database is unavailable during boot.
-		print(f"[startup] Credential database unavailable; continuing without it: {error}")
+		print(f"[startup] PostgreSQL initialization failed: {error}")
+		if settings.app_env == "production":
+			raise
 
 
 if __name__ == "__main__":

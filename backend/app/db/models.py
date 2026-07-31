@@ -9,7 +9,10 @@ from sqlalchemy import Boolean
 from sqlalchemy import CheckConstraint
 from sqlalchemy import DateTime
 from sqlalchemy import Integer
+from sqlalchemy import JSON
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy import String
+from sqlalchemy import UniqueConstraint
 from sqlalchemy.orm import Mapped
 from sqlalchemy.orm import mapped_column
 
@@ -35,6 +38,32 @@ class Credential(Base):
     url: Mapped[str] = mapped_column(String(2048), nullable=False)
     sort_order: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     visible: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=lambda: datetime.now(timezone.utc))
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        nullable=False,
+        default=lambda: datetime.now(timezone.utc),
+        onupdate=lambda: datetime.now(timezone.utc),
+    )
+
+
+class ContentRecord(Base):
+    """Durable PostgreSQL envelope for flexible admin-managed resources."""
+
+    __tablename__ = "content_records"
+
+    __table_args__ = (
+        UniqueConstraint("resource", "record_id", name="uq_content_records_resource_record"),
+    )
+
+    key: Mapped[str] = mapped_column(String(255), primary_key=True)
+    resource: Mapped[str] = mapped_column(String(64), nullable=False, index=True)
+    record_id: Mapped[str] = mapped_column(String(128), nullable=False)
+    slug: Mapped[str | None] = mapped_column(String(255), nullable=True, index=True)
+    status: Mapped[str | None] = mapped_column(String(64), nullable=True, index=True)
+    record_type: Mapped[str | None] = mapped_column(String(64), nullable=True, index=True)
+    sort_order: Mapped[int] = mapped_column(Integer, nullable=False, default=0, index=True)
+    payload: Mapped[dict] = mapped_column(JSON().with_variant(JSONB, "postgresql"), nullable=False, default=dict)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=lambda: datetime.now(timezone.utc))
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
